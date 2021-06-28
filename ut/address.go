@@ -49,7 +49,6 @@ func GenerateUBCAddress(version string, key *secp256k1.PublicKey) string {
 	default:
 		return ""
 	}
-
 	hashed1 := hash.Hash(key.SerializeCompressed())
 	hashed2, _ := hash.Hash160(hashed1.Bytes())
 	addVersion := append(ver, hashed2...)
@@ -57,6 +56,7 @@ func GenerateUBCAddress(version string, key *secp256k1.PublicKey) string {
 	addVersionHashed2 := hash.Hash(addVersionHashed1.Bytes())
 	checkSum := addVersionHashed2[0:4]
 	hashedCheck1 := append(addVersion, checkSum...)
+
 	return base58.Encode(hashedCheck1)
 }
 

@@ -1,5 +1,5 @@
 # testnet or mainnet
-TestNet = true
+TestNet = false
 
 # Program home directory
 HomeDir = "data"

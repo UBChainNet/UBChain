@@ -383,26 +383,8 @@ func (t *TxLocation) GetHeight() uint64 {
 }
 
 func CalCoinBase(height, startHeight uint64) uint64 {
-	if height < startHeight {
-		return 0
-	}
-	height = height - startHeight + 1
-	if height%(60*60*24/param.BlockInterval) != 0 {
-		return 0
-	}
-	var mouth uint64
-	if height%(60*60*24*30/param.BlockInterval) == 0 {
-		mouth = height / (60 * 60 * 24 * 30 / param.BlockInterval)
-	} else {
-		mouth = height/(60*60*24*30/param.BlockInterval) + 1
-	}
 
-	coins, ok := param.DayCoin[mouth]
-	if !ok {
-		return 0
-	}
-	count, _ := NewAmount(coins)
-	return count
+	return 0
 }
 
 func TransferFees(receiverCount int) uint64 {

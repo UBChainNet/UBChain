@@ -291,23 +291,23 @@ func parseSEFTParams(args []string, nonce uint64) (*types.Transaction, error) {
 }
 
 var AddLiquidityCmd = &cobra.Command{
-	Use:     "AddLiquidity {from} {to} {exchange} {tokenA} {amountADesired} {amountAmin} {tokenB} {amountBDesired} {amountBMin} {password} {nonce}; Create and add liquidity;",
+	Use:     "AddLiquidity {from} {to} {exchange} {tokenA} {amountADesired} {amountAmin} {tokenB} {amountBDesired} {amountBMin} {deadline} {password} {nonce}; Create and add liquidity;",
 	Aliases: []string{"addliquidity", "al", "AL"},
-	Short:   "AddLiquidity {from} {to} {exchange} {tokenA} {amountADesired} {amountAmin} {tokenB} {amountBDesired} {amountBMin} {password} {nonce}; Create and add liquidity;",
+	Short:   "AddLiquidity {from} {to} {exchange} {tokenA} {amountADesired} {amountAmin} {tokenB} {amountBDesired} {amountBMin} {deadline} {password} {nonce}; Create and add liquidity;",
 	Example: `
-	AddLiquidity UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W UWTXEqvUWik48uAHcJXZiyyWMy4GLtpGuttL 100 90 UBC 1 0.9 123456
+	AddLiquidity UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W UWTXEqvUWik48uAHcJXZiyyWMy4GLtpGuttL 100 90 UBC 1 0.9 1000 123456
 		OR
-	AddLiquidity UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W UWTXEqvUWik48uAHcJXZiyyWMy4GLtpGuttL 100 90 UBC 1 0.9 123456 1
+	AddLiquidity UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W UWTXEqvUWik48uAHcJXZiyyWMy4GLtpGuttL 100 90 UBC 1 0.9 1000 123456 1
 	`,
-	Args: cobra.MinimumNArgs(9),
+	Args: cobra.MinimumNArgs(10),
 	Run:  AddLiquidity,
 }
 
 func AddLiquidity(cmd *cobra.Command, args []string) {
 	var passwd []byte
 	var err error
-	if len(args) > 9 {
-		passwd = []byte(args[9])
+	if len(args) > 10 {
+		passwd = []byte(args[10])
 	} else {
 		fmt.Println("please input password：")
 		passwd, err = readPassWd()
@@ -385,13 +385,14 @@ func parseALParams(args []string, nonce uint64) (*types.Transaction, error) {
 		return nil, errors.New("wrong amountBMin")
 	}
 	amountBMin, _ := types.NewAmount(amountBMinf)
-	if len(args) > 10 {
-		nonce, err = strconv.ParseUint(args[10], 10, 64)
+	deadline, err := strconv.ParseUint(args[9], 10, 64)
+	if len(args) > 11 {
+		nonce, err = strconv.ParseUint(args[11], 10, 64)
 		if err != nil {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	tx, err := transaction.NewPairAddLiquidity(Net, from, to, exchange, tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, nonce, "")
+	tx, err := transaction.NewPairAddLiquidity(Net, from, to, exchange, tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, deadline, nonce, "")
 	if err != nil {
 		return nil, err
 	}

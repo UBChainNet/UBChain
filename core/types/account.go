@@ -154,11 +154,11 @@ func (a *Account) ContractChangeFrom(tx ITransaction, blockHeight uint64) error 
 		return ErrNonce
 	}
 	fees := tx.GetFees()
-	UBC, ok := a.Coins.Get(param.Token.String())
+	ubc, ok := a.Coins.Get(param.Token.String())
 	if !ok {
 		return errors.New("account is not exist")
 	}
-	if UBC.Balance < fees {
+	if ubc.Balance < fees {
 		return ErrNotEnoughFees
 	}
 	ubc.Balance -= fees
