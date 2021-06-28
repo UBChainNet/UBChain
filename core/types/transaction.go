@@ -17,9 +17,9 @@ import (
 const (
 	Transfer_ TransactionType = iota
 	Contract_
-	LoginCandidate_
-	TransferV2_
 	ContractV2_
+	LoginCandidate_
+
 	/*LogoutCandidate
 	VoteToCandidate*/
 )
@@ -126,8 +126,6 @@ func (t *Transaction) verifyTxFees() error {
 	var fees uint64
 	switch t.TxHead.TxType {
 	case Transfer_:
-		fees = param.Fees
-	case TransferV2_:
 		fees = TransferFees(len(t.TxBody.ToAddress().ReceiverList()))
 	case Contract_:
 		fees = param.TokenConsumption
@@ -156,8 +154,6 @@ func (t *Transaction) verifyTxSize() error {
 	switch t.TxHead.TxType {
 	case Transfer_:
 		fallthrough
-	case TransferV2_:
-		fallthrough
 	case Contract_:
 		return nil
 		/*case LogoutCandidate:
@@ -175,16 +171,18 @@ func (t *Transaction) verifyTxSize() error {
 func (t *Transaction) verifyCoinBaseAmount(height, amount uint64) error {
 	nTx := t.TxBody.(*TransferBody)
 	sumAmount := CalCoinBase(height, param.CoinHeight) + amount
-	if sumAmount != nTx.Amount {
+	if sumAmount != nTx.GetAmount() {
 		return ErrCoinBase
 	}
 	return nil
 }
 
 func (t *Transaction) verifyAmount() error {
-	nTx, ok := t.TxBody.(*TransferBody)
-	if ok && nTx.Amount < param.MinAllowedAmount {
-		return fmt.Errorf("the minimum amount of the transaction must not be less than %d", param.MinAllowedAmount)
+	nTx, _ := t.TxBody.(*TransferBody)
+	for _, to := range nTx.Receivers.ReceiverList() {
+		if to.Amount < param.MinAllowedAmount {
+			return fmt.Errorf("the minimum amount of the transaction must not be less than %d", param.MinAllowedAmount)
+		}
 	}
 	return nil
 }
@@ -199,8 +197,6 @@ func (t *Transaction) verifyTxFrom() error {
 func (t *Transaction) verifyTxType() error {
 	switch t.TxHead.TxType {
 	case Transfer_:
-		return nil
-	case TransferV2_:
 		return nil
 	case Contract_:
 		return nil
@@ -388,5 +384,5 @@ func CalCoinBase(height, startHeight uint64) uint64 {
 }
 
 func TransferFees(receiverCount int) uint64 {
-	return param.Fees
+	return param.Fees * uint64(receiverCount)
 }

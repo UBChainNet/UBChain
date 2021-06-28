@@ -66,18 +66,7 @@ func TranslateRpcTxToTx(rpcTx *RpcTransaction) (*Transaction, error) {
 		if err != nil {
 			return nil, err
 		}
-		txBody, err = translateRpcNormalBodyToBody(body)
-	case TransferV2_:
-		body := &RpcTransferV2Body{}
-		bytes, err := json.Marshal(rpcTx.TxBody)
-		if err != nil {
-			return nil, err
-		}
-		err = json.Unmarshal(bytes, body)
-		if err != nil {
-			return nil, err
-		}
-		txBody, err = translateRpcTransferV2BodyToBody(body)
+		txBody, err = translateRpcTransferBodyToBody(body)
 	case Contract_:
 		body := &RpcContractBody{}
 		bytes, err := json.Marshal(rpcTx.TxBody)
@@ -133,13 +122,7 @@ func TranslateTxToRpcTx(tx *Transaction) (*RpcTransaction, error) {
 	}
 	switch tx.GetTxType() {
 	case Transfer_:
-		rpcTx.TxBody = &RpcTransferBody{
-			Contract: tx.GetTxBody().GetContract().String(),
-			To:       tx.GetTxBody().ToAddress().ReceiverList()[0].Address.String(),
-			Amount:   tx.GetTxBody().GetAmount(),
-		}
-	case TransferV2_:
-		rpcBody := &RpcTransferV2Body{
+		rpcBody := &RpcTransferBody{
 			Contract:  tx.GetTxBody().GetContract().String(),
 			Receivers: make([]RpcReceiver, 0),
 		}
@@ -553,23 +536,11 @@ func TranslateRpcSignScriptToSignScript(rpcSignScript *RpcSignScript) (*SignScri
 	}, nil
 }
 
-func translateRpcNormalBodyToBody(rpcBody *RpcTransferBody) (*TransferBody, error) {
+func translateRpcTransferBodyToBody(rpcBody *RpcTransferBody) (*TransferBody, error) {
 	if rpcBody == nil {
 		return nil, errors.New("wrong transaction body")
 	}
-
-	return &TransferBody{
-		Contract: hasharry.StringToAddress(rpcBody.Contract),
-		To:       hasharry.StringToAddress(rpcBody.To),
-		Amount:   rpcBody.Amount,
-	}, nil
-}
-
-func translateRpcTransferV2BodyToBody(rpcBody *RpcTransferV2Body) (*TransferV2Body, error) {
-	if rpcBody == nil {
-		return nil, errors.New("wrong transaction body")
-	}
-	txBody := &TransferV2Body{
+	txBody := &TransferBody{
 		Contract:  hasharry.StringToAddress(rpcBody.Contract),
 		Receivers: NewReceivers(),
 	}

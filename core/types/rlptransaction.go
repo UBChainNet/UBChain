@@ -35,13 +35,6 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			TxHead: rt.TxHead,
 			TxBody: nt,
 		}
-	case TransferV2_:
-		var nt *TransferV2Body
-		rlp.DecodeBytes(rt.TxBody, &nt)
-		return &Transaction{
-			TxHead: rt.TxHead,
-			TxBody: nt,
-		}
 	case Contract_:
 		var ct *ContractBody
 		rlp.DecodeBytes(rt.TxBody, &ct)

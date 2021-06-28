@@ -299,13 +299,6 @@ func (blc *BlockChain) updateState(block *types.Block) error {
 			if err := blc.accountState.UpdateTransferTo(tx, block.Height); err != nil {
 				return err
 			}
-		case types.TransferV2_:
-			if err := blc.accountState.UpdateTransferV2From(tx, block.Height); err != nil {
-				return err
-			}
-			if err := blc.accountState.UpdateTransferV2To(tx, block.Height); err != nil {
-				return err
-			}
 		case types.Contract_:
 			if err := blc.accountState.UpdateContractFrom(tx, block.Height); err != nil {
 				return err
@@ -343,10 +336,6 @@ func (blc *BlockChain) updateGenesisState(block *types.Block) error {
 		switch tx.GetTxType() {
 		case types.Transfer_:
 			if err := blc.accountState.UpdateTransferTo(tx, block.Height); err != nil {
-				return err
-			}
-		case types.TransferV2_:
-			if err := blc.accountState.UpdateTransferV2To(tx, block.Height); err != nil {
 				return err
 			}
 		}
@@ -455,9 +444,6 @@ func (blc *BlockChain) verifyTx(tx types.ITransaction, blockHeight uint64) error
 func (blc *BlockChain) verifyBusiness(tx types.ITransaction, blockHeight uint64) error {
 	switch tx.GetTxType() {
 	case types.Transfer_:
-		account := blc.accountState.GetAccountState(tx.From())
-		return account.VerifyNonce(tx.GetNonce())
-	case types.TransferV2_:
 		account := blc.accountState.GetAccountState(tx.From())
 		return account.VerifyNonce(tx.GetNonce())
 	}

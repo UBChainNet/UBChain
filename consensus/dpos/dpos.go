@@ -100,6 +100,7 @@ func (dpos *DPos) GetGenesisBlock() *types.Block {
 	}
 	var sumCoins uint64
 	for _, info := range param.MappingCoin {
+		res := types.NewReceivers()
 		tx := &types.Transaction{
 			TxHead: &types.TransactionHead{
 				TxHash:     hasharry.Hash{},
@@ -111,12 +112,13 @@ func (dpos *DPos) GetGenesisBlock() *types.Block {
 				Note:       info.Note,
 				SignScript: &types.SignScript{},
 			},
-			TxBody: &types.TransferBody{
-				Contract: param.Token,
-				To:       hasharry.StringToAddress(info.Address),
-				Amount:   info.Amount,
-			},
 		}
+		txBody := &types.TransferBody{
+			Contract: param.Token,
+		}
+		res.Add(hasharry.StringToAddress(info.Address), info.Amount)
+		txBody.Receivers = res
+		tx.TxBody = txBody
 		sumCoins += info.Amount
 		tx.SetHash()
 		block.Transactions = append(block.Transactions, tx)

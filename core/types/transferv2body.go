@@ -8,7 +8,7 @@ import (
 	"github.com/jhdriver/UBChain/ut"
 )
 
-type TransferV2Body struct {
+type TransferBody struct {
 	Contract  hasharry.Address
 	Receivers *Receivers
 }
@@ -18,11 +18,11 @@ type Receiver struct {
 	Amount  uint64
 }
 
-func (tb *TransferV2Body) ToAddress() *Receivers {
+func (tb *TransferBody) ToAddress() *Receivers {
 	return tb.Receivers
 }
 
-func (tb *TransferV2Body) GetAmount() uint64 {
+func (tb *TransferBody) GetAmount() uint64 {
 	var sum uint64
 	for _, re := range tb.Receivers.List {
 		sum += re.Amount
@@ -30,31 +30,31 @@ func (tb *TransferV2Body) GetAmount() uint64 {
 	return sum
 }
 
-func (tb *TransferV2Body) GetContract() hasharry.Address {
+func (tb *TransferBody) GetContract() hasharry.Address {
 	return tb.Contract
 }
 
-func (tb *TransferV2Body) GetName() string {
+func (tb *TransferBody) GetName() string {
 	return ""
 }
 
-func (tb *TransferV2Body) GetAbbr() string {
+func (tb *TransferBody) GetAbbr() string {
 	return ""
 }
 
-func (tb *TransferV2Body) GetIncreaseSwitch() bool {
+func (tb *TransferBody) GetIncreaseSwitch() bool {
 	return false
 }
 
-func (tb *TransferV2Body) GetDescription() string {
+func (tb *TransferBody) GetDescription() string {
 	return ""
 }
 
-func (tb *TransferV2Body) GetPeerId() []byte {
+func (tb *TransferBody) GetPeerId() []byte {
 	return nil
 }
 
-func (tb *TransferV2Body) VerifyBody(from hasharry.Address) error {
+func (tb *TransferBody) VerifyBody(from hasharry.Address) error {
 	if len(tb.Receivers.List) > param.MaximumReceiver {
 		return fmt.Errorf("the maximum number of receive addresses is %d", param.MaximumReceiver)
 	}

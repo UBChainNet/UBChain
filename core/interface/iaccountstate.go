@@ -14,11 +14,7 @@ type IAccountState interface {
 
 	UpdateTransferFrom(tx types.ITransaction, blockHeight uint64) error
 
-	UpdateTransferV2From(tx types.ITransaction, blockHeight uint64) error
-
 	UpdateContractFrom(tx types.ITransaction, blockHeight uint64) error
-
-	UpdateTransferV2To(tx types.ITransaction, blockHeight uint64) error
 
 	UpdateTransferTo(tx types.ITransaction, blockHeight uint64) error
 

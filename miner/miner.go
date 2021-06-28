@@ -158,6 +158,8 @@ func (miner *Miner) getCoinBase(txs types.Transactions, height uint64) uint64 {
 }
 
 func (miner *Miner) generateCoinBaseTx(coinBase uint64) types.ITransaction {
+	res := types.NewReceivers()
+	res.Add(miner.signer, coinBase)
 	return &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxHash:     hasharry.Hash{},
@@ -170,9 +172,8 @@ func (miner *Miner) generateCoinBaseTx(coinBase uint64) types.ITransaction {
 			SignScript: &types.SignScript{},
 		},
 		TxBody: &types.TransferBody{
-			Contract: param.Token,
-			To:       miner.signer,
-			Amount:   coinBase,
+			Contract:  param.Token,
+			Receivers: res,
 		},
 	}
 }

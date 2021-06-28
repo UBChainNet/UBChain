@@ -124,7 +124,6 @@ func (a *Account) IsNeedUpdate() bool {
 	return false
 }
 
-// Change the account status of the party that transferred the transaction
 func (a *Account) TransferChangeFrom(tx ITransaction, blockHeight uint64) error {
 	if a.Nonce+1 != tx.GetNonce() {
 		return ErrNonce
@@ -132,18 +131,6 @@ func (a *Account) TransferChangeFrom(tx ITransaction, blockHeight uint64) error 
 	contract := tx.GetTxBody().GetContract()
 	if contract == param.Token {
 		return a.changeUBCTransferFrom(tx, blockHeight)
-	} else {
-		return a.changeCoinTransferFrom(tx, blockHeight)
-	}
-}
-
-func (a *Account) TransferV2ChangeFrom(tx ITransaction, blockHeight uint64) error {
-	if a.Nonce+1 != tx.GetNonce() {
-		return ErrNonce
-	}
-	contract := tx.GetTxBody().GetContract()
-	if contract == param.Token {
-		return a.changeUBCTransferV2From(tx, blockHeight)
 	} else {
 		return a.changeCoinTransferFrom(tx, blockHeight)
 	}
@@ -172,33 +159,6 @@ func (a *Account) ContractChangeFrom(tx ITransaction, blockHeight uint64) error 
 
 // Change the primary account status of one party to the transaction transfer
 func (a *Account) changeUBCTransferFrom(tx ITransaction, blockHeight uint64) error {
-	amount := tx.GetTxBody().GetAmount()
-	fees := tx.GetFees()
-	if !a.IsExist() {
-		a.Address = tx.From()
-	}
-	ubc, ok := a.Coins.Get(param.Token.String())
-	if !ok {
-		return errors.New("account is not exist")
-	}
-	if ubc.Balance < amount {
-		return ErrNotEnoughBalance
-	}
-	if a.Nonce+1 != tx.GetNonce() {
-		return ErrNonce
-	}
-
-	ubc.Balance -= amount
-	ubc.LockOut += amount
-	a.Coins.Set(ubc)
-	a.Nonce = tx.GetNonce()
-	a.Time = tx.GetTime()
-	a.OutJournal.Add(blockHeight, param.Token, amount-fees, fees, tx.GetNonce(), tx.GetTime())
-	return nil
-}
-
-// Change the primary account status of one party to the transaction transfer
-func (a *Account) changeUBCTransferV2From(tx ITransaction, blockHeight uint64) error {
 	amount := tx.GetTxBody().GetAmount()
 	fees := tx.GetFees()
 	if !a.IsExist() {
@@ -283,47 +243,10 @@ func (a *Account) ContractChangeTo(re *Receiver, contract hasharry.Address, bloc
 }
 
 // Change the status of the recipient of the transaction
-func (a *Account) TransferChangeTo(re *Receiver, fees uint64, contract hasharry.Address, blockHeight uint64) error {
+func (a *Account) TransferChangeTo(re *Receiver, contract hasharry.Address, blockHeight uint64) error {
 	if !a.IsExist() {
 		a.Address = re.Address
 	}
-	/*	if tx.GetTxType() == Contract_ {
-		return a.toContractChange(tx, blockHeight)
-	}*/
-
-	if contract.IsEqual(param.Token) {
-		re.Amount = re.Amount - fees
-	}
-
-	coinAccount, ok := a.Coins.Get(contract.String())
-	if ok {
-		coinAccount.LockIn += re.Amount
-	} else {
-		coinAccount = &CoinAccount{
-			Contract: contract.String(),
-			Balance:  0,
-			LockOut:  0,
-			LockIn:   re.Amount,
-		}
-	}
-	a.Coins.Set(coinAccount)
-	a.InJournal.Add(contract, re.Amount, blockHeight)
-	return nil
-}
-
-// Change the status of the recipient of the transaction
-func (a *Account) TransferV2ChangeTo(re *Receiver, contract hasharry.Address, blockHeight uint64) error {
-	if !a.IsExist() {
-		a.Address = re.Address
-	}
-	/*	if tx.GetTxType() == Contract_ {
-		return a.toContractChange(tx, blockHeight)
-	}*/
-
-	/*	if contract.IsEqual(param.Token) {
-		re.Amount = re.Amount - fees
-	}*/
-
 	coinAccount, ok := a.Coins.Get(contract.String())
 	if ok {
 		coinAccount.LockIn += re.Amount
@@ -532,13 +455,7 @@ func (a *Account) VerifyTxState(tx ITransaction) error {
 	switch tx.GetTxType() {
 	case Transfer_:
 		if tx.GetTxBody().GetContract() == param.Token {
-			return a.verifyTokenTxBalance(tx)
-		} else {
-			return a.verifyCoinTxBalance(tx)
-		}
-	case TransferV2_:
-		if tx.GetTxBody().GetContract() == param.Token {
-			return a.verifyTransferV2TokenBalance(tx)
+			return a.verifyTransferTokenBalance(tx)
 		} else {
 			return a.verifyCoinTxBalance(tx)
 		}
@@ -552,7 +469,7 @@ func (a *Account) VerifyTxState(tx ITransaction) error {
 	}
 }
 
-func (a *Account) verifyTransferV2TokenBalance(tx ITransaction) error {
+func (a *Account) verifyTransferTokenBalance(tx ITransaction) error {
 	tokenAccount, ok := a.Coins.Get(param.Token.String())
 	if !ok {
 		return ErrNotEnoughBalance
