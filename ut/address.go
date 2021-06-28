@@ -121,7 +121,7 @@ func GenerateContractV2Address(net string, bytes []byte) (string, error) {
 }
 
 // Generate contract address
-func GenerateContractAddress(net string, address string, abbr string) (string, error) {
+func GenerateContractAddress(net string, abbr string) (string, error) {
 	ver := []byte{}
 	switch net {
 	case param.MainNet:
@@ -134,12 +134,7 @@ func GenerateContractAddress(net string, address string, abbr string) (string, e
 	if err := CheckAbbr(abbr); err != nil {
 		return "", err
 	}
-	if !CheckUBCAddress(net, address) {
-		return "", errors.New("incorrect address")
-	}
-	addrBytes := base58.Decode(address)
-	buffBytes := append(addrBytes, []byte(abbr)...)
-	hashed := hash.Hash(buffBytes)
+	hashed := hash.Hash([]byte(abbr))
 	hash160, err := hash.Hash160(hashed.Bytes())
 	if err != nil {
 		return "", err
@@ -155,11 +150,11 @@ func GenerateContractAddress(net string, address string, abbr string) (string, e
 }
 
 // Verify contract address
-func CheckContractAddress(net string, address string, abbr string, contractAddress string) bool {
+func CheckContractAddress(net string, abbr string, contractAddress string) bool {
 	if !IsValidContractAddress(net, contractAddress) {
 		return false
 	}
-	newAddress, err := GenerateContractAddress(net, address, abbr)
+	newAddress, err := GenerateContractAddress(net, abbr)
 	if err != nil {
 		return false
 	}

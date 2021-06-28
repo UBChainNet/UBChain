@@ -57,12 +57,12 @@ func TestGenerateContractAddress(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := GenerateContractAddress(tt.args.version, tt.args.address, tt.args.name)
+			got, err := GenerateContractAddress(tt.args.version, tt.args.name)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GenerateContractAddress() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			check := CheckContractAddress(tt.args.version, tt.args.address, tt.args.name, got)
+			check := CheckContractAddress(tt.args.version, tt.args.name, got)
 			if check != tt.want {
 				t.Errorf("GenerateContractAddress() got = %v, want %v", check, tt.want)
 			}

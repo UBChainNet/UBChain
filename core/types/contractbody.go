@@ -61,7 +61,7 @@ func (c *ContractBody) VerifyBody(from hasharry.Address) error {
 	if err := c.verifyAttribute(); err != nil {
 		return err
 	}
-	if err := c.verifyContractAddress(from); err != nil {
+	if err := c.verifyContractAddress(); err != nil {
 		return err
 	}
 	if err := c.verifyContractTo(from); err != nil {
@@ -89,11 +89,9 @@ func (c *ContractBody) verifyAttribute() error {
 	return nil
 }
 
-func (c *ContractBody) verifyContractAddress(from hasharry.Address) error {
-	if !ut.CheckContractAddress(param.Net, from.String(), c.Abbr, c.Contract.String()) {
-		if !ut.CheckContractV2Address(param.Net, []byte(c.Abbr), c.Contract.String()) {
-			return errors.New("check contract address failed")
-		}
+func (c *ContractBody) verifyContractAddress() error {
+	if !ut.CheckContractAddress(param.Net, c.Abbr, c.Contract.String()) {
+		return errors.New("check contract address failed")
 	}
 	return nil
 }
