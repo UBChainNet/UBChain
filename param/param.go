@@ -19,7 +19,7 @@ var (
 	// Token name
 	Token = hasharry.StringToAddress("UBC")
 
-	FeeAddress   = hasharry.StringToAddress("UBChktfq5ELewaAReCMyMrMDjpzz8Sm1bXKH")
+	FeeAddress   = hasharry.StringToAddress("UBCWUP6SUEmr9A4zn5Zg32ECksunWYCK1pME")
 	EaterAddress = hasharry.StringToAddress("UBCCoinEaterAddressDontSend000000000")
 )
 
@@ -92,7 +92,7 @@ type MappingInfo struct {
 
 var MappingCoin = []MappingInfo{
 	{
-		Address: "UBCc6GJjohZPT3EmxC8EpeFV6EtTT1RvAWCJ",
+		Address: "UBCTys4XnttJt4m93Vk2hpbTrZuWtBCHuz5G",
 		Note:    "",
 		Amount:  5000 * 1e4 * 1e8,
 	},
