@@ -25,11 +25,11 @@ var (
 
 const (
 	// Block interval period
-	BlockInterval = uint64(30)
+	BlockInterval = uint64(5)
 	// Re-election interval
 	TermInterval = 60 * 60 * 24 * 365 * 100
 	// Maximum number of super nodes
-	MaxWinnerSize = 9
+	MaxWinnerSize = 3
 	// The minimum number of nodes required to confirm the transaction
 	SafeSize = MaxWinnerSize*2/3 + 1
 	// The minimum threshold at which a block is valid

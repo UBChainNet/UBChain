@@ -3,3 +3,9 @@
 cmd/wallet/keystore
 cmd/wallet/wallet
 UBChain
+build
+cmd/tools/tools
+config1.toml
+config2.toml
+config3.toml
+data

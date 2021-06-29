@@ -71,16 +71,25 @@ func (a *Api) GetTransaction(hashStr string) (*coreTypes.RpcTransactionConfirmed
 	if err != nil {
 		return nil, errors.New("hash error")
 	}
+	var height uint64
+	var confirmed bool
 	tx, err := a.chain.GetTransaction(hash)
 	if err != nil {
-		return nil, err
+		tx, err = a.txPool.GetTransaction(hash)
+		if err != nil {
+			return nil, err
+		}
+		height = 0
+		confirmed = false
+	} else {
+		index, err := a.chain.GetTransactionIndex(hash)
+		if err != nil {
+			return nil, fmt.Errorf("%s is not exist", hash.String())
+		}
+		height = index.GetHeight()
+		confirmed = a.chain.GetConfirmedHeight() >= height
 	}
-	confirmed := a.chain.GetConfirmedHeight()
-	index, err := a.chain.GetTransactionIndex(hash)
-	if err != nil {
-		return nil, fmt.Errorf("%s is not exist", hash.String())
-	}
-	height := index.GetHeight()
+
 	var rpcTx *coreTypes.RpcTransaction
 	state, _ := a.chain.GetContractState(hash)
 	if state != nil {
@@ -92,7 +101,7 @@ func (a *Api) GetTransaction(hashStr string) (*coreTypes.RpcTransactionConfirmed
 		TxHead:    rpcTx.TxHead,
 		TxBody:    rpcTx.TxBody,
 		Height:    height,
-		Confirmed: confirmed >= height,
+		Confirmed: confirmed,
 	}
 	return rsMsg, nil
 }

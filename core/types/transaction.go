@@ -178,8 +178,7 @@ func (t *Transaction) verifyCoinBaseAmount(height, amount uint64) error {
 }
 
 func (t *Transaction) verifyAmount() error {
-	nTx, _ := t.TxBody.(*TransferBody)
-	for _, to := range nTx.Receivers.ReceiverList() {
+	for _, to := range t.TxBody.ToAddress().ReceiverList() {
 		if to.Amount < param.MinAllowedAmount {
 			return fmt.Errorf("the minimum amount of the transaction must not be less than %d", param.MinAllowedAmount)
 		}
@@ -200,9 +199,9 @@ func (t *Transaction) verifyTxType() error {
 		return nil
 	case Contract_:
 		return nil
-	case ContractV2_:
+		/*case ContractV2_:
 		return nil
-		/*case VoteToCandidate:
+		case VoteToCandidate:
 			return nil
 		case LoginCandidate_:
 			return nil

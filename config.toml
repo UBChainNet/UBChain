@@ -25,6 +25,7 @@ P2pPort="33330"
 
 # RPC configuration, (default = 33331)
 RpcPort = "33331"
+HttpPort = "33332"
 # RPC password
 RpcPass = ""
 

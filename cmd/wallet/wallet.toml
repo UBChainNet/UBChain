@@ -20,6 +20,6 @@ RpcTLS = false
 RpcCert = ""
 
 #RPC password
-RpcPass = "123"
+RpcPass = ""
 
 

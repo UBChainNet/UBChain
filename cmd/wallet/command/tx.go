@@ -20,29 +20,29 @@ import (
 func init() {
 	txCmds := []*cobra.Command{
 		GetTransactionCmd,
-		SendTransactionV2Cmd,
+		SendTransactionCmd,
 	}
 	RootCmd.AddCommand(txCmds...)
 	RootSubCmdGroups["transaction"] = txCmds
 
 }
 
-var SendTransactionV2Cmd = &cobra.Command{
-	Use:     "SendTransactionV2 {from} {to:amount|to:amount} {contract} {note} {password} {nonce}; Send a transaction v2;",
-	Aliases: []string{"SendTransactionV2", "st2", "ST2"},
-	Short:   "SendTransactionV2 {from} {to:amount|to:amount} {contract} {note} {password} {nonce}; Send a transaction v2;",
+var SendTransactionCmd = &cobra.Command{
+	Use:     "SendTransaction {from} {to:amount|to:amount} {contract} {note} {password} {nonce}; Send a transaction ;",
+	Aliases: []string{"SendTransaction", "st", "ST"},
+	Short:   "SendTransaction {from} {to:amount|to:amount} {contract} {note} {password} {nonce}; Send a transaction ;",
 	Example: `
-	SendTransactionV2 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ "3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ:10|3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndD:10" UBC  "transaction note"
+	SendTransaction 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ "3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ:10|3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndD:10" UBC  "transaction note"
 		OR
-	SendTransactionV2 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ "3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ:10|3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndD:10" UBC  "transaction note" 123456
+	SendTransaction 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ "3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ:10|3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndD:10" UBC  "transaction note" 123456
 		OR
-	SendTransactionV2 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ "3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ:10|3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndD:10" UBC  "transaction note" 123456 1
+	SendTransaction 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ "3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ:10|3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndD:10" UBC  "transaction note" 123456 1
 	`,
 	Args: cobra.MinimumNArgs(4),
-	Run:  SendTransactionV2,
+	Run:  SendTransaction,
 }
 
-func SendTransactionV2(cmd *cobra.Command, args []string) {
+func SendTransaction(cmd *cobra.Command, args []string) {
 	var passwd []byte
 	var err error
 	if len(args) > 4 {

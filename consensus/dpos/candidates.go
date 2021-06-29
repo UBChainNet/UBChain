@@ -20,7 +20,7 @@ var initialCandidates = []CandidatesInfo{
 		Address: "UBCNL8raaNiriNJai14BJdcDLsQFyAms5XXd",
 		PeerId:  "16Uiu2HAmVaAzh6wS1mmypZCJWkMY35ftZPVnxoLdfDNSCwv8DrLT",
 	},
-	{
+	/*{
 		Address: "UBCcwMpxPt9XcjQSGJZLNoujhDsaGSsdRhZ7",
 		PeerId:  "16Uiu2HAkz6fzCgpE7A2EhcNX176ULuEGvRNuKjJnVSXA9yohrQWV",
 	},
@@ -43,5 +43,5 @@ var initialCandidates = []CandidatesInfo{
 	{
 		Address: "UBCRcDoWaF2mfiWgNiybKqt5zuYXork6Rpwn",
 		PeerId:  "16Uiu2HAmHpdStkoNqawJpR9DP47CAFQe78W9N1qsxbJSUHPpmjHv",
-	},
+	},*/
 }

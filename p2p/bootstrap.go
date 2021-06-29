@@ -23,8 +23,8 @@ func init() {
 		//"/ip4/8.210.1.245/tcp/2211/ipfs/16Uiu2HAm51UkR3V2V2zJt6GHnLjyjze7UxHYfGBDKZwKCCHdJ7c4",
 		// UBCZPxLoUPGyYy3Y1Boeyyvk4LKy6n1NDT2n
 		//"/ip4/8.210.23.69/tcp/2211/ipfs/16Uiu2HAky7wHeSacNDy9sooSktQ2hjSULJEfqzrU47k8nnr1JR5v",
-		// UBCHKHFw8W9Lizh5EiuaX1MJ7ad2YJM3Zk96
-		"/ip4/127.0.0.1/tcp/2211/ipfs/16Uiu2HAmFPvm27rqX5Dpj77VGV8JKWSqP6utzqZGzmLtxHJLc4RB",
+		// UBCaryDgAPZh1aEnrbeRUB3LC93MTSKErTAz
+		"/ip4/127.0.0.1/tcp/2211/ipfs/16Uiu2HAmST51HneyhF2GLsRywnhwt51p5ZYQh5K7UAxfSiYFWWKt",
 	} {
 		ma, err := multiaddr.NewMultiaddr(s)
 		if err != nil {
