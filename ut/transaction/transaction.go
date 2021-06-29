@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-func NewTransactionV2(from string, toMap []map[string]uint64, token string, note string, nonce uint64) *types.Transaction {
+func NewTransaction(from string, toMap []map[string]uint64, token string, note string, nonce uint64) *types.Transaction {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.Transfer_,

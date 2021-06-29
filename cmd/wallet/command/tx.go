@@ -115,7 +115,7 @@ func parseV2Params(args []string) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	return transaction.NewTransactionV2(from.String(), to, contract.String(), note, nonce), nil
+	return transaction.NewTransaction(from.String(), to, contract.String(), note, nonce), nil
 }
 
 func parseReceiver(toStr string) ([]map[string]uint64, error) {

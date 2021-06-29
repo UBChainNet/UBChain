@@ -1,7 +1,6 @@
 package contractstate
 
 import (
-	"fmt"
 	"github.com/jhdriver/UBChain/common/hasharry"
 	"github.com/jhdriver/UBChain/core/types"
 	"github.com/jhdriver/UBChain/core/types/contractv2"
@@ -41,46 +40,6 @@ func (cs *ContractState) RootHash() hasharry.Hash {
 // Commit contract status changes
 func (cs *ContractState) ContractTrieCommit() (hasharry.Hash, error) {
 	return cs.contractDb.Commit()
-}
-
-func (c *ContractState) MintTokenContractV2(contractAddr hasharry.Address, hash hasharry.Hash, height uint64,
-	time uint64, amount uint64,
-	receiver hasharry.Address) error {
-	contractRecord := &types.ContractRecord{
-		Height:   height,
-		TxHash:   hash,
-		Time:     time,
-		Amount:   amount,
-		Receiver: receiver.String(),
-	}
-	contract := c.contractDb.GetContract(contractAddr.String())
-	if contract != nil {
-		contract.AddContract(contractRecord)
-	} else {
-		return fmt.Errorf("%s is not exist", contractAddr.String())
-	}
-	c.contractDb.SetContract(contract)
-	return nil
-}
-
-func (c *ContractState) UpdateTokenContract(contractAddr hasharry.Address, hash hasharry.Hash,
-	height uint64, time uint64, amount uint64,
-	receiver hasharry.Address) error {
-	contractRecord := &types.ContractRecord{
-		Height:   height,
-		TxHash:   hash,
-		Time:     time,
-		Amount:   amount,
-		Receiver: receiver.String(),
-	}
-	contract := c.contractDb.GetContract(contractAddr.String())
-	if contract != nil {
-		contract.AddContract(contractRecord)
-	} else {
-		return fmt.Errorf("%s is exist", contractAddr.String())
-	}
-	c.contractDb.SetContract(contract)
-	return nil
 }
 
 func (c *ContractState) GetContract(contractAddr string) *types.Contract {
