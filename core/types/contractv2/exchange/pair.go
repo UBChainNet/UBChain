@@ -37,7 +37,7 @@ func NewPair(exchange, token0, token1 hasharry.Address, symbol0, symbol1 string)
 		Price1CumulativeLast: 0,
 		KLast:                big.NewInt(0),
 		TotalSupply:          0,
-		Symbol:               lpSymbol(symbol0, symbol1),
+		Symbol:               lpSymbol(symbol0, symbol1, exchange.String()),
 		Symbol0:              symbol0,
 		Symbol1:              symbol1,
 	}
@@ -96,6 +96,6 @@ func DecodeToPair(bytes []byte) (*Pair, error) {
 	return pair, err
 }
 
-func lpSymbol(symbol0, symbol1 string) string {
-	return fmt.Sprintf("LP-%s-%s", symbol0, symbol1)
+func lpSymbol(symbol0, symbol1, exchange string) string {
+	return fmt.Sprintf("LP-%s-%s-%s", symbol0, symbol1, exchange[0:6])
 }

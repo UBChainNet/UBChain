@@ -14,6 +14,7 @@ type FunctionType uint
 const (
 	Exchange_ ContractType = 0
 	Pair_                  = 1
+	Token_                 = 2
 )
 
 const (
@@ -25,6 +26,8 @@ const (
 
 	Pair_AddLiquidity    = 100000
 	Pair_RemoveLiquidity = 100001
+
+	Token_Create = 200000
 )
 
 type ContractV2 struct {

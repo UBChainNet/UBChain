@@ -123,7 +123,7 @@ func parseSCParams(args []string) (*types.Transaction, error) {
 	if err := ut.CheckAbbr(abbr); err != nil {
 		return nil, err
 	}
-	contract, err := ut.GenerateContractV2Address(Net, []byte(abbr))
+	contract, err := ut.GenerateContractAddress(Net, abbr)
 	if err != nil {
 		return nil, err
 	}
