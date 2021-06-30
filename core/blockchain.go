@@ -564,9 +564,6 @@ func (blc *BlockChain) dealBlock(block *types.Block) error {
 	err := blc.verifyBlock(block)
 	if err == nil {
 		if err = blc.updateState(block); err != nil {
-			blc.accountState.InitTrie(blc.stateRoot)
-			blc.contractState.InitTrie(blc.contractRoot)
-			blc.consensus.InitTrie(blc.consensusRoot)
 			return err
 		}
 		blc.updateConsensus(block)
