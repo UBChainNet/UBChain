@@ -6,6 +6,7 @@ import (
 	"github.com/jhdriver/UBChain/core/types"
 	"github.com/jhdriver/UBChain/database/statedb"
 	"github.com/jhdriver/UBChain/param"
+	log "github.com/jhdriver/UBChain/log/log15"
 	"sync"
 	"time"
 )
@@ -298,7 +299,9 @@ func (as *AccountState) PreTransfer(from, to, token hasharry.Address, amount uin
 }
 
 func (as *AccountState) verifyTxState(tx types.ITransaction) error {
-	if tx.GetTime() > uint64(time.Now().Unix()) {
+	now := uint64(time.Now().Unix())
+	if tx.GetTime() > now {
+		log.Warn("incorrect transaction time", "now", now, "time", tx.GetTime())
 		return errors.New("incorrect transaction time")
 	}
 
