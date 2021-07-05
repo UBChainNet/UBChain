@@ -68,7 +68,7 @@ const (
 	// MaxContractCoin is the maximum allowable contract COINS
 	MaxContractCoin uint64 = 1e10 * AtomsPerCoin
 
-	Fees uint64 = 0.002 * AtomsPerCoin
+	Fees uint64 = 0.005 * AtomsPerCoin
 
 	TokenConsumption uint64 = 10.24 * AtomsPerCoin
 
