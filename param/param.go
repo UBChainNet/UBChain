@@ -92,7 +92,7 @@ type MappingInfo struct {
 
 var MappingCoin = []MappingInfo{
 	{
-		Address: "UBCTys4XnttJt4m93Vk2hpbTrZuWtBCHuz5G",
+		Address: "UBCVHn5fGP34Uf3iRCHJrw2HnvCWVVJmmZ3K",
 		Note:    "",
 		Amount:  5000 * 1e4 * 1e8,
 	},
