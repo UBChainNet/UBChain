@@ -25,7 +25,7 @@ var (
 
 const (
 	// Block interval period
-	BlockInterval = uint64(30)
+	BlockInterval = uint64(15)
 	// Re-election interval
 	TermInterval = 60 * 60 * 24 * 365 * 100
 	// Maximum number of super nodes
