@@ -2,9 +2,9 @@ package blkmgr
 
 import (
 	"github.com/libp2p/go-libp2p-core/network"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/p2p"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/p2p"
 )
 
 // Peer node communication interface

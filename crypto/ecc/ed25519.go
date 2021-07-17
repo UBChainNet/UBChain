@@ -10,7 +10,7 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/jhdriver/UBChain/crypto/ecc/ed25519"
+	"github.com/UBChainNet/UBChain/crypto/ecc/ed25519"
 )
 
 type edwardsDSA struct {

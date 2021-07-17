@@ -1,6 +1,6 @@
 package types
 
-import "github.com/jhdriver/UBChain/common/hasharry"
+import "github.com/UBChainNet/UBChain/common/hasharry"
 
 type RpcBody struct {
 	Transactions []*RpcTransaction `json:"transactions"`

@@ -2,8 +2,8 @@ package exchange
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 	"math/big"
 )
 

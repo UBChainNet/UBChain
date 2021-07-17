@@ -19,11 +19,11 @@ package trie
 import (
 	"bytes"
 	"crypto/sha256"
-	hash2 "github.com/jhdriver/UBChain/common/hasharry"
+	hash2 "github.com/UBChainNet/UBChain/common/hasharry"
 	"hash"
 	"sync"
 
-	"github.com/jhdriver/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
 )
 
 type hasher struct {

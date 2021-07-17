@@ -2,12 +2,12 @@ package blkmgr
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/consensus"
-	"github.com/jhdriver/UBChain/core"
-	"github.com/jhdriver/UBChain/core/interface"
-	"github.com/jhdriver/UBChain/core/types"
-	log "github.com/jhdriver/UBChain/log/log15"
-	"github.com/jhdriver/UBChain/p2p"
+	"github.com/UBChainNet/UBChain/consensus"
+	"github.com/UBChainNet/UBChain/core"
+	"github.com/UBChainNet/UBChain/core/interface"
+	"github.com/UBChainNet/UBChain/core/types"
+	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/p2p"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"math/rand"

@@ -1,8 +1,8 @@
 package _interface
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
 )
 
 // Transaction pool interface, which is used to manage the transaction pool

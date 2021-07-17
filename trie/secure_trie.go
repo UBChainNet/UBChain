@@ -18,9 +18,9 @@ package trie
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 
-	log "github.com/jhdriver/UBChain/log/log15"
+	log "github.com/UBChainNet/UBChain/log/log15"
 )
 
 var secureKeyPrefix = []byte("secure-key-")

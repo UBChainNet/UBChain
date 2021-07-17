@@ -1,6 +1,6 @@
 package param
 
-import "github.com/jhdriver/UBChain/common/hasharry"
+import "github.com/UBChainNet/UBChain/common/hasharry"
 
 const (
 	// Mainnet logo

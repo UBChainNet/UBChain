@@ -2,7 +2,7 @@ package list
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/core/types"
 )
 
 type FutureTxList struct {

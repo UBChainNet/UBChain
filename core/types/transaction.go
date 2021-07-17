@@ -3,14 +3,14 @@ package types
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	hash2 "github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types/contractv2"
-	"github.com/jhdriver/UBChain/core/types/functionbody/exchange_func"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
-	"github.com/jhdriver/UBChain/crypto/hash"
-	"github.com/jhdriver/UBChain/param"
-	"github.com/jhdriver/UBChain/ut"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	hash2 "github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types/contractv2"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/hash"
+	"github.com/UBChainNet/UBChain/param"
+	"github.com/UBChainNet/UBChain/ut"
 	"strconv"
 )
 

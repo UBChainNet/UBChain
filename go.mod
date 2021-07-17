@@ -1,4 +1,4 @@
-module github.com/jhdriver/UBChain
+module github.com/UBChainNet/UBChain
 
 go 1.15
 

@@ -19,10 +19,10 @@ package trie
 import (
 	"bytes"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	cryptohash "github.com/jhdriver/UBChain/crypto/hash"
-	log "github.com/jhdriver/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	cryptohash "github.com/UBChainNet/UBChain/crypto/hash"
+	log "github.com/UBChainNet/UBChain/log/log15"
 )
 
 // Prove constructs a merkle proof for key. The result contains all

@@ -1,10 +1,10 @@
 package pooldb
 
 import (
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/database/leveldb"
-	"github.com/jhdriver/UBChain/services/txmgr/list"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/database/leveldb"
+	"github.com/UBChainNet/UBChain/services/txmgr/list"
 )
 
 const (

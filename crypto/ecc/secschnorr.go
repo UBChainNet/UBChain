@@ -10,8 +10,8 @@ import (
 	"io"
 	"math/big"
 
-	"github.com/jhdriver/UBChain/crypto/ecc/schnorr"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/ecc/schnorr"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
 )
 
 type secSchnorrDSA struct {

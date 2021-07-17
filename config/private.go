@@ -3,12 +3,12 @@ package config
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/common/keystore"
-	"github.com/jhdriver/UBChain/common/utils"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
-	"github.com/jhdriver/UBChain/crypto/mnemonic"
-	"github.com/jhdriver/UBChain/ut"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/keystore"
+	"github.com/UBChainNet/UBChain/common/utils"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/mnemonic"
+	"github.com/UBChainNet/UBChain/ut"
 	"io/ioutil"
 	"os"
 )

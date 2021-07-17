@@ -8,7 +8,7 @@ package schnorr
 import (
 	"fmt"
 
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
 )
 
 // These constants define the lengths of serialized public keys.

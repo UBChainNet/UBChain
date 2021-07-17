@@ -1,10 +1,10 @@
 package types
 
 import (
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types/contractv2"
-	"github.com/jhdriver/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types/contractv2"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
 )
 
 type RlpTransaction struct {

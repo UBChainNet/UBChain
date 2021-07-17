@@ -3,12 +3,12 @@ package dpos
 import (
 	"errors"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/consensus"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/crypto/hash"
-	"github.com/jhdriver/UBChain/database/dposdb"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/consensus"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/crypto/hash"
+	"github.com/UBChainNet/UBChain/database/dposdb"
+	"github.com/UBChainNet/UBChain/param"
 	"sort"
 	"time"
 )

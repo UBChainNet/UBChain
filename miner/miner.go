@@ -1,13 +1,13 @@
 package miner
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/consensus"
-	"github.com/jhdriver/UBChain/core/interface"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
-	log "github.com/jhdriver/UBChain/log/log15"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/consensus"
+	"github.com/UBChainNet/UBChain/core/interface"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
+	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/param"
 	"time"
 )
 

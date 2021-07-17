@@ -18,11 +18,11 @@ package trie
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 	"io"
 	"strings"
 
-	"github.com/jhdriver/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
 )
 
 var indices = []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f", "[17]"}

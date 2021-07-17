@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	chainhash "github.com/Qitmeer/qitmeer-lib/common/hash"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
 )
 
 type SchorrSigningTestVectorHex struct {

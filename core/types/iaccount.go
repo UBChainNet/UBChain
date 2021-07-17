@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 )
 
 // Account Status

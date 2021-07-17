@@ -2,7 +2,7 @@ package command
 
 import (
 	"context"
-	"github.com/jhdriver/UBChain/rpc"
+	"github.com/UBChainNet/UBChain/rpc"
 	"github.com/spf13/cobra"
 	"time"
 )

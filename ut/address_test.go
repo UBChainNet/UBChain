@@ -1,8 +1,8 @@
 package ut
 
 import (
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/param"
 	"testing"
 )
 

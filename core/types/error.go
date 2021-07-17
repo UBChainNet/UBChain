@@ -3,7 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/param"
 )
 
 var (

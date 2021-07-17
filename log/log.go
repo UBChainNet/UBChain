@@ -2,7 +2,7 @@ package log
 
 import (
 	"fmt"
-	log "github.com/jhdriver/UBChain/log/log15"
+	log "github.com/UBChainNet/UBChain/log/log15"
 	"github.com/jrick/logrotate/rotator"
 	"os"
 	"path/filepath"

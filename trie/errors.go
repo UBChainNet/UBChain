@@ -18,7 +18,7 @@ package trie
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 )
 
 // MissingNodeError is returned by the trie functions (TryGet, TryUpdate, TryDelete)

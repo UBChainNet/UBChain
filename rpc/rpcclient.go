@@ -3,7 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
-	"github.com/jhdriver/UBChain/config"
+	"github.com/UBChainNet/UBChain/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 )

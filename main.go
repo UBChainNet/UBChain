@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/config"
-	"github.com/jhdriver/UBChain/node"
+	"github.com/UBChainNet/UBChain/config"
+	"github.com/UBChainNet/UBChain/node"
 	"os"
 	"os/signal"
 	"runtime"

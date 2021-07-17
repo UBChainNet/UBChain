@@ -1,6 +1,6 @@
 package config
 
-import "github.com/jhdriver/UBChain/config"
+import "github.com/UBChainNet/UBChain/config"
 
 type Config struct {
 	ConfigFile  string

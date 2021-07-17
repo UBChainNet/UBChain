@@ -1,8 +1,8 @@
 package types
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
 )
 
 type ITransaction interface {

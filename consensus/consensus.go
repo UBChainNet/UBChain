@@ -1,8 +1,8 @@
 package consensus
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
 )
 
 // IConsensus consensus interface to handle all matters concerning consensus

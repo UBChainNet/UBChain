@@ -21,9 +21,9 @@ import (
 	"bytes"
 	"crypto/sha256"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 
-	log "github.com/jhdriver/UBChain/log/log15"
+	log "github.com/UBChainNet/UBChain/log/log15"
 	"github.com/rcrowley/go-metrics"
 )
 

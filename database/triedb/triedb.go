@@ -1,7 +1,7 @@
 package triedb
 
 import (
-	"github.com/jhdriver/UBChain/database/leveldb"
+	"github.com/UBChainNet/UBChain/database/leveldb"
 )
 
 // Implementation of tire tree storage

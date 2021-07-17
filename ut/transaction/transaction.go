@@ -1,9 +1,9 @@
 package transaction
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/param"
 	"time"
 )
 

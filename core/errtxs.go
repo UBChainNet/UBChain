@@ -1,7 +1,7 @@
 package core
 
 import (
-	"github.com/jhdriver/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/core/types"
 )
 
 type ErrTxs struct {

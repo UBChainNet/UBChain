@@ -2,7 +2,7 @@ package cuckoo
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/crypto/cuckoo/siphash"
+	"github.com/UBChainNet/UBChain/crypto/cuckoo/siphash"
 	"github.com/pkg/errors"
 	"runtime"
 	"sort"

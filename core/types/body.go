@@ -2,8 +2,8 @@ package types
 
 import (
 	"bytes"
-	hash2 "github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/crypto/hash"
+	hash2 "github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/crypto/hash"
 )
 
 // Block structure, including all transaction information

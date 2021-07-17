@@ -1,12 +1,12 @@
 package contractdb
 
 import (
-	"github.com/jhdriver/UBChain/common/codec"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/core/types/contractv2"
-	"github.com/jhdriver/UBChain/database/triedb"
-	"github.com/jhdriver/UBChain/trie"
+	"github.com/UBChainNet/UBChain/common/codec"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/core/types/contractv2"
+	"github.com/UBChainNet/UBChain/database/triedb"
+	"github.com/UBChainNet/UBChain/trie"
 )
 
 type ContractStorage struct {

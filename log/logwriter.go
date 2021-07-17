@@ -1,7 +1,7 @@
 package log
 
 import (
-	"github.com/jhdriver/UBChain/log/log15/term"
+	"github.com/UBChainNet/UBChain/log/log15/term"
 	"github.com/jrick/logrotate/rotator"
 	"github.com/mattn/go-colorable"
 	"io"

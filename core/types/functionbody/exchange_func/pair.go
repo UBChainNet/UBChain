@@ -2,9 +2,9 @@ package exchange_func
 
 import (
 	"errors"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/param"
-	"github.com/jhdriver/UBChain/ut"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/param"
+	"github.com/UBChainNet/UBChain/ut"
 )
 
 type ExchangeAddLiquidity struct {

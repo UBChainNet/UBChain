@@ -3,11 +3,11 @@ package ut
 import (
 	"bytes"
 	"errors"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/crypto/base58"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
-	"github.com/jhdriver/UBChain/crypto/hash"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/crypto/base58"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/hash"
+	"github.com/UBChainNet/UBChain/param"
 	"unicode"
 )
 

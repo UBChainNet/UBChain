@@ -3,9 +3,9 @@ package types
 import (
 	"errors"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/param"
-	"github.com/jhdriver/UBChain/ut"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/param"
+	"github.com/UBChainNet/UBChain/ut"
 )
 
 const MaxCoinName = 32

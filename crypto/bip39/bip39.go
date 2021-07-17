@@ -14,7 +14,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/jhdriver/UBChain/crypto/bip39/wordlists"
+	"github.com/UBChainNet/UBChain/crypto/bip39/wordlists"
 	"golang.org/x/crypto/pbkdf2"
 )
 

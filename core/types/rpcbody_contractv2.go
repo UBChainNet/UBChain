@@ -1,7 +1,7 @@
 package types
 
 import (
-	"github.com/jhdriver/UBChain/core/types/contractv2"
+	"github.com/UBChainNet/UBChain/core/types/contractv2"
 )
 
 type RpcContractV2TransactionBody struct {

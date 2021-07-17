@@ -19,7 +19,7 @@ package trie
 import (
 	"errors"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 
 	"gopkg.in/karalabe/cookiejar.v2/collections/prque"
 )

@@ -7,8 +7,8 @@ GitCommitLog=${GitCommitLog//\'/\"}
 GitStatus=`git status -s`
 
 LDFlags=" \
-    -X 'github.com/jhdriver/UBChain/param.GitCommitLog=${GitCommitLog}' \
-    -X 'github.com/jhdriver/UBChain/param.GitStatus=${GitStatus}' \
+    -X 'github.com/UBChainNet/UBChain/param.GitCommitLog=${GitCommitLog}' \
+    -X 'github.com/UBChainNet/UBChain/param.GitStatus=${GitStatus}' \
 "
 
 ROOT_DIR=`pwd`

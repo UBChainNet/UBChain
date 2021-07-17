@@ -1,10 +1,10 @@
 package contractstate
 
 import (
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/core/types/contractv2"
-	"github.com/jhdriver/UBChain/database/contractdb"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/core/types/contractv2"
+	"github.com/UBChainNet/UBChain/database/contractdb"
 	"sync"
 )
 

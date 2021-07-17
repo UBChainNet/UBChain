@@ -2,11 +2,11 @@ package accountstate
 
 import (
 	"errors"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types"
-	"github.com/jhdriver/UBChain/database/statedb"
-	"github.com/jhdriver/UBChain/param"
-	log "github.com/jhdriver/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/database/statedb"
+	"github.com/UBChainNet/UBChain/param"
+	log "github.com/UBChainNet/UBChain/log/log15"
 	"sync"
 	"time"
 )

@@ -2,7 +2,7 @@ package blkmgr
 
 import (
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/jhdriver/UBChain/core/types"
+	"github.com/UBChainNet/UBChain/core/types"
 )
 
 type remoteBlockStatic struct {

@@ -2,7 +2,7 @@ package hash
 
 import (
 	"crypto/sha256"
-	"github.com/jhdriver/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 	"golang.org/x/crypto/ripemd160"
 	"io"
 )

@@ -2,7 +2,7 @@ package command
 
 import (
 	"fmt"
-	"github.com/jhdriver/UBChain/crypto/mnemonic"
+	"github.com/UBChainNet/UBChain/crypto/mnemonic"
 	"github.com/spf13/cobra"
 )
 

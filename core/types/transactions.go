@@ -2,9 +2,9 @@ package types
 
 import (
 	"bytes"
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	hash2 "github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/crypto/hash"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	hash2 "github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/crypto/hash"
 )
 
 type Transactions []ITransaction

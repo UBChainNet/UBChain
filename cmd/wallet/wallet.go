@@ -3,11 +3,11 @@ package main
 import (
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"github.com/jhdriver/UBChain/cmd/wallet/command"
-	"github.com/jhdriver/UBChain/cmd/wallet/config"
-	"github.com/jhdriver/UBChain/common/utils"
-	config2 "github.com/jhdriver/UBChain/config"
-	"github.com/jhdriver/UBChain/param"
+	"github.com/UBChainNet/UBChain/cmd/wallet/command"
+	"github.com/UBChainNet/UBChain/cmd/wallet/config"
+	"github.com/UBChainNet/UBChain/common/utils"
+	config2 "github.com/UBChainNet/UBChain/config"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/spf13/cobra"
 	"os"
 )

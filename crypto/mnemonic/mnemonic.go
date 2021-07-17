@@ -2,10 +2,10 @@ package mnemonic
 
 import (
 	"encoding/hex"
-	"github.com/jhdriver/UBChain/crypto/bip32"
-	"github.com/jhdriver/UBChain/crypto/bip39"
-	"github.com/jhdriver/UBChain/crypto/ecc/secp256k1"
-	"github.com/jhdriver/UBChain/crypto/seed"
+	"github.com/UBChainNet/UBChain/crypto/bip32"
+	"github.com/UBChainNet/UBChain/crypto/bip39"
+	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
+	"github.com/UBChainNet/UBChain/crypto/seed"
 )
 
 func Entropy() (string, error) {

@@ -3,9 +3,9 @@ package contractv2
 import (
 	"errors"
 	"fmt"
-	"github.com/jhdriver/UBChain/common/encode/rlp"
-	"github.com/jhdriver/UBChain/common/hasharry"
-	"github.com/jhdriver/UBChain/core/types/contractv2/exchange"
+	"github.com/UBChainNet/UBChain/common/encode/rlp"
+	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
 )
 
 type ContractType uint

@@ -1,8 +1,8 @@
 package peermgr
 
 import (
-	log "github.com/jhdriver/UBChain/log/log15"
-	"github.com/jhdriver/UBChain/p2p"
+	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/p2p"
 	"math/rand"
 	"sync"
 	"time"
