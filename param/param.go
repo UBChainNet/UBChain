@@ -70,7 +70,7 @@ const (
 
 	Fees uint64 = 0.005 * AtomsPerCoin
 
-	TokenConsumption uint64 = 10.24 * AtomsPerCoin
+	TokenConsumption uint64 = 1 * AtomsPerCoin
 
 	CoinHeight = 1
 
