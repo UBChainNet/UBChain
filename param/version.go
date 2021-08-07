@@ -7,7 +7,7 @@ import (
 var (
 	GitCommitLog = "unknown_unknown"
 	GitStatus    = "unknown_unknown"
-	Version      = "v0.4.1"
+	Version      = "v0.4.2"
 )
 
 func StringifySingleLine() string {

@@ -111,8 +111,8 @@ func (c *ContractBody) verifyAmount() error {
 }
 
 func (c *ContractBody) verifyIncreaseSwitch() error {
-	if c.IncreaseSwitch {
+	/*if c.IncreaseSwitch {
 		return fmt.Errorf("additional issuance is not allowed")
-	}
+	}*/
 	return nil
 }
