@@ -14,6 +14,8 @@ type IContractStorage interface {
 	SetContractV2(contract *contractv2.ContractV2)
 	SetContractV2State(txHash string, state *types.ContractV2State)
 	GetContractV2State(txHash string) *types.ContractV2State
+	SetSymbol(symbol string, contract string)
+	GetSymbol(symbol string) (string, bool)
 	InitTrie(contractRoot hasharry.Hash) error
 	RootHash() hasharry.Hash
 	Commit() (hasharry.Hash, error)

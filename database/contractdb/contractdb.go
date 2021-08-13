@@ -9,6 +9,8 @@ import (
 	"github.com/UBChainNet/UBChain/trie"
 )
 
+const synmbolPrefix = "s_"
+
 type ContractStorage struct {
 	trieDB       *triedb.TrieDB
 	contractTrie *trie.Trie
@@ -80,4 +82,16 @@ func (c *ContractStorage) GetContractV2State(txHash string) *types.ContractV2Sta
 	bytes := c.contractTrie.Get([]byte(txHash))
 	cs, _ := types.DecodeContractV2State(bytes)
 	return cs
+}
+
+func (c *ContractStorage) SetSymbol(symbol string, contract string) {
+	c.contractTrie.Update([]byte(synmbolPrefix + symbol), hasharry.StringToAddress(contract).Bytes())
+}
+
+func (c *ContractStorage) GetSymbol(symbol string) (string, bool){
+	bytes := c.contractTrie.Get([]byte(synmbolPrefix + symbol))
+	if bytes == nil{
+		return "", false
+	}
+	return hasharry.BytesToAddress(bytes).String(), true
 }
