@@ -10,6 +10,7 @@ import (
 // Contract structure, issuing a contract with the same
 // name is equivalent to reissuing the pass
 type Contract struct {
+	Sender 		   string
 	Contract       string
 	CoinName       string
 	CoinAbbr       string
@@ -32,6 +33,9 @@ func (c *Contract) IsExist(txHash hasharry.Hash) bool {
 }
 
 func (c *Contract) Verify(tx ITransaction) error {
+	if c.Sender != tx.From().String(){
+		return errors.New("without permission")
+	}
 	txBody := tx.GetTxBody()
 	if c.Contract != "" && !c.IncreaseSwitch {
 		return errors.New("this contract does not support additional issuance")

@@ -1,6 +1,7 @@
 package contractstate
 
 import (
+	"fmt"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
@@ -103,6 +104,11 @@ func (c *ContractState) VerifyState(tx types.ITransaction) error {
 	contract := c.contractDb.GetContract(contractAddr.String())
 	if contract != nil {
 		return contract.Verify(tx)
+	}else{
+		_, exist := c.contractDb.GetSymbol(tx.GetTxBody().GetAbbr())
+		if exist{
+			return fmt.Errorf("%s already exists",  tx.GetTxBody().GetAbbr())
+		}
 	}
 	return nil
 }
@@ -126,6 +132,7 @@ func (c *ContractState) UpdateContract(tx types.ITransaction, blockHeight uint64
 		contract.AddContract(contractRecord)
 	} else {
 		contract = &types.Contract{
+			Sender: 		tx.From().String(),
 			Contract:       contractAddr.String(),
 			CoinName:       txBody.GetName(),
 			CoinAbbr:       txBody.GetAbbr(),
@@ -135,8 +142,10 @@ func (c *ContractState) UpdateContract(tx types.ITransaction, blockHeight uint64
 				contractRecord,
 			},
 		}
+		c.contractDb.SetSymbol(txBody.GetAbbr(), contractAddr.String())
 	}
 	c.contractDb.SetContract(contract)
+
 }
 
 func (c *ContractState) Close() error {
