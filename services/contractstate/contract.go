@@ -132,6 +132,7 @@ func (c *ContractState) UpdateContract(tx types.ITransaction, blockHeight uint64
 		contract.AddContract(contractRecord)
 	} else {
 		contract = &types.Contract{
+			Sender: 		tx.From().String(),
 			Contract:       contractAddr.String(),
 			CoinName:       txBody.GetName(),
 			CoinAbbr:       txBody.GetAbbr(),
