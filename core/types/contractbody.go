@@ -83,7 +83,7 @@ func (c *ContractBody) verifyAttribute() error {
 	if len(c.Description) > MaxCoinDescription {
 		return fmt.Errorf("the maximum length of coin description shall not exceed %d", MaxCoinDescription)
 	}
-	if err := ut.CheckAbbr(c.Abbr); err != nil {
+	if err := ut.CheckSymbol(c.Abbr); err != nil {
 		return err
 	}
 	return nil

@@ -33,23 +33,23 @@ func init() {
 }
 
 var CreateExchangeCmd = &cobra.Command{
-	Use:     "CreateExchange {from} {admin} {feeTo} {password} {nonce}; Create a decentralized exchange;",
+	Use:     "CreateExchange {from} {admin} {feeTo} {symbol} {password} {nonce}; Create a decentralized exchange;",
 	Aliases: []string{"CreateExchange", "createexchange", "ce", "CE"},
-	Short:   "CreateExchange {from} {admin} {feeTo} {password} {nonce}; Create a decentralized exchange;",
+	Short:   "CreateExchange {from} {admin} {feeTo} {symbol} {password} {nonce}; Create a decentralized exchange;",
 	Example: `
-	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 123456
+	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE "ABC" 123456
 		OR
-	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 123456 1
+	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE  "ABC" 123456 1
 	`,
-	Args: cobra.MinimumNArgs(3),
+	Args: cobra.MinimumNArgs(4),
 	Run:  CreateExchange,
 }
 
 func CreateExchange(cmd *cobra.Command, args []string) {
 	var passwd []byte
 	var err error
-	if len(args) > 3 {
-		passwd = []byte(args[3])
+	if len(args) > 4 {
+		passwd = []byte(args[4])
 	} else {
 		fmt.Println("please input password：")
 		passwd, err = readPassWd()
@@ -105,13 +105,14 @@ func parseCEParams(args []string, nonce uint64) (*types.Transaction, error) {
 	from := hasharry.StringToAddress(args[0])
 	admin := args[1]
 	feeTo := args[2]
-	if len(args) > 4 {
-		nonce, err = strconv.ParseUint(args[4], 10, 64)
+	symbol := args[3]
+	if len(args) > 5 {
+		nonce, err = strconv.ParseUint(args[5], 10, 64)
 		if err != nil {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	tx, err := transaction.NewExchange(Net, from.String(), admin, feeTo, nonce, "")
+	tx, err := transaction.NewExchange(Net, from.String(), admin, feeTo, symbol, nonce, "")
 	if err != nil {
 		return nil, err
 	}

@@ -186,6 +186,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			return nil, err
 		}
 		init := &RpcExchangeInitBody{
+			Symbol: "",
 			Admin: "",
 			FeeTo: "",
 		}
@@ -200,6 +201,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Function: &exchange_func.ExchangeInitBody{
 				Admin: hasharry.StringToAddress(init.Admin),
 				FeeTo: hasharry.StringToAddress(init.FeeTo),
+				Symbol: init.Symbol,
 			},
 		}, nil
 	case contractv2.Exchange_SetAdmin:
@@ -437,8 +439,9 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcExchangeInitBody{
-			Admin: funcBody.Admin.String(),
-			FeeTo: funcBody.FeeTo.String(),
+			Admin:  funcBody.Admin.String(),
+			FeeTo:  funcBody.FeeTo.String(),
+			Symbol: funcBody.Symbol,
 		}
 	case contractv2.Exchange_SetAdmin:
 		funcBody, ok := body.Function.(*exchange_func.ExchangeAdmin)

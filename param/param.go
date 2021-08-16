@@ -82,6 +82,8 @@ var (
 	TestPubKeyHashAddrID  = [3]byte{0x06, 0xb5, 0xab} //ubc
 	MainPubKeyHashTokenID = [3]byte{0x03, 0x77, 0xa2} //UBT 3, 82, 55
 	TestPubKeyHashTokenID = [3]byte{0x06, 0xb5, 0xd2} //ubt
+	MainPubKeyHashContractID = [3]byte{0x03, 0x77, 0xab} //UBX 3, 82, 55
+	TestPubKeyHashContractID = [3]byte{0x06, 0xb5, 0xdc} //ubx
 )
 
 type MappingInfo struct {

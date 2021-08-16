@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func NewExchange(net, from, admin, feeTo string, nonce uint64, note string) (*types.Transaction, error) {
+func NewExchange(net, from, admin, feeTo, symbol string, nonce uint64, note string) (*types.Transaction, error) {
 	contract, err := exchange_runner.ExchangeAddress(net, from, nonce)
 	if err != nil {
 		return nil, err
@@ -35,6 +35,7 @@ func NewExchange(net, from, admin, feeTo string, nonce uint64, note string) (*ty
 			Function: &exchange_func.ExchangeInitBody{
 				Admin: hasharry.StringToAddress(admin),
 				FeeTo: hasharry.StringToAddress(feeTo),
+				Symbol: symbol,
 			},
 		},
 	}

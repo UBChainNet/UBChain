@@ -52,7 +52,9 @@ func (e *ExchangeRunner) PreInitVerify() error {
 	if e.exHeader != nil {
 		return fmt.Errorf("exchange %s already exist", e.address.String())
 	}
-	return nil
+	funcBody, _ := e.contractBody.Function.(*exchange_func.ExchangeInitBody)
+	_, err := e.library.GetSymbolContract(funcBody.Symbol)
+	return err
 }
 
 func (e *ExchangeRunner) PreSetVerify() error {
@@ -150,7 +152,8 @@ func (e *ExchangeRunner) Init() {
 		return
 	}
 	initBody := e.contractBody.Function.(*exchange_func.ExchangeInitBody)
-	contract.Body = exchange.NewExchange(initBody.Admin, initBody.FeeTo)
+	contract.Body, _ = exchange.NewExchange(initBody.Admin, initBody.FeeTo, initBody.Symbol)
+	e.library.SetSymbol(initBody.Symbol, contract.Address.String())
 	e.library.SetContractV2(contract)
 }
 

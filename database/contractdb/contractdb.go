@@ -88,7 +88,7 @@ func (c *ContractStorage) SetSymbol(symbol string, contract string) {
 	c.contractTrie.Update([]byte(synmbolPrefix + symbol), hasharry.StringToAddress(contract).Bytes())
 }
 
-func (c *ContractStorage) GetSymbol(symbol string) (string, bool){
+func (c *ContractStorage) GetSymbolContract(symbol string) (string, bool){
 	bytes := c.contractTrie.Get([]byte(synmbolPrefix + symbol))
 	if bytes == nil{
 		return "", false

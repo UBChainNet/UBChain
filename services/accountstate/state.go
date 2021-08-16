@@ -5,8 +5,8 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/database/statedb"
-	"github.com/UBChainNet/UBChain/param"
 	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/param"
 	"sync"
 	"time"
 )
@@ -70,7 +70,7 @@ func (as *AccountState) setAccountState(account types.IAccount) {
 	as.stateDb.SetAccountState(account)
 }
 
-// Update sender account status based on transaction information
+// UpdateContractFrom Update sender account status based on transaction information
 func (as *AccountState) UpdateContractFrom(tx types.ITransaction, blockHeight uint64) error {
 	if tx.IsCoinBase() {
 		return nil

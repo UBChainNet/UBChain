@@ -38,8 +38,9 @@ type IRCFunction interface {
 }
 
 type RpcExchangeInitBody struct {
-	Admin string `json:"admin"`
-	FeeTo string `json:"feeto"`
+	Symbol string  `json:"symbol"`
+	Admin  string  `json:"admin"`
+	FeeTo  string  `json:"feeto"`
 }
 
 type RpcExchangeSetAdminBody struct {
@@ -87,12 +88,4 @@ type RpcExchangeRemoveLiquidity struct {
 	AmountAMin float64 `json:"amountamin"`
 	AmountBMin float64 `json:"amountbmin"`
 	Deadline   uint64  `json:"deadline"`
-}
-
-type RpcPair struct {
-	Address  string `json:"address"`
-	Token0   string `json:"token0"`
-	Token1   string `json:"token1"`
-	Reserve0 uint64 `json:"reserve0"`
-	Reserve1 uint64 `json:"reserve1"`
 }

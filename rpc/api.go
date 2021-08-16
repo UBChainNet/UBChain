@@ -10,8 +10,10 @@ import (
 	"github.com/UBChainNet/UBChain/core/runner"
 	coreTypes "github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/p2p"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/rpc/rpctypes"
 	"github.com/UBChainNet/UBChain/services/reqmgr"
+	"github.com/UBChainNet/UBChain/ut"
 	"strconv"
 )
 
@@ -149,13 +151,31 @@ func (a *Api) GetLastHeight() (string, error) {
 	return sHeight, nil
 }
 
-func (a *Api) GetContract(address string) (*coreTypes.RpcContract, error) {
-	contract := a.contractState.GetContract(address)
-	if contract == nil {
-		return nil, fmt.Errorf("contract address %s is not exist", address)
+func (a *Api) GetContract(address string) (interface{}, error) {
+	if ut.IsContractV2Address(param.Net, address){
+		contractV2 := a.contractState.GetContractV2(address)
+		if contractV2 == nil {
+			return nil, fmt.Errorf("contract %s is not exist", address)
+		}
+		return coreTypes.TranslateContractV2ToRpcContractV2(contractV2), nil
+	}else{
+		contract := a.contractState.GetContract(address)
+		if contract == nil {
+			return nil, fmt.Errorf("contract %s is not exist", address)
+		}
+		return coreTypes.TranslateContractToRpcContract(contract), nil
 	}
-	return coreTypes.TranslateContractToRpcContract(contract), nil
 }
+
+func (a *Api) GetContractBySymbol(symbol string) (interface{}, error) {
+	contract, exist := a.contractState.GetSymbolContract(symbol)
+	if !exist{
+		return nil, fmt.Errorf("symbol %s does not exist", contract)
+	}
+	return a.GetContract(contract)
+}
+
+
 
 func (a *Api) GetConfirmedHeight() (string, error) {
 	height := a.chain.GetConfirmedHeight()
@@ -173,7 +193,7 @@ func (a *Api) NodeInfo() (*coreTypes.NodeInfo, error) {
 	return node, nil
 }
 
-func (a *Api) GetExchangePairs(address string) ([]*coreTypes.RpcPair, error) {
+func (a *Api) GetExchangePairs(address string) ([]*runner.Pair, error) {
 	pairs, err := a.runner.ExchangePair(hasharry.StringToAddress(address))
 	if err != nil {
 		return nil, err

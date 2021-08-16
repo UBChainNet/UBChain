@@ -8,6 +8,7 @@ import (
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
+	"github.com/UBChainNet/UBChain/param"
 	"strings"
 )
 
@@ -21,6 +22,9 @@ func NewRunnerLibrary(aState _interface.IAccountState, cState _interface.IContra
 }
 
 func (r *RunnerLibrary) ContractSymbol(token hasharry.Address) (string, error) {
+	if token.IsEqual(param.Token){
+		return param.Token.String(), nil
+	}
 	token0Record := r.cState.GetContract(token.String())
 	if token0Record == nil {
 		return "", fmt.Errorf("%s is not exist", token.String())
@@ -76,9 +80,21 @@ func (r *RunnerLibrary) RunEvent(event *types.Event) {
 	}
 }
 
+func (r *RunnerLibrary) GetSymbolContract(symbol string) (hasharry.Address, error) {
+	contract, exist := r.cState.GetSymbolContract(symbol)
+	if exist{
+		return hasharry.Address{}, fmt.Errorf("%s already exist", symbol)
+	}
+	return hasharry.StringToAddress(contract), nil
+}
+
+func (r *RunnerLibrary) SetSymbol(symbol string, contract string)  {
+	r.cState.SetSymbol(symbol, contract)
+}
+
 func (r *RunnerLibrary) GetPair(pairAddress hasharry.Address) (*exchange.Pair, error) {
 	pairContract := r.GetContractV2(pairAddress.String())
-	if pairContract != nil {
+	if pairContract == nil {
 		return nil, errors.New("%s pair does not exist")
 	}
 	return pairContract.Body.(*exchange.Pair), nil

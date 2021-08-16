@@ -13,6 +13,7 @@ import (
 
 const addressLength = 36
 const addressBytesLength = 27
+const maxSymbolLen = 5
 
 // Generate address by secp256k1 public key
 func GenerateAddress(version string, key *secp256k1.PublicKey) (string, error) {
@@ -23,15 +24,15 @@ func GenerateAddress(version string, key *secp256k1.PublicKey) (string, error) {
 // Check the secondary account name, it must be letters,
 // all uppercase or all lowercase, no more than 10
 // characters and no less than 2.
-func CheckAbbr(abbr string) error {
-	if len(abbr) < 2 || len(abbr) > 20 {
+func CheckSymbol(abbr string) error {
+	if len(abbr) < 2 || len(abbr) > 10 {
 		return errors.New("the coin abbr length must be in the range of 2 and 10")
 	}
 	for _, c := range abbr {
-		if !unicode.IsLetter(c) && c != '-' {
+		if !unicode.IsLetter(c)  {
 			return errors.New("coin abbr must be letter")
 		}
-		if !unicode.IsUpper(c) && c != '-' {
+		if !unicode.IsUpper(c) {
 			return errors.New("coin abbr must be upper")
 		}
 	}
@@ -98,9 +99,9 @@ func GenerateContractV2Address(net string, bytes []byte) (string, error) {
 	ver := []byte{}
 	switch net {
 	case param.MainNet:
-		ver = append(ver, param.MainPubKeyHashTokenID[0:]...)
+		ver = append(ver, param.MainPubKeyHashContractID[0:]...)
 	case param.TestNet:
-		ver = append(ver, param.TestPubKeyHashTokenID[0:]...)
+		ver = append(ver, param.TestPubKeyHashContractID[0:]...)
 	default:
 		return "", errors.New("wrong network")
 	}
@@ -131,7 +132,7 @@ func GenerateContractAddress(net string, abbr string) (string, error) {
 	default:
 		return "", errors.New("wrong network")
 	}
-	if err := CheckAbbr(abbr); err != nil {
+	if err := CheckSymbol(abbr); err != nil {
 		return "", err
 	}
 	hashed := hash.Hash([]byte(abbr))
@@ -173,17 +174,43 @@ func CheckContractV2Address(net string, bytes []byte, contractAddress string) bo
 }
 
 func IsValidContractAddress(net string, address string) bool {
-	if address == param.Token.String() {
-		return true
-	}
 	ver := []byte{}
 	switch net {
 	case param.MainNet:
-		ver = append(ver, param.MainPubKeyHashTokenID[0:]...)
+		ver = param.MainPubKeyHashTokenID[0:]
 	case param.TestNet:
-		ver = append(ver, param.TestPubKeyHashTokenID[0:]...)
+		ver = param.TestPubKeyHashTokenID[0:]
 	default:
 		return false
+	}
+	if ok := isValidContractAddress(ver, address);!ok{
+		switch net {
+		case param.MainNet:
+			ver = param.MainPubKeyHashContractID[0:]
+		case param.TestNet:
+			ver = param.TestPubKeyHashContractID[0:]
+		}
+		return isValidContractAddress(ver, address)
+	}
+	return true
+}
+
+func IsContractV2Address(net string, address string) bool {
+	ver := []byte{}
+	switch net {
+	case param.MainNet:
+		ver = append(ver, param.MainPubKeyHashContractID[0:]...)
+	case param.TestNet:
+		ver = append(ver, param.TestPubKeyHashContractID[0:]...)
+	default:
+		return false
+	}
+	return isValidContractAddress(ver, address)
+}
+
+func isValidContractAddress(hashBytes []byte, address string) bool {
+	if address == param.Token.String() {
+		return true
 	}
 	if len(address) != addressLength {
 		return false
@@ -197,7 +224,7 @@ func IsValidContractAddress(net string, address string) bool {
 	checkBytesHashed1 := hash.Hash(checkBytes)
 	checkBytesHashed2 := hash.Hash(checkBytesHashed1.Bytes())
 	netBytes := checkBytes[0:3]
-	if bytes.Compare(ver, netBytes) != 0 {
+	if bytes.Compare(hashBytes, netBytes) != 0 {
 		return false
 	}
 	return bytes.Compare(checkSum, checkBytesHashed2[0:4]) == 0

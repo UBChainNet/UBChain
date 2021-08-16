@@ -34,6 +34,7 @@ type PairRunner struct {
 	events       []*types.Event
 	height       uint64
 	blockTime    uint64
+	isCreate 	 bool
 }
 
 func NewPairRunner(lib *library.RunnerLibrary, tx types.ITransaction, height, blockTime uint64) *PairRunner {
@@ -95,14 +96,31 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 			return errors.New("forbidden")
 		}
 	*/
+	noMainTokenCount := 0
 	if !p.addBody.TokenA.IsEqual(param.Token) {
+		noMainTokenCount++
 		if contract := p.library.GetContract(p.addBody.TokenA.String()); contract == nil {
 			return fmt.Errorf("tokenA %s is not exist", p.addBody.TokenA.String())
 		}
 	}
+
 	if !p.addBody.TokenB.IsEqual(param.Token) {
+		noMainTokenCount++
 		if contract := p.library.GetContract(p.addBody.TokenB.String()); contract == nil {
 			return fmt.Errorf("tokenB %s is not exist", p.addBody.TokenB.String())
+		}
+	}
+
+	if noMainTokenCount == 2 {
+		pairAddr1, _ := PairAddress(param.Net, p.addBody.TokenA, param.Token, p.exHeader.Address)
+		_, err := p.library.GetPair(hasharry.StringToAddress(pairAddr1))
+		if err != nil{
+			return fmt.Errorf("the %s must be paired with the %s", p.addBody.TokenA.String(), param.Token.String())
+		}
+		pairAddr2, _ := PairAddress(param.Net, p.addBody.TokenB, param.Token, p.exHeader.Address)
+		_, err = p.library.GetPair(hasharry.StringToAddress(pairAddr2))
+		if err != nil{
+			return fmt.Errorf("the %s must be paired with the %s", p.addBody.TokenA.String(), param.Token.String())
 		}
 	}
 
@@ -116,6 +134,7 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 	if p.pair != nil {
 		return p.preAddLiquidityVerify(address)
 	}
+
 	return nil
 }
 
@@ -317,7 +336,7 @@ func (p *PairRunner) createPair() {
 	token0, token1 := library.SortToken(p.addBody.TokenA, p.addBody.TokenB)
 	symbol0, _ := p.library.ContractSymbol(token0)
 	symbol1, _ := p.library.ContractSymbol(token1)
-	p.pair = exchange2.NewPair(p.addBody.Exchange, token0, token1, symbol0, symbol1)
+	p.pair = exchange2.NewPair(p.addBody.Exchange, token0, token1, symbol0, symbol1, p.exchange.Symbol)
 
 	p.pairHeader = &contractv2.ContractV2{
 		Address:    p.address,
@@ -326,6 +345,7 @@ func (p *PairRunner) createPair() {
 		Body:       p.pair,
 	}
 	p.exchange.AddPair(token0, token1, p.address)
+	p.isCreate = true
 }
 
 func (p *PairRunner) RemoveLiquidity() {
@@ -470,6 +490,9 @@ func (p *PairRunner) update() {
 	p.pairHeader.Body = p.pair
 	p.library.SetContractV2(p.exHeader)
 	p.library.SetContractV2(p.pairHeader)
+	if p.isCreate {
+		p.library.SetSymbol(p.pair.Symbol, p.address.String())
+	}
 }
 
 func (p *PairRunner) transferEvent(from, to, token hasharry.Address, amount uint64) {

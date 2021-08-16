@@ -28,6 +28,7 @@ service Greeter {
   rpc GetPoolTxs(Null)returns (Response) {}
   rpc GetLastHeight(Null)returns (Response) {}
   rpc GetContract(Address)returns (Response) {}
+  rpc GetContractBySymbol(Symbol)returns (Response) {}
   rpc GetConfirmedHeight(Null)returns (Response) {}
   rpc Peers(Null)returns (Response) {}
   rpc NodeInfo(Null)returns (Response) {}
@@ -41,6 +42,10 @@ message Bytes {
 
 message Address{
   string address = 1;
+}
+
+message Symbol{
+  string Symbol = 1;
 }
 
 message Hash{

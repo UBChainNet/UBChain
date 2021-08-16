@@ -25,7 +25,7 @@ type Pair struct {
 	Symbol1              string
 }
 
-func NewPair(exchange, token0, token1 hasharry.Address, symbol0, symbol1 string) *Pair {
+func NewPair(exchange, token0, token1 hasharry.Address, symbol0, symbol1, exchangeSymbol string) *Pair {
 	return &Pair{
 		Exchange:             exchange,
 		Token0:               token0,
@@ -37,7 +37,7 @@ func NewPair(exchange, token0, token1 hasharry.Address, symbol0, symbol1 string)
 		Price1CumulativeLast: 0,
 		KLast:                big.NewInt(0),
 		TotalSupply:          0,
-		Symbol:               lpSymbol(symbol0, symbol1, exchange.String()),
+		Symbol:               lpSymbol(symbol0, symbol1, exchangeSymbol),
 		Symbol0:              symbol0,
 		Symbol1:              symbol1,
 	}
@@ -96,6 +96,6 @@ func DecodeToPair(bytes []byte) (*Pair, error) {
 	return pair, err
 }
 
-func lpSymbol(symbol0, symbol1, exchange string) string {
-	return fmt.Sprintf("LP-%s-%s-%s", symbol0, symbol1, exchange[0:6])
+func lpSymbol(symbol0, symbol1, exchangeSymbol string) string {
+	return fmt.Sprintf("%sLP-%s-%s", exchangeSymbol, symbol0, symbol1)
 }

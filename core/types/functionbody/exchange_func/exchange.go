@@ -8,11 +8,15 @@ import (
 )
 
 type ExchangeInitBody struct {
-	Admin hasharry.Address
-	FeeTo hasharry.Address
+	Admin  hasharry.Address
+	FeeTo  hasharry.Address
+	Symbol string
 }
 
 func (e *ExchangeInitBody) Verify() error {
+	if err := ut.CheckSymbol(e.Symbol); err != nil {
+		return err
+	}
 	if ok := ut.CheckUBCAddress(param.Net, e.Admin.String()); !ok {
 		return errors.New("wrong admin address")
 	}

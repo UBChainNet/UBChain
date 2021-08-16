@@ -120,7 +120,7 @@ func parseSCParams(args []string) (*types.Transaction, error) {
 			return nil, errors.New("wrong amount")
 		}
 	}
-	if err := ut.CheckAbbr(abbr); err != nil {
+	if err := ut.CheckSymbol(abbr); err != nil {
 		return nil, err
 	}
 	contract, err := ut.GenerateContractAddress(Net, abbr)

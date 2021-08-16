@@ -19,6 +19,10 @@ type IContractState interface {
 
 	GetContractV2State(hash string) *types.ContractV2State
 
+	SetSymbol(symbol string, contract string)
+
+	GetSymbolContract(symbol string) (string, bool)
+
 	VerifyState(tx types.ITransaction) error
 
 	UpdateContract(tx types.ITransaction, blockHeight uint64)

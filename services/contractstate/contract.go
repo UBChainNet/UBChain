@@ -6,6 +6,7 @@ import (
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/database/contractdb"
+	"github.com/UBChainNet/UBChain/param"
 	"sync"
 )
 
@@ -105,7 +106,7 @@ func (c *ContractState) VerifyState(tx types.ITransaction) error {
 	if contract != nil {
 		return contract.Verify(tx)
 	}else{
-		_, exist := c.contractDb.GetSymbol(tx.GetTxBody().GetAbbr())
+		_, exist := c.contractDb.GetSymbolContract(tx.GetTxBody().GetAbbr())
 		if exist{
 			return fmt.Errorf("%s already exists",  tx.GetTxBody().GetAbbr())
 		}
@@ -145,9 +146,28 @@ func (c *ContractState) UpdateContract(tx types.ITransaction, blockHeight uint64
 		c.contractDb.SetSymbol(txBody.GetAbbr(), contractAddr.String())
 	}
 	c.contractDb.SetContract(contract)
+}
 
+func (c *ContractState)SetSymbol(symbol string, contract string){
+	c.contractMutex.Lock()
+	defer c.contractMutex.Unlock()
+
+	c.contractDb.SetSymbol(symbol, contract)
+}
+
+func (c *ContractState) GetSymbolContract(symbol string) (string, bool){
+	if symbol == param.Token.String(){
+		return param.Token.String(), true
+	}
+	c.contractMutex.RLock()
+	defer c.contractMutex.RUnlock()
+
+	return c.contractDb.GetSymbolContract(symbol)
 }
 
 func (c *ContractState) Close() error {
+	c.contractMutex.Lock()
+	defer c.contractMutex.Unlock()
+
 	return c.contractDb.Close()
 }
