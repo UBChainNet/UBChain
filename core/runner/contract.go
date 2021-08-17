@@ -188,6 +188,8 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
 			}
 			interParams[i-1] = bParam
+		case reflect.Ptr, reflect.Map, reflect.Array, reflect.Slice:
+			interParams[i-1] = params[i-1]
 		default:
 			return nil, fmt.Errorf("parameter %d value type error", i-1)
 		}
@@ -206,19 +208,21 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 		switch rs[i].Kind() {
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			{
-				result = append(result, rs[i].Uint())
-			}
+			result = append(result, rs[i].Uint())
 		case reflect.Float32, reflect.Float64:
 			result = append(result, rs[i].Float())
 		case reflect.String:
 			result = append(result, rs[i].String())
 		case reflect.Bool:
 			result = append(result, rs[i].Bool())
-		case reflect.Ptr, reflect.Map, reflect.Array, reflect.Slice:
+		case reflect.Ptr, reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
 			result = append(result, rs[i].Interface())
+		case reflect.Interface:
+			err, ok := rs[i].Interface().(error)
+			if ok {
+				result = append(result, err.Error())
+			}
 		}
 	}
-
 	return result, nil
 }

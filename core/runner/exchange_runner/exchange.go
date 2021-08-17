@@ -14,6 +14,7 @@ import (
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 	"math/big"
+	"strings"
 )
 
 type ExchangeState struct {
@@ -61,6 +62,70 @@ func (es *ExchangeState) Pairs() []exchange.PairInfo {
 
 func (es *ExchangeState) ExchangeRouter(tokenA, tokenB string) [][]string {
 	return es.body.ExchangeRouter(tokenA, tokenB)
+}
+
+func (es *ExchangeState) AmountOut(paths string, amountIn float64) (float64, error) {
+	pathsList := strings.Split(paths, "->")
+	arryPaths := make([]hasharry.Address, len(pathsList))
+	for i, path := range pathsList {
+		arryPaths[i] = hasharry.StringToAddress(path)
+	}
+	iAmountIn, _ := types.NewAmount(amountIn)
+	outs, err := es.getAmountsOut(iAmountIn, arryPaths)
+	if err != nil {
+		return 0, err
+	}
+	return types.Amount(outs[len(outs)-1]).ToCoin(), nil
+}
+
+func (es *ExchangeState) AmountIn(paths string, amountOut float64) (float64, error) {
+	pathsList := strings.Split(paths, "->")
+	arryPaths := make([]hasharry.Address, len(pathsList))
+	for i, path := range pathsList {
+		arryPaths[i] = hasharry.StringToAddress(path)
+	}
+	iAmountOut, _ := types.NewAmount(amountOut)
+	ins, err := es.getAmountsIn(iAmountOut, arryPaths)
+	if err != nil {
+		return 0, err
+	}
+	return types.Amount(ins[0]).ToCoin(), nil
+}
+
+func (es *ExchangeState) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
+	var err error
+	amounts := make([]uint64, len(path))
+	amounts[0] = amountIn
+	for i := 0; i < len(path)-1; i++ {
+		// 获取储备量
+		token0, token1 := library.SortToken(path[i], path[i+1])
+		pairAddress := es.body.PairAddress(token0, token1)
+		reserveIn, reserveOut := es.library.GetReservesByPairAddress(pairAddress, path[i], path[i+1])
+		// 下一个数额 =  当前数额兑换的结果
+		amounts[i+1], err = GetAmountOut(amounts[i], reserveIn, reserveOut)
+		if err != nil {
+			return amounts, err
+		}
+	}
+	return amounts, nil
+}
+
+// getAmountsIn performs chained getAmountIn calculations on any number of pairs
+func (es *ExchangeState) getAmountsIn(amountOut uint64, path []hasharry.Address) ([]uint64, error) {
+	var err error
+	amounts := make([]uint64, len(path))
+	amounts[len(amounts)-1] = amountOut
+	for i := len(path) - 1; i > 0; i-- {
+		// 获取储备量
+		token0, token1 := library.SortToken(path[i-1], path[i])
+		pairAddress := es.body.PairAddress(token0, token1)
+		reserveIn, reserveOut := es.library.GetReservesByPairAddress(pairAddress, path[i-1], path[i])
+		amounts[i-1], err = GetAmountIn(amounts[i], reserveIn, reserveOut)
+		if err != nil {
+			return amounts, err
+		}
+	}
+	return amounts, nil
 }
 
 type ExchangeRunner struct {
@@ -286,7 +351,7 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 		ERR = fmt.Errorf("past the deadline")
 		return
 	}
-	amounts, err = e.getAmountsOut(funcBody.AmountIn, funcBody.Path)
+	amounts, err = e.exState.getAmountsOut(funcBody.AmountIn, funcBody.Path)
 	if err != nil {
 		ERR = err
 		return
@@ -426,43 +491,6 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 	return nil
 }
 
-// performs chained getAmountOut calculations on any number of pairs
-func (e *ExchangeRunner) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
-	var err error
-	amounts := make([]uint64, len(path))
-	amounts[0] = amountIn
-	for i := 0; i < len(path)-1; i++ {
-		// 获取储备量
-		token0, token1 := library.SortToken(path[i], path[i+1])
-		pairAddress := e.exState.body.PairAddress(token0, token1)
-		reserveIn, reserveOut := e.exState.library.GetReservesByPairAddress(pairAddress, path[i], path[i+1])
-		// 下一个数额 =  当前数额兑换的结果
-		amounts[i+1], err = GetAmountOut(amounts[i], reserveIn, reserveOut)
-		if err != nil {
-			return amounts, err
-		}
-	}
-	return amounts, nil
-}
-
-// getAmountsIn performs chained getAmountIn calculations on any number of pairs
-func (e *ExchangeRunner) getAmountsIn(amountOut uint64, path []hasharry.Address) ([]uint64, error) {
-	var err error
-	amounts := make([]uint64, len(path))
-	amounts[len(amounts)-1] = amountOut
-	for i := len(path) - 1; i > 0; i-- {
-		// 获取储备量
-		token0, token1 := library.SortToken(path[i-1], path[i])
-		pairAddress := e.exState.body.PairAddress(token0, token1)
-		reserveIn, reserveOut := e.exState.library.GetReservesByPairAddress(pairAddress, path[i-1], path[i])
-		amounts[i-1], err = GetAmountIn(amounts[i], reserveIn, reserveOut)
-		if err != nil {
-			return amounts, err
-		}
-	}
-	return amounts, nil
-}
-
 // GetAmountOut given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
 func GetAmountOut(amountIn, reserveIn, reserveOut uint64) (uint64, error) {
 	if amountIn <= 0 {
@@ -529,7 +557,7 @@ func (e *ExchangeRunner) SwapExactOut(blockTime uint64) {
 		ERR = fmt.Errorf("past the deadline")
 		return
 	}
-	amounts, err = e.getAmountsIn(funcBody.AmountOut, funcBody.Path)
+	amounts, err = e.exState.getAmountsIn(funcBody.AmountOut, funcBody.Path)
 	if err != nil {
 		ERR = err
 		return

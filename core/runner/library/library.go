@@ -22,7 +22,7 @@ func NewRunnerLibrary(aState _interface.IAccountState, cState _interface.IContra
 }
 
 func (r *RunnerLibrary) ContractSymbol(token hasharry.Address) (string, error) {
-	if token.IsEqual(param.Token){
+	if token.IsEqual(param.Token) {
 		return param.Token.String(), nil
 	}
 	token0Record := r.cState.GetContract(token.String())
@@ -82,13 +82,13 @@ func (r *RunnerLibrary) RunEvent(event *types.Event) {
 
 func (r *RunnerLibrary) GetSymbolContract(symbol string) (hasharry.Address, error) {
 	contract, exist := r.cState.GetSymbolContract(symbol)
-	if exist{
+	if exist {
 		return hasharry.Address{}, fmt.Errorf("%s already exist", symbol)
 	}
 	return hasharry.StringToAddress(contract), nil
 }
 
-func (r *RunnerLibrary) SetSymbol(symbol string, contract string)  {
+func (r *RunnerLibrary) SetSymbol(symbol string, contract string) {
 	r.cState.SetSymbol(symbol, contract)
 }
 

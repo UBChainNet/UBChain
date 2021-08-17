@@ -55,6 +55,44 @@ var exMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"AmountOut": &MethodInfo{
+		Name: "AmountOut",
+		Params: []Value{
+			{
+				Name: "paths(tokenA->tokenB->tokenC)",
+				Type: "string",
+			},
+			{
+				Name: "amountIn",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "amountOut",
+				Type: "float64",
+			},
+		},
+	},
+	"AmountIn": &MethodInfo{
+		Name: "AmountIn",
+		Params: []Value{
+			{
+				Name: "paths(tokenA->tokenB->tokenC)",
+				Type: "string",
+			},
+			{
+				Name: "amountOut",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "amountIn",
+				Type: "float64",
+			},
+		},
+	},
 }
 
 var pairMethods = map[string]*MethodInfo{
