@@ -175,7 +175,17 @@ func (a *Api) GetContractBySymbol(symbol string) (interface{}, error) {
 	return a.GetContract(contract)
 }
 
+func (a *Api)TokenList()(interface{}, error){
+	return a.contractState.TokenList(), nil
+}
 
+func (a *Api)AccountList()(interface{}, error){
+	return a.accountState.AccountList(), nil
+}
+
+func (a *Api) ContractMethod(contract, function string, params []string)(interface{}, error){
+	return a.runner.ReadMethod(contract, function, params)
+}
 
 func (a *Api) GetConfirmedHeight() (string, error) {
 	height := a.chain.GetConfirmedHeight()

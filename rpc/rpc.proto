@@ -29,6 +29,9 @@ service Greeter {
   rpc GetLastHeight(Null)returns (Response) {}
   rpc GetContract(Address)returns (Response) {}
   rpc GetContractBySymbol(Symbol)returns (Response) {}
+  rpc ContractMethod(Method)returns (Response) {}
+  rpc TokenList(Null)returns (Response) {}
+  rpc AccountList(Null)returns (Response) {}
   rpc GetConfirmedHeight(Null)returns (Response) {}
   rpc Peers(Null)returns (Response) {}
   rpc NodeInfo(Null)returns (Response) {}
@@ -59,8 +62,11 @@ message Height{
 message Null{
 }
 
-
-
+message Method{
+  string contract = 1;
+  string method = 2;
+  repeated string params = 3;
+}
 
 // The response message containing the greetings
 message Response {

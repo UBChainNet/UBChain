@@ -23,6 +23,8 @@ type IContractState interface {
 
 	GetSymbolContract(symbol string) (string, bool)
 
+	TokenList() []*types.Token
+
 	VerifyState(tx types.ITransaction) error
 
 	UpdateContract(tx types.ITransaction, blockHeight uint64)

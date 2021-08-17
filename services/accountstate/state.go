@@ -36,7 +36,14 @@ func (as *AccountState) InitTrie(stateRoot hasharry.Hash) error {
 	return as.stateDb.InitTrie(stateRoot)
 }
 
-// Get account status, if the account status needs to be updated
+func (as *AccountState) AccountList() []string {
+	as.accountMutex.RLock()
+	defer as.accountMutex.RUnlock()
+
+	return as.stateDb.AccountList()
+}
+
+// GetAccountState Get account status, if the account status needs to be updated
 // according to the effective block height, it will be updated,
 // but not stored.
 func (as *AccountState) GetAccountState(stateKey hasharry.Address) types.IAccount {

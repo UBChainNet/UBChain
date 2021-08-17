@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
-	"github.com/UBChainNet/UBChain/common/utils"
 	"github.com/UBChainNet/UBChain/core/runner/exchange_runner"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
@@ -33,8 +32,8 @@ func NewExchange(net, from, admin, feeTo, symbol string, nonce uint64, note stri
 			Type:         contractv2.Exchange_,
 			FunctionType: contractv2.Exchange_Init,
 			Function: &exchange_func.ExchangeInitBody{
-				Admin: hasharry.StringToAddress(admin),
-				FeeTo: hasharry.StringToAddress(feeTo),
+				Admin:  hasharry.StringToAddress(admin),
+				FeeTo:  hasharry.StringToAddress(feeTo),
 				Symbol: symbol,
 			},
 		},
@@ -230,25 +229,4 @@ func NewSwapExactOut(from, to, exchange string, amountOut, amountInMax uint64, p
 	}
 	tx.SetHash()
 	return tx, nil
-}
-
-func CalculateShortestPath(tokenA, tokenB hasharry.Address, pairs []*types.RpcPair) []string {
-	g := utils.NewGraph()
-	for _, pair := range pairs {
-		g.AddEdge(utils.NewNode(pair.Token0, 0), utils.NewNode(pair.Token1, 0))
-	}
-	paths, _ := g.FindNodePath(utils.NewNode(tokenA.String(), 0), utils.NewNode(tokenB.String(), 0))
-	maxLen := 0
-	index := 0
-	for i, path := range paths {
-		if len(path) < maxLen {
-			maxLen = len(path)
-			index = i
-		}
-	}
-	tokenPath := []string{}
-	for _, node := range paths[index] {
-		tokenPath = append(tokenPath, node.String())
-	}
-	return tokenPath
 }

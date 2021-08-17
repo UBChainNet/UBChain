@@ -16,6 +16,7 @@ type IContractStorage interface {
 	GetContractV2State(txHash string) *types.ContractV2State
 	SetSymbol(symbol string, contract string)
 	GetSymbolContract(symbol string) (string, bool)
+	TokenList() []*types.Token
 	InitTrie(contractRoot hasharry.Hash) error
 	RootHash() hasharry.Hash
 	Commit() (hasharry.Hash, error)

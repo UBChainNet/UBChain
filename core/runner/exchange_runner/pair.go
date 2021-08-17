@@ -34,7 +34,7 @@ type PairRunner struct {
 	events       []*types.Event
 	height       uint64
 	blockTime    uint64
-	isCreate 	 bool
+	isCreate     bool
 }
 
 func NewPairRunner(lib *library.RunnerLibrary, tx types.ITransaction, height, blockTime uint64) *PairRunner {
@@ -114,12 +114,12 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 	if noMainTokenCount == 2 {
 		pairAddr1, _ := PairAddress(param.Net, p.addBody.TokenA, param.Token, p.exHeader.Address)
 		_, err := p.library.GetPair(hasharry.StringToAddress(pairAddr1))
-		if err != nil{
+		if err != nil {
 			return fmt.Errorf("the %s must be paired with the %s", p.addBody.TokenA.String(), param.Token.String())
 		}
 		pairAddr2, _ := PairAddress(param.Net, p.addBody.TokenB, param.Token, p.exHeader.Address)
 		_, err = p.library.GetPair(hasharry.StringToAddress(pairAddr2))
-		if err != nil{
+		if err != nil {
 			return fmt.Errorf("the %s must be paired with the %s", p.addBody.TokenA.String(), param.Token.String())
 		}
 	}
@@ -344,7 +344,7 @@ func (p *PairRunner) createPair() {
 		Type:       contractv2.Pair_,
 		Body:       p.pair,
 	}
-	p.exchange.AddPair(token0, token1, p.address)
+	p.exchange.AddPair(token0, token1, p.address, symbol0, symbol1)
 	p.isCreate = true
 }
 

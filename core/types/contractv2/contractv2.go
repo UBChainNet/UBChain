@@ -71,6 +71,8 @@ type RlpContractV2 struct {
 
 type IContractV2Body interface {
 	Bytes() []byte
+	Methods() map[string]*exchange.MethodInfo
+	MethodExist(method string) bool
 }
 
 func DecodeContractV2(bytes []byte) (*ContractV2, error) {

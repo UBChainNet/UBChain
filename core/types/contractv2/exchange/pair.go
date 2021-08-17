@@ -52,7 +52,16 @@ func (p *Pair) Verify() error {
 	return nil
 }
 
-func (p *Pair) GetReserves() (uint64, uint64, uint32) {
+func (p *Pair) MethodExist(method string) bool {
+	_, exist := pairMethods[method]
+	return exist
+}
+
+func (p *Pair) Methods() map[string]*MethodInfo {
+	return pairMethods
+}
+
+func (p *Pair) GetReserves() (reserve0 uint64, reserve1 uint64, blockTimestampLast uint32) {
 	return p.Reserve0, p.Reserve1, p.BlockTimestampLast
 }
 
@@ -98,4 +107,43 @@ func DecodeToPair(bytes []byte) (*Pair, error) {
 
 func lpSymbol(symbol0, symbol1, exchangeSymbol string) string {
 	return fmt.Sprintf("%sLP-%s-%s", exchangeSymbol, symbol0, symbol1)
+}
+
+type Value struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type MethodInfo struct {
+	Name    string  `json:"name"`
+	Params  []Value `json:"params"`
+	Returns []Value `json:"returns"`
+}
+
+var pairMethods = map[string]*MethodInfo{
+	"Methods": &MethodInfo{
+		Name:   "Methods",
+		Params: nil,
+		Returns: []Value{
+			{
+				Name: "Open methods",
+				Type: "",
+			},
+		},
+	},
+	"MethodExist": &MethodInfo{
+		Name: "MethodExist",
+		Params: []Value{
+			{
+				Name: "method",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "exist",
+				Type: "bool",
+			},
+		},
+	},
 }

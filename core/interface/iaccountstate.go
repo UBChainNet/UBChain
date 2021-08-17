@@ -8,6 +8,8 @@ import (
 type IAccountState interface {
 	InitTrie(stateRoot hasharry.Hash) error
 
+	AccountList() []string
+
 	GetAccountState(stateKey hasharry.Address) types.IAccount
 
 	GetAccountNonce(stateKey hasharry.Address) (uint64, error)

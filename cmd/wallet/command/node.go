@@ -13,6 +13,7 @@ func init() {
 		GetTxPoolTxs,
 		GetPeersCmd,
 		NodeInfoCmd,
+		TokenListCmd,
 	}
 	RootCmd.AddCommand(nodeCmds...)
 	RootSubCmdGroups["node"] = nodeCmds
@@ -31,6 +32,42 @@ var GetTxPoolTxs = &cobra.Command{
 }
 
 func GetTxPool(cmd *cobra.Command, args []string) {
+	client, err := NewRpcClient()
+	if err != nil {
+		outputError(cmd.Use, err)
+		return
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*20)
+	defer cancel()
+
+	resp, err := client.Gc.GetPoolTxs(ctx, &rpc.Null{})
+	if err != nil {
+		outputError(cmd.Use, err)
+		return
+	}
+	if resp.Code == 0 {
+		output(string(resp.Result))
+		return
+	}
+	outputRespError(cmd.Use, resp)
+}
+
+
+//GenerateCmd cpu mine block
+var TokenListCmd = &cobra.Command{
+	Use:     "TokenList",
+	Short:   "GetTxPool; Get transactions in the transaction pool;",
+	Aliases: []string{"gettxpool", "gtp", "GTP"},
+	Example: `
+	GetTxPool 
+	`,
+	Args: cobra.MinimumNArgs(0),
+	Run:  TokenList,
+}
+
+func TokenList(cmd *cobra.Command, args []string) {
 	client, err := NewRpcClient()
 	if err != nil {
 		outputError(cmd.Use, err)

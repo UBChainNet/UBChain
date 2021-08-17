@@ -165,6 +165,13 @@ func (c *ContractState) GetSymbolContract(symbol string) (string, bool){
 	return c.contractDb.GetSymbolContract(symbol)
 }
 
+func (c *ContractState)TokenList() []*types.Token{
+	c.contractMutex.Lock()
+	defer c.contractMutex.Unlock()
+
+	return c.contractDb.TokenList()
+}
+
 func (c *ContractState) Close() error {
 	c.contractMutex.Lock()
 	defer c.contractMutex.Unlock()

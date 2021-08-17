@@ -28,6 +28,9 @@ type ExchangeRunner struct {
 	height       uint64
 }
 
+type Exchange struct {
+}
+
 func NewExchangeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height uint64) *ExchangeRunner {
 	var ex *exchange.Exchange
 	address := tx.GetTxBody().GetContract()
@@ -46,6 +49,25 @@ func NewExchangeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height
 		events:       make([]*types.Event, 0),
 		height:       height,
 	}
+}
+
+func NewOpenExchange(lib *library.RunnerLibrary, contract string) (*ExchangeRunner, error) {
+	exHeader := lib.GetContractV2(contract)
+	if exHeader == nil {
+		return nil, fmt.Errorf("contract %s does not exist", contract)
+	}
+	exchangeBody := exHeader.Body.(*exchange.Exchange)
+	return &ExchangeRunner{
+		library:      lib,
+		exHeader:     exHeader,
+		exchange:     exchangeBody,
+		address:      hasharry.StringToAddress(contract),
+		tx:           nil,
+		contractBody: nil,
+		pairList:     nil,
+		events:       nil,
+		height:       0,
+	}, nil
 }
 
 func (e *ExchangeRunner) PreInitVerify() error {

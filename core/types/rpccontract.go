@@ -37,3 +37,9 @@ func TranslateContractToRpcContract(contract *Contract) *RpcContract {
 	}
 	return rpcContract
 }
+
+
+type Token struct {
+	Symbol string `json:"symbol"`
+	Contract string `json:"contract"`
+}

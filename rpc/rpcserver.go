@@ -207,6 +207,33 @@ func (rs *Server) GetContractBySymbol(ctx context.Context, req *Symbol) (*Respon
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
+func (rs *Server)TokenList(ctx context.Context, req *Null) (*Response, error) {
+	list, err := rs.api.TokenList()
+	if err != nil {
+		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
+	}
+	bytes, _ := json.Marshal(list)
+	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
+}
+
+func (rs *Server)AccountList(ctx context.Context, req *Null) (*Response, error) {
+	list, err := rs.api.AccountList()
+	if err != nil {
+		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
+	}
+	bytes, _ := json.Marshal(list)
+	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
+}
+
+func (rs *Server)ContractMethod(ctx context.Context, req *Method) (*Response, error){
+	result, err := rs.api.ContractMethod(req.Contract, req.Method, req.Params)
+	if err != nil {
+		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
+	}
+	bytes, _ := json.Marshal(result)
+	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
+}
+
 func (rs *Server) GetConfirmedHeight(context.Context, *Null) (*Response, error) {
 	height, err := rs.api.GetConfirmedHeight()
 	if err != nil {
