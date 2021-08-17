@@ -53,15 +53,6 @@ func NewExchange(admin, feeTo hasharry.Address, symbol string) (*Exchange, error
 	}, nil
 }
 
-func (e *Exchange) MethodExist(method string) bool {
-	_, exist := exchangeMethods[method]
-	return exist
-}
-
-func (e *Exchange) Methods() map[string]*MethodInfo {
-	return exchangeMethods
-}
-
 func (e *Exchange) SetFeeTo(address hasharry.Address, sender hasharry.Address) error {
 	if err := e.VerifySetter(sender); err != nil {
 		return err
@@ -151,63 +142,6 @@ func ParseKey(key string) (hasharry.Address, hasharry.Address) {
 		return hasharry.Address{}, hasharry.Address{}
 	}
 	return hasharry.StringToAddress(strList[0]), hasharry.StringToAddress(strList[1])
-}
-
-var exchangeMethods = map[string]*MethodInfo{
-	"Methods": &MethodInfo{
-		Name:   "Methods",
-		Params: nil,
-		Returns: []Value{
-			{
-				Name: "Open methods",
-				Type: "",
-			},
-		},
-	},
-	"MethodExist": &MethodInfo{
-		Name: "MethodExist",
-		Params: []Value{
-			{
-				Name: "method",
-				Type: "string",
-			},
-		},
-		Returns: []Value{
-			{
-				Name: "exist",
-				Type: "bool",
-			},
-		},
-	},
-	"Pairs": &MethodInfo{
-		Name:   "Pairs",
-		Params: nil,
-		Returns: []Value{
-			{
-				Name: "pair list",
-				Type: "",
-			},
-		},
-	},
-	"ExchangeRouter": &MethodInfo{
-		Name: "ExchangeRouter",
-		Params: []Value{
-			{
-				Name: "tokenA",
-				Type: "string",
-			},
-			{
-				Name: "tokenB",
-				Type: "string",
-			},
-		},
-		Returns: []Value{
-			{
-				Name: "paths",
-				Type: "",
-			},
-		},
-	},
 }
 
 type PairInfo struct {

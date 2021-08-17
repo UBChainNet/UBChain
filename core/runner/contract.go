@@ -63,84 +63,6 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 	return nil
 }
 
-func (c *ContractRunner) ReadMethod(address, method string, params []string) (interface{}, error) {
-	contract := c.library.GetContractV2(address)
-	if contract == nil {
-		return nil, fmt.Errorf("method %s does not exist", method)
-	}
-	exist := contract.Body.MethodExist(method)
-	if !exist {
-		return nil, fmt.Errorf("method %s does not exist", method)
-	}
-	t := reflect.TypeOf(contract.Body)
-	tMethod, exist := t.MethodByName(method)
-	if !exist {
-		return nil, fmt.Errorf("method %s does not exist", method)
-	}
-	inCount := tMethod.Type.NumIn()
-	if inCount != len(params)+1 {
-		return nil, fmt.Errorf("the number of parameters is %d", inCount-1)
-	}
-	interParams := make([]interface{}, inCount-1)
-	for i := 1; i < tMethod.Type.NumIn(); i++ {
-		paramT := tMethod.Type.In(i)
-		switch paramT.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			iParam, err := strconv.ParseUint(params[i-1], 10, 64)
-			if err != nil {
-				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
-			}
-			interParams[i-1] = iParam
-		case reflect.Float32, reflect.Float64:
-			fParam, err := strconv.ParseFloat(params[i-1], 64)
-			if err != nil {
-				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
-			}
-			interParams[i-1] = fParam
-		case reflect.String:
-			interParams[i-1] = params[i-1]
-		case reflect.Bool:
-			bParam, err := strconv.ParseBool(params[i-1])
-			if err != nil {
-				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
-			}
-			interParams[i-1] = bParam
-		default:
-			return nil, fmt.Errorf("parameter %d value type error", i-1)
-		}
-
-	}
-	args := []reflect.Value{reflect.ValueOf(contract.Body)}
-	for _, param := range interParams {
-		args = append(args, reflect.ValueOf(param))
-	}
-	rs := tMethod.Func.Call(args)
-	if len(rs) == 0 {
-		return nil, fmt.Errorf("%s is not a read method", method)
-	}
-	result := []interface{}{}
-	for i := 0; i < len(rs); i++ {
-		switch rs[i].Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			{
-				result = append(result, rs[i].Uint())
-			}
-		case reflect.Float32, reflect.Float64:
-			result = append(result, rs[i].Float())
-		case reflect.String:
-			result = append(result, rs[i].String())
-		case reflect.Bool:
-			result = append(result, rs[i].Bool())
-		case reflect.Ptr, reflect.Map, reflect.Array, reflect.Slice:
-			result = append(result, rs[i].Interface())
-		}
-	}
-
-	return result, nil
-}
-
 func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, blockTime uint64) error {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -200,4 +122,103 @@ type Pair struct {
 	Token1   string  `json:"token1"`
 	Reserve0 float64 `json:"reserve0"`
 	Reserve1 float64 `json:"reserve1"`
+}
+
+type openContract interface {
+	Methods() map[string]*exchange_runner.MethodInfo
+	MethodExist(method string) bool
+}
+
+func (c *ContractRunner) ReadMethod(address, method string, params []string) (interface{}, error) {
+	var open openContract
+	var err error
+	contract := c.library.GetContractV2(address)
+	if contract == nil {
+		return nil, fmt.Errorf("contract %s dose not exist", address)
+	}
+	switch contract.Type {
+	case contractv2.Exchange_:
+		open, err = exchange_runner.NewExchangeState(c.library, address)
+		if err != nil {
+			return nil, err
+		}
+	case contractv2.Pair_:
+		open, err = exchange_runner.NewPairState(c.library, address)
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("method %s does not exist", method)
+	}
+	exist := open.MethodExist(method)
+	if !exist {
+		return nil, fmt.Errorf("method %s does not exist", method)
+	}
+	t := reflect.TypeOf(open)
+	tMethod, exist := t.MethodByName(method)
+	if !exist {
+		return nil, fmt.Errorf("method %s does not exist", method)
+	}
+	inCount := tMethod.Type.NumIn()
+	if inCount != len(params)+1 {
+		return nil, fmt.Errorf("the number of parameters is %d", inCount-1)
+	}
+	interParams := make([]interface{}, inCount-1)
+	for i := 1; i < tMethod.Type.NumIn(); i++ {
+		paramT := tMethod.Type.In(i)
+		switch paramT.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = iParam
+		case reflect.Float32, reflect.Float64:
+			fParam, err := strconv.ParseFloat(params[i-1], 64)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = fParam
+		case reflect.String:
+			interParams[i-1] = params[i-1]
+		case reflect.Bool:
+			bParam, err := strconv.ParseBool(params[i-1])
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = bParam
+		default:
+			return nil, fmt.Errorf("parameter %d value type error", i-1)
+		}
+
+	}
+	args := []reflect.Value{reflect.ValueOf(open)}
+	for _, param := range interParams {
+		args = append(args, reflect.ValueOf(param))
+	}
+	rs := tMethod.Func.Call(args)
+	if len(rs) == 0 {
+		return nil, fmt.Errorf("%s is not a read method", method)
+	}
+	result := []interface{}{}
+	for i := 0; i < len(rs); i++ {
+		switch rs[i].Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+			{
+				result = append(result, rs[i].Uint())
+			}
+		case reflect.Float32, reflect.Float64:
+			result = append(result, rs[i].Float())
+		case reflect.String:
+			result = append(result, rs[i].String())
+		case reflect.Bool:
+			result = append(result, rs[i].Bool())
+		case reflect.Ptr, reflect.Map, reflect.Array, reflect.Slice:
+			result = append(result, rs[i].Interface())
+		}
+	}
+
+	return result, nil
 }
