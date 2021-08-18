@@ -54,6 +54,63 @@ func (ps *PairState) MethodExist(method string) bool {
 	return exist
 }
 
+func (ps *PairState) QuoteAmountB(tokenAStr string, amountA float64) (float64, error) {
+	tokenA := hasharry.StringToAddress(tokenAStr)
+	tokenB := ps.pairBody.Token0
+	if ps.pairBody.Token0.IsEqual(tokenA) {
+		tokenB = ps.pairBody.Token1
+	}
+	reservesA, reservesB := ps.library.GetReservesByPair(ps.pairBody, tokenA, tokenB)
+	iAmountA, _ := types.NewAmount(amountA)
+	amountB, err := ps.quote(iAmountA, reservesA, reservesB)
+	if err != nil {
+		return 0, err
+	} else {
+		return types.Amount(amountB).ToCoin(), nil
+	}
+}
+
+func (ps *PairState) optimalAmount(reserveA, reserveB, amountADesired, amountBDesired, amountAMin, amountBMin uint64) (uint64, uint64, error) {
+	if reserveA == 0 && reserveB == 0 {
+		return amountADesired, amountBDesired, nil
+	} else {
+		// 最优数量B = 期望数量A * 储备B / 储备A
+		amountBOptimal, err := ps.quote(amountADesired, reserveA, reserveB)
+		if err != nil {
+			return 0, 0, err
+		}
+		// 如果最优数量B < B的期望数量
+		if amountBOptimal <= amountBDesired {
+			if amountBOptimal < amountBMin {
+				return 0, 0, errors.New("insufficient amountB")
+			}
+			return amountADesired, amountBOptimal, nil
+		} else {
+			// 则计算 最优数量A = 期望数量B * 储备A / 储备B
+			amountAOptimal, err := ps.quote(amountBDesired, reserveB, reserveA)
+			if err != nil {
+				return 0, 0, err
+			}
+			if amountAOptimal < amountAMin {
+				return 0, 0, errors.New("insufficient amountA")
+			}
+			return amountAOptimal, amountBDesired, nil
+		}
+	}
+}
+
+// Quote given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
+func (ps *PairState) quote(amountA, reserveA, reserveB uint64) (uint64, error) {
+	if amountA <= 0 {
+		return 0, errors.New("insufficient_amount")
+	}
+	if reserveA <= 0 || reserveB <= 0 {
+		return 0, errors.New("insufficient_liquidity")
+	}
+	amountB := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(amountA)), big.NewInt(int64(reserveB))), big.NewInt(int64(reserveA)))
+	return amountB.Uint64(), nil
+}
+
 type PairRunner struct {
 	pairState    *PairState
 	contractBody *types.TxContractV2Body
@@ -146,19 +203,6 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 		}
 	}
 
-	if noMainTokenCount == 2 {
-		pairAddr1, _ := PairAddress(param.Net, p.addBody.TokenA, param.Token, p.pairState.exHeader.Address)
-		_, err := p.pairState.library.GetPair(hasharry.StringToAddress(pairAddr1))
-		if err != nil {
-			return fmt.Errorf("the %s must be paired with the %s", p.addBody.TokenA.String(), param.Token.String())
-		}
-		pairAddr2, _ := PairAddress(param.Net, p.addBody.TokenB, param.Token, p.pairState.exHeader.Address)
-		_, err = p.pairState.library.GetPair(hasharry.StringToAddress(pairAddr2))
-		if err != nil {
-			return fmt.Errorf("the %s must be paired with the %s", p.addBody.TokenA.String(), param.Token.String())
-		}
-	}
-
 	address, err := PairAddress(param.Net, p.addBody.TokenA, p.addBody.TokenB, p.pairState.exHeader.Address)
 	if err != nil {
 		return fmt.Errorf("pair address error")
@@ -169,8 +213,8 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 	if p.pairState.pairBody != nil {
 		return p.preAddLiquidityVerify(address)
 	}
-
-	return nil
+	_, err = p.pairState.exBody.LegalPair(p.addBody.TokenA.String(), p.addBody.TokenB.String())
+	return err
 }
 
 func (p *PairRunner) preAddLiquidityVerify(pairAddr string) error {
@@ -183,7 +227,7 @@ func (p *PairRunner) preAddLiquidityVerify(pairAddr string) error {
 	}
 	pair := pairContract.Body.(*exchange2.Pair)
 	reserveA, reserveB := p.pairState.library.GetReservesByPair(pair, p.addBody.TokenA, p.addBody.TokenB)
-	amountA, amountB, err := p.optimalAmount(reserveA, reserveB, p.addBody.AmountADesired, p.addBody.AmountBDesired, p.addBody.AmountAMin, p.addBody.AmountBMin)
+	amountA, amountB, err := p.pairState.optimalAmount(reserveA, reserveB, p.addBody.AmountADesired, p.addBody.AmountBDesired, p.addBody.AmountAMin, p.addBody.AmountBMin)
 	if err != nil {
 		return err
 	}
@@ -263,47 +307,6 @@ func (p *PairRunner) PreRemoveLiquidityVerify(lastHeight uint64) error {
 	return nil
 }
 
-func (p *PairRunner) optimalAmount(reserveA, reserveB, amountADesired, amountBDesired, amountAMin, amountBMin uint64) (uint64, uint64, error) {
-	if reserveA == 0 && reserveB == 0 {
-		return amountADesired, amountBDesired, nil
-	} else {
-		// 最优数量B = 期望数量A * 储备B / 储备A
-		amountBOptimal, err := p.quote(amountADesired, reserveA, reserveB)
-		if err != nil {
-			return 0, 0, err
-		}
-		// 如果最优数量B < B的期望数量
-		if amountBOptimal <= amountBDesired {
-			if amountBOptimal < amountBMin {
-				return 0, 0, errors.New("insufficient amountB")
-			}
-			return amountADesired, amountBOptimal, nil
-		} else {
-			// 则计算 最优数量A = 期望数量B * 储备A / 储备B
-			amountAOptimal, err := p.quote(amountBDesired, reserveB, reserveA)
-			if err != nil {
-				return 0, 0, err
-			}
-			if amountAOptimal < amountAMin {
-				return 0, 0, errors.New("insufficient amountA")
-			}
-			return amountAOptimal, amountBDesired, nil
-		}
-	}
-}
-
-// Quote given some amount of an asset and pair reserves, returns an equivalent amount of the other asset
-func (p *PairRunner) quote(amountA, reserveA, reserveB uint64) (uint64, error) {
-	if amountA <= 0 {
-		return 0, errors.New("insufficient_amount")
-	}
-	if reserveA <= 0 || reserveB <= 0 {
-		return 0, errors.New("insufficient_liquidity")
-	}
-	amountB := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(amountA)), big.NewInt(int64(reserveB))), big.NewInt(int64(reserveA)))
-	return amountB.Uint64(), nil
-}
-
 func (p *PairRunner) AddLiquidity() {
 	var ERR error
 	var err error
@@ -336,7 +339,7 @@ func (p *PairRunner) AddLiquidity() {
 	_reserveA, _reserveB := p.pairState.library.GetReservesByPair(p.pairState.pairBody, p.addBody.TokenA, p.addBody.TokenB)
 	_reserve0, _reserve1 := p.pairState.pairBody.Reserve0, p.pairState.pairBody.Reserve1
 
-	amountA, amountB, err := p.optimalAmount(_reserveA, _reserveB, p.addBody.AmountADesired, p.addBody.AmountBDesired, p.addBody.AmountAMin, p.addBody.AmountBMin)
+	amountA, amountB, err := p.pairState.optimalAmount(_reserveA, _reserveB, p.addBody.AmountADesired, p.addBody.AmountBDesired, p.addBody.AmountAMin, p.addBody.AmountBMin)
 	if err != nil {
 		ERR = err
 		return

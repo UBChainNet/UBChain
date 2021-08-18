@@ -93,6 +93,25 @@ var exMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"LegalPair": &MethodInfo{
+		Name: "LegalPair",
+		Params: []Value{
+			{
+				Name: "tokenA",
+				Type: "string",
+			},
+			{
+				Name: "tokenB",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "is legal",
+				Type: "bool",
+			},
+		},
+	},
 }
 
 var pairMethods = map[string]*MethodInfo{
@@ -118,6 +137,25 @@ var pairMethods = map[string]*MethodInfo{
 			{
 				Name: "exist",
 				Type: "bool",
+			},
+		},
+	},
+	"QuoteAmountB": &MethodInfo{
+		Name: "QuoteAmountB",
+		Params: []Value{
+			{
+				Name: "TokenA",
+				Type: "string",
+			},
+			{
+				Name: "AmountA",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "AmountB",
+				Type: "float64",
 			},
 		},
 	},

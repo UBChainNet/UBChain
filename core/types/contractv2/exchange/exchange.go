@@ -6,6 +6,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/encode/rlp"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/common/utils"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 	"math"
 	"strings"
@@ -16,6 +17,8 @@ type ReadFunction string
 const (
 	Func_PairAddress ReadFunction = "pairAddress"
 	Func_PairList                 = "pairAddress"
+
+	maxPairTokenLen = 5
 )
 
 type PairAddress struct {
@@ -95,7 +98,14 @@ func (e *Exchange) PairAddress(token0, token1 hasharry.Address) hasharry.Address
 }
 
 func (e *Exchange) AddPair(token0, token1, address hasharry.Address, symbol0, symbol1 string) {
-	e.Pair[token0] = map[hasharry.Address]hasharry.Address{token1: address}
+	token1Addr, ok := e.Pair[token0]
+	if ok {
+		token1Addr[token1] = address
+		e.Pair[token0] = token1Addr
+	} else {
+		e.Pair[token0] = map[hasharry.Address]hasharry.Address{token1: address}
+	}
+
 	e.AllPairs = append(e.AllPairs, PairAddress{
 		Key:     pairKey(token0, token1),
 		Address: address,
@@ -126,8 +136,14 @@ func DecodeToExchange(bytes []byte) (*Exchange, error) {
 	}
 	ex.AllPairs = rlpEx.AllPairs
 	for _, pair := range rlpEx.AllPairs {
-		tokenB, token2 := ParseKey(pair.Key)
-		ex.Pair[tokenB] = map[hasharry.Address]hasharry.Address{token2: pair.Address}
+		token0, token1 := ParseKey(pair.Key)
+		token1Addr, ok := ex.Pair[token0]
+		if ok {
+			token1Addr[token1] = pair.Address
+			ex.Pair[token0] = token1Addr
+		} else {
+			ex.Pair[token0] = map[hasharry.Address]hasharry.Address{token1: pair.Address}
+		}
 	}
 	return ex, nil
 }
@@ -180,6 +196,24 @@ func (e *Exchange) ExchangeRouter(tokenA, tokenB string) [][]string {
 		return nil
 	}
 	return CalculateShortestPaths(tokenA, tokenB, pairList)
+}
+
+func (e *Exchange) LegalPair(tokenA, tokenB string) (bool, error) {
+	mainToken := param.Token.String()
+	if tokenA == mainToken {
+		return true, nil
+	}
+	if tokenB == mainToken {
+		return true, nil
+	}
+	paths := e.ExchangeRouter(tokenA, mainToken)
+	if paths == nil || len(paths[0]) > maxPairTokenLen {
+		paths := e.ExchangeRouter(tokenB, mainToken)
+		if paths == nil || len(paths[0]) > maxPairTokenLen {
+			return false, fmt.Errorf("the path of %s->%s must be smaller than %d", tokenA, mainToken, maxPairTokenLen)
+		}
+	}
+	return true, nil
 }
 
 func CalculateShortestPath(tokenA, tokenB string, pairs []map[string]string) []string {

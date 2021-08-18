@@ -200,29 +200,33 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 		args = append(args, reflect.ValueOf(param))
 	}
 	rs := tMethod.Func.Call(args)
-	if len(rs) == 0 {
+	if len(rs) == 0 || len(rs) > 2 {
 		return nil, fmt.Errorf("%s is not a read method", method)
 	}
-	result := []interface{}{}
-	for i := 0; i < len(rs); i++ {
-		switch rs[i].Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-			result = append(result, rs[i].Uint())
-		case reflect.Float32, reflect.Float64:
-			result = append(result, rs[i].Float())
-		case reflect.String:
-			result = append(result, rs[i].String())
-		case reflect.Bool:
-			result = append(result, rs[i].Bool())
-		case reflect.Ptr, reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
-			result = append(result, rs[i].Interface())
-		case reflect.Interface:
-			err, ok := rs[i].Interface().(error)
-			if ok {
-				result = append(result, err.Error())
-			}
+	if len(rs) == 2 {
+		err, _ = rs[1].Interface().(error)
+	}
+	return reflectValue(rs[0]), err
+}
+
+func reflectValue(value reflect.Value) interface{} {
+	switch value.Kind() {
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return value.Uint()
+	case reflect.Float32, reflect.Float64:
+		return value.Float()
+	case reflect.String:
+		return value.String()
+	case reflect.Bool:
+		return value.Bool()
+	case reflect.Ptr, reflect.Struct, reflect.Map, reflect.Array, reflect.Slice:
+		return value.Interface()
+	case reflect.Interface:
+		err, ok := value.Interface().(error)
+		if ok {
+			return err.Error()
 		}
 	}
-	return result, nil
+	return nil
 }

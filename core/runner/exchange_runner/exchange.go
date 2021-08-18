@@ -64,6 +64,10 @@ func (es *ExchangeState) ExchangeRouter(tokenA, tokenB string) [][]string {
 	return es.body.ExchangeRouter(tokenA, tokenB)
 }
 
+func (es *ExchangeState) LegalPair(tokenA, tokenB string) (bool, error) {
+	return es.body.LegalPair(tokenA, tokenB)
+}
+
 func (es *ExchangeState) AmountOut(paths string, amountIn float64) (float64, error) {
 	pathsList := strings.Split(paths, "->")
 	arryPaths := make([]hasharry.Address, len(pathsList))
@@ -93,14 +97,16 @@ func (es *ExchangeState) AmountIn(paths string, amountOut float64) (float64, err
 }
 
 func (es *ExchangeState) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
-	var err error
 	amounts := make([]uint64, len(path))
 	amounts[0] = amountIn
 	for i := 0; i < len(path)-1; i++ {
 		// 获取储备量
 		token0, token1 := library.SortToken(path[i], path[i+1])
 		pairAddress := es.body.PairAddress(token0, token1)
-		reserveIn, reserveOut := es.library.GetReservesByPairAddress(pairAddress, path[i], path[i+1])
+		reserveIn, reserveOut, err := es.library.GetReservesByPairAddress(pairAddress, path[i], path[i+1])
+		if err != nil {
+			return nil, err
+		}
 		// 下一个数额 =  当前数额兑换的结果
 		amounts[i+1], err = GetAmountOut(amounts[i], reserveIn, reserveOut)
 		if err != nil {
@@ -112,14 +118,16 @@ func (es *ExchangeState) getAmountsOut(amountIn uint64, path []hasharry.Address)
 
 // getAmountsIn performs chained getAmountIn calculations on any number of pairs
 func (es *ExchangeState) getAmountsIn(amountOut uint64, path []hasharry.Address) ([]uint64, error) {
-	var err error
 	amounts := make([]uint64, len(path))
 	amounts[len(amounts)-1] = amountOut
 	for i := len(path) - 1; i > 0; i-- {
 		// 获取储备量
 		token0, token1 := library.SortToken(path[i-1], path[i])
 		pairAddress := es.body.PairAddress(token0, token1)
-		reserveIn, reserveOut := es.library.GetReservesByPairAddress(pairAddress, path[i-1], path[i])
+		reserveIn, reserveOut, err := es.library.GetReservesByPairAddress(pairAddress, path[i-1], path[i])
+		if err != nil {
+			return nil, err
+		}
 		amounts[i-1], err = GetAmountIn(amounts[i], reserveIn, reserveOut)
 		if err != nil {
 			return amounts, err
@@ -418,7 +426,10 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 	pairAddress := e.exState.body.PairAddress(_token0, _token1)
 	pairContract := e.exState.library.GetContractV2(pairAddress.String())
 	pair := pairContract.Body.(*exchange.Pair)
-	_reserve0, _reserve1 := e.exState.library.GetReservesByPairAddress(pairAddress, _token0, _token1)
+	_reserve0, _reserve1, err := e.exState.library.GetReservesByPairAddress(pairAddress, _token0, _token1)
+	if err != nil {
+		return err
+	}
 	if amount0Out >= _reserve0 || amount1Out >= _reserve1 {
 		return errors.New("insufficient liquidity")
 	}
