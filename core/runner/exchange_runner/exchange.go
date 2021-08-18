@@ -64,14 +64,70 @@ func (es *ExchangeState) ExchangeRouter(tokenA, tokenB string) [][]string {
 	return es.body.ExchangeRouter(tokenA, tokenB)
 }
 
+type Router struct {
+	Path      []string `json:"path"`
+	AmountOut float64  `json:"amountOut"`
+	Error     string   `json:"error"`
+}
+
+func (es *ExchangeState) ExchangeRouterWithAmount(tokenA, tokenB string, amountIn float64) []Router {
+	var routers []Router
+	paths := es.body.ExchangeRouter(tokenA, tokenB)
+	for _, path := range paths {
+		var errInfo = ""
+		amountOut, err := es.amountOut(path, amountIn)
+		if err != nil {
+			errInfo = err.Error()
+		}
+		routers = append(routers, Router{
+			Path:      path,
+			AmountOut: amountOut,
+			Error:     errInfo,
+		})
+	}
+	return routers
+}
+
+func (es *ExchangeState) ExchangeOptimalRouter(tokenA, tokenB string, amountIn float64) *Router {
+	paths := es.body.ExchangeRouter(tokenA, tokenB)
+	var maxOut float64
+	var optimal []string
+	for _, path := range paths {
+		amountOut, err := es.amountOut(path, amountIn)
+		if err != nil {
+			continue
+		}
+		if amountOut > maxOut {
+			maxOut = amountOut
+			optimal = path
+		}
+	}
+	if maxOut == float64(0) {
+		return &Router{
+			Path:      nil,
+			AmountOut: 0,
+			Error:     "unable to change",
+		}
+	}
+	return &Router{
+		Path:      optimal,
+		AmountOut: maxOut,
+		Error:     "",
+	}
+}
+
 func (es *ExchangeState) LegalPair(tokenA, tokenB string) (bool, error) {
 	return es.body.LegalPair(tokenA, tokenB)
 }
 
 func (es *ExchangeState) AmountOut(paths string, amountIn float64) (float64, error) {
 	pathsList := strings.Split(paths, "->")
-	arryPaths := make([]hasharry.Address, len(pathsList))
-	for i, path := range pathsList {
+	return es.amountOut(pathsList, amountIn)
+}
+
+func (es *ExchangeState) amountOut(paths []string, amountIn float64) (float64, error) {
+	arryPaths := make([]hasharry.Address, len(paths))
+	for i, path := range paths {
 		arryPaths[i] = hasharry.StringToAddress(path)
 	}
 	iAmountIn, _ := types.NewAmount(amountIn)

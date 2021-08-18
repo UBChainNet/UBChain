@@ -2,13 +2,11 @@ package runner
 
 import (
 	"fmt"
-	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/interface"
 	"github.com/UBChainNet/UBChain/core/runner/exchange_runner"
 	"github.com/UBChainNet/UBChain/core/runner/library"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
-	"github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
 	"reflect"
 	"strconv"
 	"sync"
@@ -94,26 +92,6 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 		}
 	}
 	return nil
-}
-
-func (c *ContractRunner) ExchangePair(address hasharry.Address) ([]*Pair, error) {
-	exHeader := c.library.GetContractV2(address.String())
-	if exHeader == nil {
-		return nil, fmt.Errorf("exchange %s is not exist", address.String())
-	}
-	rpcPairList := make([]*Pair, 0)
-	ex := exHeader.Body.(*exchange.Exchange)
-	for _, pair := range ex.AllPairs {
-		token0, token1 := exchange.ParseKey(pair.Key)
-		rpcPairList = append(rpcPairList, &Pair{
-			Address:  pair.Address.String(),
-			Token0:   token0.String(),
-			Token1:   token1.String(),
-			Reserve0: types.Amount(c.library.GetBalance(pair.Address, token0)).ToCoin(),
-			Reserve1: types.Amount(c.library.GetBalance(pair.Address, token1)).ToCoin(),
-		})
-	}
-	return rpcPairList, nil
 }
 
 type Pair struct {

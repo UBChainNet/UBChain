@@ -152,13 +152,13 @@ func (a *Api) GetLastHeight() (string, error) {
 }
 
 func (a *Api) GetContract(address string) (interface{}, error) {
-	if ut.IsContractV2Address(param.Net, address){
+	if ut.IsContractV2Address(param.Net, address) {
 		contractV2 := a.contractState.GetContractV2(address)
 		if contractV2 == nil {
 			return nil, fmt.Errorf("contract %s is not exist", address)
 		}
 		return coreTypes.TranslateContractV2ToRpcContractV2(contractV2), nil
-	}else{
+	} else {
 		contract := a.contractState.GetContract(address)
 		if contract == nil {
 			return nil, fmt.Errorf("contract %s is not exist", address)
@@ -169,21 +169,21 @@ func (a *Api) GetContract(address string) (interface{}, error) {
 
 func (a *Api) GetContractBySymbol(symbol string) (interface{}, error) {
 	contract, exist := a.contractState.GetSymbolContract(symbol)
-	if !exist{
+	if !exist {
 		return nil, fmt.Errorf("symbol %s does not exist", contract)
 	}
 	return a.GetContract(contract)
 }
 
-func (a *Api)TokenList()(interface{}, error){
+func (a *Api) TokenList() (interface{}, error) {
 	return a.contractState.TokenList(), nil
 }
 
-func (a *Api)AccountList()(interface{}, error){
+func (a *Api) AccountList() (interface{}, error) {
 	return a.accountState.AccountList(), nil
 }
 
-func (a *Api) ContractMethod(contract, function string, params []string)(interface{}, error){
+func (a *Api) ContractMethod(contract, function string, params []string) (interface{}, error) {
 	return a.runner.ReadMethod(contract, function, params)
 }
 
@@ -201,12 +201,4 @@ func (a *Api) Peers() ([]*coreTypes.NodeInfo, error) {
 func (a *Api) NodeInfo() (*coreTypes.NodeInfo, error) {
 	node := a.peers.NodeInfo()
 	return node, nil
-}
-
-func (a *Api) GetExchangePairs(address string) ([]*runner.Pair, error) {
-	pairs, err := a.runner.ExchangePair(hasharry.StringToAddress(address))
-	if err != nil {
-		return nil, err
-	}
-	return pairs, nil
 }

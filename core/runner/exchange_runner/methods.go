@@ -7,7 +7,7 @@ var exMethods = map[string]*MethodInfo{
 		Returns: []Value{
 			{
 				Name: "Open methods",
-				Type: "",
+				Type: "json",
 			},
 		},
 	},
@@ -32,7 +32,7 @@ var exMethods = map[string]*MethodInfo{
 		Returns: []Value{
 			{
 				Name: "pair list",
-				Type: "",
+				Type: "json",
 			},
 		},
 	},
@@ -51,10 +51,59 @@ var exMethods = map[string]*MethodInfo{
 		Returns: []Value{
 			{
 				Name: "paths",
-				Type: "",
+				Type: "json",
 			},
 		},
 	},
+
+	"ExchangeRouterWithAmount": &MethodInfo{
+		Name: "ExchangeRouterWithAmount",
+		Params: []Value{
+			{
+				Name: "tokenA",
+				Type: "string",
+			},
+			{
+				Name: "tokenB",
+				Type: "string",
+			},
+			{
+				Name: "amountIn",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "path and amount",
+				Type: "json",
+			},
+		},
+	},
+
+	"ExchangeOptimalRouter": &MethodInfo{
+		Name: "ExchangeOptimalRouter",
+		Params: []Value{
+			{
+				Name: "tokenA",
+				Type: "string",
+			},
+			{
+				Name: "tokenB",
+				Type: "string",
+			},
+			{
+				Name: "amountIn",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "optimal path",
+				Type: "json",
+			},
+		},
+	},
+
 	"AmountOut": &MethodInfo{
 		Name: "AmountOut",
 		Params: []Value{
@@ -121,7 +170,7 @@ var pairMethods = map[string]*MethodInfo{
 		Returns: []Value{
 			{
 				Name: "Open methods",
-				Type: "",
+				Type: "json",
 			},
 		},
 	},
@@ -156,6 +205,22 @@ var pairMethods = map[string]*MethodInfo{
 			{
 				Name: "AmountB",
 				Type: "float64",
+			},
+		},
+	},
+
+	"TotalValue": &MethodInfo{
+		Name: "TotalValue",
+		Params: []Value{
+			{
+				Name: "liquidity",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
 			},
 		},
 	},

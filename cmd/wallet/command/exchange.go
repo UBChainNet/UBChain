@@ -607,14 +607,11 @@ func parseSEIParams(args []string, nonce uint64) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	pairs, err := GetAllPairByRpc(exchange)
-	if err != nil {
-		return nil, err
-	}
-	paths := transaction.CalculateShortestPath(hasharry.StringToAddress(tokenA), hasharry.StringToAddress(tokenB), pairs)
-	if len(paths) == 0 {
+	paths, err := GetExchangeRouter(exchange, tokenA, tokenB)
+	if err != nil && len(paths) == 0 {
 		return nil, fmt.Errorf("not found")
 	}
+	fmt.Println(paths)
 	tx, err := transaction.NewSwapExactIn(from, to, exchange, amountIn, amountOutMin, paths, deadline, nonce, "")
 	if err != nil {
 		return nil, err
@@ -718,12 +715,8 @@ func parseSEOParams(args []string, nonce uint64) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	pairs, err := GetAllPairByRpc(exchange)
-	if err != nil {
-		return nil, err
-	}
-	paths := transaction.CalculateShortestPath(hasharry.StringToAddress(tokenA), hasharry.StringToAddress(tokenB), pairs)
-	if len(paths) == 0 {
+	paths, err := GetExchangeRouter(exchange, tokenA, tokenB)
+	if err != nil && len(paths) == 0 {
 		return nil, fmt.Errorf("not found")
 	}
 	tx, err := transaction.NewSwapExactOut(from, to, exchange, amountOut, amountInMax, paths, deadline, nonce, "")
@@ -790,4 +783,34 @@ func GetAllPairByRpc(addr string) ([]*types.RpcPair, error) {
 		return nil, err
 	}
 	return pairs, nil
+}
+
+func GetExchangeRouter(exchange string, tokenA, tokenB string) ([]string, error) {
+	client, err := NewRpcClient()
+	if err != nil {
+		return nil, err
+	}
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*20)
+	defer cancel()
+	rs, err := client.Gc.ContractMethod(ctx, &rpc.Method{
+		Contract: exchange,
+		Method:   "ExchangeRouter",
+		Params: []string{
+			tokenA,
+			tokenB,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if rs.Code != rpctypes.RpcSuccess {
+		return nil, errors.New(rs.Err)
+	}
+	pairs := make([][]string, 0)
+	if err := json.Unmarshal(rs.Result, &pairs); err != nil {
+		return nil, err
+	}
+	return pairs[0], nil
 }

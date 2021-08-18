@@ -207,7 +207,7 @@ func (rs *Server) GetContractBySymbol(ctx context.Context, req *Symbol) (*Respon
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
-func (rs *Server)TokenList(ctx context.Context, req *Null) (*Response, error) {
+func (rs *Server) TokenList(ctx context.Context, req *Null) (*Response, error) {
 	list, err := rs.api.TokenList()
 	if err != nil {
 		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
@@ -216,7 +216,7 @@ func (rs *Server)TokenList(ctx context.Context, req *Null) (*Response, error) {
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
-func (rs *Server)AccountList(ctx context.Context, req *Null) (*Response, error) {
+func (rs *Server) AccountList(ctx context.Context, req *Null) (*Response, error) {
 	list, err := rs.api.AccountList()
 	if err != nil {
 		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
@@ -225,7 +225,7 @@ func (rs *Server)AccountList(ctx context.Context, req *Null) (*Response, error) 
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
-func (rs *Server)ContractMethod(ctx context.Context, req *Method) (*Response, error){
+func (rs *Server) ContractMethod(ctx context.Context, req *Method) (*Response, error) {
 	result, err := rs.api.ContractMethod(req.Contract, req.Method, req.Params)
 	if err != nil {
 		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
@@ -257,15 +257,6 @@ func (rs *Server) NodeInfo(context.Context, *Null) (*Response, error) {
 		return NewResponse(rpctypes.RpcErrBlockChain, nil, err.Error()), nil
 	}
 	bytes, _ := json.Marshal(nodeInfo)
-	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
-}
-
-func (rs *Server) GetExchangePairs(ctx context.Context, req *Address) (*Response, error) {
-	pairs, err := rs.api.GetExchangePairs(req.Address)
-	if err != nil {
-		return NewResponse(rpctypes.RpcErrBlockChain, nil, err.Error()), nil
-	}
-	bytes, _ := json.Marshal(pairs)
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 

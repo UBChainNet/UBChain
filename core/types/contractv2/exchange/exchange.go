@@ -195,7 +195,7 @@ func (e *Exchange) ExchangeRouter(tokenA, tokenB string) [][]string {
 	if len(pairList) == 0 {
 		return nil
 	}
-	return CalculateShortestPaths(tokenA, tokenB, pairList)
+	return CalculatePaths(tokenA, tokenB, pairList)
 }
 
 func (e *Exchange) LegalPair(tokenA, tokenB string) (bool, error) {
@@ -252,10 +252,35 @@ func CalculateShortestPaths(tokenA, tokenB string, pairs []map[string]string) []
 		pathList, ok := pathMap[len(path)]
 		if ok {
 			pathList = append(pathList, pathString)
+			pathMap[len(path)] = pathList
 		} else {
 			pathMap[len(path)] = [][]string{pathString}
 		}
 	}
 
 	return pathMap[minLen]
+}
+
+func CalculatePaths(tokenA, tokenB string, pairs []map[string]string) [][]string {
+	g := utils.NewGraph()
+	for _, pair := range pairs {
+		for token0, token1 := range pair {
+			g.AddEdge(utils.NewNode(token0, 0), utils.NewNode(token1, 0))
+		}
+	}
+	paths, err := g.FindNodePath(utils.NewNode(tokenA, 0), utils.NewNode(tokenB, 0))
+	if err != nil {
+		return nil
+	}
+	allPath := [][]string{}
+
+	for _, path := range paths {
+		pathList := make([]string, len(path))
+		for i, node := range path {
+			pathList[i] = node.String()
+		}
+		allPath = append(allPath, pathList)
+	}
+
+	return allPath
 }

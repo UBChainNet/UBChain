@@ -111,6 +111,79 @@ func (ps *PairState) quote(amountA, reserveA, reserveB uint64) (uint64, error) {
 	return amountB.Uint64(), nil
 }
 
+type TotalValue struct {
+	Token0  string  `json:"token0"`
+	Symbol0 string  `json:"symbol0"`
+	Value0  float64 `json:"value0"`
+	Token1  string  `json:"token1"`
+	Symbol1 string  `json:"symbol1"`
+	Value1  float64 `json:"value1"`
+}
+
+func (ps *PairState) TotalValue(liquidity float64) (*TotalValue, error) {
+	iLiquidity, _ := types.NewAmount(liquidity)
+	amount0, amount1, err := ps.totalValue(ps.pairBody.Token0, ps.pairBody.Token1, iLiquidity)
+	if err != nil {
+		return nil, err
+	}
+	return &TotalValue{
+		Token0:  ps.pairBody.Token0.String(),
+		Symbol0: ps.pairBody.Symbol0,
+		Value0:  types.Amount(amount0).ToCoin(),
+		Token1:  ps.pairBody.Token1.String(),
+		Symbol1: ps.pairBody.Symbol1,
+		Value1:  types.Amount(amount1).ToCoin(),
+	}, nil
+}
+
+func (ps *PairState) totalValue(tokenA, tokenB hasharry.Address, liquidity uint64) (uint64, uint64, error) {
+	token0, token1 := library.SortToken(tokenA, tokenB)
+	_reserve0, _reserve1 := ps.library.GetReservesByPair(ps.pairBody, token0, token1)
+
+	_totalSupply := ps.pairBody.TotalSupply
+	if _totalSupply < liquidity {
+		return 0, 0, fmt.Errorf("exceeding the maximum liquidity value %.8f", types.Amount(_totalSupply).ToCoin())
+	}
+
+	amount0 := new(big.Int).Div(new(big.Int).Mul(big.NewInt(int64(liquidity)), big.NewInt(int64(_reserve0))), big.NewInt(int64(_totalSupply))).Uint64()
+	amount1 := new(big.Int).Div(new(big.Int).Mul(big.NewInt(int64(liquidity)), big.NewInt(int64(_reserve1))), big.NewInt(int64(_totalSupply))).Uint64()
+	if tokenA.IsEqual(token0) {
+		return amount0, amount1, nil
+	}
+	return amount1, amount0, nil
+}
+
+// if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
+func (ps *PairState) mintFee(_reserve0, _reserve1 uint64) (bool, uint64, error) {
+	var feeLiquidity uint64
+	feeTo := ps.exBody.FeeTo
+	// 收费地址被设置，则收费开
+	feeOn := !feeTo.IsEqual(hasharry.Address{})
+	_kLast := ps.pairBody.KLast // gas savings
+	if feeOn {
+		if _kLast.Cmp(big.NewInt(0)) != 0 {
+			// rootK = Sqrt(_reserve0 * _reserve1)
+			rootK := big.NewInt(0).Sqrt(big.NewInt(0).Mul(big.NewInt(int64(_reserve0)), big.NewInt(int64(_reserve1))))
+			// rootKLast = Sqrt(_kLast)
+			rootKLast := big.NewInt(0).Sqrt(_kLast)
+			if rootK.Cmp(rootKLast) > 0 {
+				// numerator = (rootK-rootKLast)*TotalSupply
+				numerator := big.NewInt(0).Mul(big.NewInt(0).Sub(rootK, rootKLast), big.NewInt(int64(ps.pairBody.TotalSupply)))
+				// denominator =  * 5 + rootKLast
+				denominator := big.NewInt(0).Add(big.NewInt(0).Mul(rootK, big.NewInt(5)), rootKLast)
+				// liquidity = numerator / denominator
+				liquidityBig := big.NewInt(0).Div(numerator, denominator)
+				if liquidityBig.Cmp(big.NewInt(0)) > 0 {
+					feeLiquidity = liquidityBig.Uint64()
+				}
+			}
+		}
+	} else if _kLast.Cmp(big.NewInt(0)) != 0 {
+		ps.pairBody.KLast = big.NewInt(0)
+	}
+	return feeOn, feeLiquidity, nil
+}
+
 type PairRunner struct {
 	pairState    *PairState
 	contractBody *types.TxContractV2Body
@@ -413,7 +486,7 @@ func (p *PairRunner) RemoveLiquidity() {
 
 	token0, token1 := library.SortToken(p.removeBody.TokenA, p.removeBody.TokenB)
 	_reserve0, _reserve1 := p.pairState.library.GetReservesByPair(p.pairState.pairBody, token0, token1)
-	feeOn, feeLiquidity, err := p.mintFee(_reserve0, _reserve1)
+	feeOn, feeLiquidity, err := p.pairState.mintFee(_reserve0, _reserve1)
 	if err != nil {
 		ERR = err
 		return
@@ -468,7 +541,7 @@ func (p *PairRunner) mintLiquidityValue(_reserve0, _reserve1, amount0, amount1 u
 	// must be defined here since totalSupply can update in mintFee
 	_totalSupply := p.pairState.pairBody.TotalSupply
 	// 返回铸造币的手续费开关
-	feeOn, feeLiquidity, err := p.mintFee(_reserve0, _reserve1)
+	feeOn, feeLiquidity, err := p.pairState.mintFee(_reserve0, _reserve1)
 	if err != nil {
 		return 0, 0, false, err
 	}
@@ -490,37 +563,6 @@ func (p *PairRunner) mintLiquidityValue(_reserve0, _reserve1, amount0, amount1 u
 	}
 
 	return liquidityValue, feeLiquidity, feeOn, nil
-}
-
-// if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
-func (p *PairRunner) mintFee(_reserve0, _reserve1 uint64) (bool, uint64, error) {
-	var feeLiquidity uint64
-	feeTo := p.pairState.exBody.FeeTo
-	// 收费地址被设置，则收费开
-	feeOn := !feeTo.IsEqual(hasharry.Address{})
-	_kLast := p.pairState.pairBody.KLast // gas savings
-	if feeOn {
-		if _kLast.Cmp(big.NewInt(0)) != 0 {
-			// rootK = Sqrt(_reserve0 * _reserve1)
-			rootK := big.NewInt(0).Sqrt(big.NewInt(0).Mul(big.NewInt(int64(_reserve0)), big.NewInt(int64(_reserve1))))
-			// rootKLast = Sqrt(_kLast)
-			rootKLast := big.NewInt(0).Sqrt(_kLast)
-			if rootK.Cmp(rootKLast) > 0 {
-				// numerator = (rootK-rootKLast)*TotalSupply
-				numerator := big.NewInt(0).Mul(big.NewInt(0).Sub(rootK, rootKLast), big.NewInt(int64(p.pairState.pairBody.TotalSupply)))
-				// denominator =  * 5 + rootKLast
-				denominator := big.NewInt(0).Add(big.NewInt(0).Mul(rootK, big.NewInt(5)), rootKLast)
-				// liquidity = numerator / denominator
-				liquidityBig := big.NewInt(0).Div(numerator, denominator)
-				if liquidityBig.Cmp(big.NewInt(0)) > 0 {
-					feeLiquidity = liquidityBig.Uint64()
-				}
-			}
-		}
-	} else if _kLast.Cmp(big.NewInt(0)) != 0 {
-		p.pairState.pairBody.KLast = big.NewInt(0)
-	}
-	return feeOn, feeLiquidity, nil
 }
 
 func (p *PairRunner) update() {
