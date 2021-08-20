@@ -571,7 +571,7 @@ func (p *PairRunner) update() {
 	p.pairState.library.SetContractV2(p.pairState.exHeader)
 	p.pairState.library.SetContractV2(p.pairState.pairHeader)
 	if p.isCreate {
-		p.pairState.library.SetSymbol(p.pairState.exBody.Symbol, p.address.String())
+		p.pairState.library.SetSymbol(p.pairState.pairBody.Symbol, p.address.String())
 	}
 }
 
