@@ -121,7 +121,7 @@ func (es *ExchangeState) LegalPair(tokenA, tokenB string) (bool, error) {
 }
 
 func (es *ExchangeState) AmountOut(paths string, amountIn float64) (float64, error) {
-	pathsList := strings.Split(paths, "->")
+	pathsList := strings.Split(paths, ",")
 	return es.amountOut(pathsList, amountIn)
 }
 
@@ -139,7 +139,7 @@ func (es *ExchangeState) amountOut(paths []string, amountIn float64) (float64, e
 }
 
 func (es *ExchangeState) AmountIn(paths string, amountOut float64) (float64, error) {
-	pathsList := strings.Split(paths, "->")
+	pathsList := strings.Split(paths, ",")
 	arryPaths := make([]hasharry.Address, len(pathsList))
 	for i, path := range pathsList {
 		arryPaths[i] = hasharry.StringToAddress(path)

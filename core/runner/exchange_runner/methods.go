@@ -108,7 +108,7 @@ var exMethods = map[string]*MethodInfo{
 		Name: "AmountOut",
 		Params: []Value{
 			{
-				Name: "paths(tokenA->tokenB->tokenC)",
+				Name: "paths(tokenA,tokenB,tokenC)",
 				Type: "string",
 			},
 			{
@@ -127,7 +127,7 @@ var exMethods = map[string]*MethodInfo{
 		Name: "AmountIn",
 		Params: []Value{
 			{
-				Name: "paths(tokenA->tokenB->tokenC)",
+				Name: "paths(tokenA,tokenB,tokenC)",
 				Type: "string",
 			},
 			{
