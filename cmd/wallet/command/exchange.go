@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/runner/exchange_runner"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/rpc"
 	"github.com/UBChainNet/UBChain/rpc/rpctypes"
@@ -611,7 +612,6 @@ func parseSEIParams(args []string, nonce uint64) (*types.Transaction, error) {
 	if err != nil && len(paths) == 0 {
 		return nil, fmt.Errorf("not found")
 	}
-	fmt.Println(paths)
 	tx, err := transaction.NewSwapExactIn(from, to, exchange, amountIn, amountOutMin, paths, deadline, nonce, "")
 	if err != nil {
 		return nil, err
@@ -740,7 +740,7 @@ var GetAllPairsCmd = &cobra.Command{
 }
 
 func GetAllPairs(cmd *cobra.Command, args []string) {
-	client, err := NewRpcClient()
+	/*client, err := NewRpcClient()
 	if err != nil {
 		log.Error(cmd.Use+" err: ", err)
 		return
@@ -759,11 +759,11 @@ func GetAllPairs(cmd *cobra.Command, args []string) {
 		output(string(resp.Result))
 		return
 	}
-	outputRespError(cmd.Use, resp)
+	outputRespError(cmd.Use, resp)*/
 }
 
 func GetAllPairByRpc(addr string) ([]*types.RpcPair, error) {
-	client, err := NewRpcClient()
+	/*client, err := NewRpcClient()
 	if err != nil {
 		return nil, err
 	}
@@ -781,8 +781,8 @@ func GetAllPairByRpc(addr string) ([]*types.RpcPair, error) {
 	pairs := make([]*types.RpcPair, 0)
 	if err := json.Unmarshal(rs.Result, &pairs); err != nil {
 		return nil, err
-	}
-	return pairs, nil
+	}*/
+	return nil, nil
 }
 
 func GetExchangeRouter(exchange string, tokenA, tokenB string) ([]string, error) {
@@ -796,10 +796,11 @@ func GetExchangeRouter(exchange string, tokenA, tokenB string) ([]string, error)
 	defer cancel()
 	rs, err := client.Gc.ContractMethod(ctx, &rpc.Method{
 		Contract: exchange,
-		Method:   "ExchangeRouter",
+		Method:   "ExchangeOptimalRouter",
 		Params: []string{
 			tokenA,
 			tokenB,
+			"1",
 		},
 	})
 	if err != nil {
@@ -808,9 +809,11 @@ func GetExchangeRouter(exchange string, tokenA, tokenB string) ([]string, error)
 	if rs.Code != rpctypes.RpcSuccess {
 		return nil, errors.New(rs.Err)
 	}
-	pairs := make([][]string, 0)
-	if err := json.Unmarshal(rs.Result, &pairs); err != nil {
+	fmt.Println(string(rs.Result))
+	router := &exchange_runner.Router{}
+	if err := json.Unmarshal(rs.Result, router); err != nil {
 		return nil, err
 	}
-	return pairs[0], nil
+	fmt.Println(router)
+	return router.Path, nil
 }

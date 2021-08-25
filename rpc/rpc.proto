@@ -25,6 +25,7 @@ service Greeter {
   rpc GetTransaction(Hash)returns (Response) { }
   rpc GetBlockByHash(Hash)returns (Response) {}
   rpc GetBlockByHeight(Height)returns (Response) {}
+  rpc GetBlockByRange(Height)returns (Response) {}
   rpc GetPoolTxs(Null)returns (Response) {}
   rpc GetLastHeight(Null)returns (Response) {}
   rpc GetContract(Address)returns (Response) {}
@@ -56,6 +57,7 @@ message Hash{
 
 message Height{
  uint64 height = 1;
+ uint64 count = 2;
 }
 
 message Null{

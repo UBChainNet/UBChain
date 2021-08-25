@@ -131,6 +131,21 @@ func (a *Api) GetBlockByHeight(height uint64) (*coreTypes.RpcBlock, error) {
 	return rpcBlock, nil
 }
 
+func (a *Api) GetBlockByRange(height uint64, count uint64) ([]*coreTypes.RpcBlock, error) {
+	blocks, err := a.chain.GetBlockByRange(height, count)
+	if err != nil {
+		return nil, err
+	}
+
+	var rpcBlocks []*coreTypes.RpcBlock
+	for _, block := range blocks {
+		rpcBlock, _ := coreTypes.TranslateBlockToRpcBlock(block, a.chain.GetConfirmedHeight(), a.chain.GetContractState)
+		rpcBlocks = append(rpcBlocks, rpcBlock)
+	}
+
+	return rpcBlocks, nil
+}
+
 func (a *Api) GetPoolTxs() (*coreTypes.TxPool, error) {
 	preparedTxs, futureTxs := a.txPool.GetAll()
 	txPoolTxs, _ := coreTypes.TranslateTxsToRpcTxPool(preparedTxs, futureTxs)

@@ -163,6 +163,15 @@ func (rs *Server) GetBlockByHeight(_ context.Context, req *Height) (*Response, e
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
+func (rs *Server) GetBlockByRange(_ context.Context, req *Height) (*Response, error) {
+	block, err := rs.api.GetBlockByRange(req.Height, req.Count)
+	if err != nil {
+		return NewResponse(rpctypes.RpcErrBlockChain, nil, err.Error()), nil
+	}
+	bytes, _ := json.Marshal(block)
+	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
+}
+
 func (rs *Server) GetPoolTxs(context.Context, *Null) (*Response, error) {
 	txPool, err := rs.api.GetPoolTxs()
 	if err != nil {

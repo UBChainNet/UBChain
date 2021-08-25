@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
@@ -187,8 +188,8 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 		}
 		init := &RpcExchangeInitBody{
 			Symbol: "",
-			Admin: "",
-			FeeTo: "",
+			Admin:  "",
+			FeeTo:  "",
 		}
 		err = json.Unmarshal(bytes, init)
 		if err != nil {
@@ -199,8 +200,8 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.ExchangeInitBody{
-				Admin: hasharry.StringToAddress(init.Admin),
-				FeeTo: hasharry.StringToAddress(init.FeeTo),
+				Admin:  hasharry.StringToAddress(init.Admin),
+				FeeTo:  hasharry.StringToAddress(init.FeeTo),
 				Symbol: init.Symbol,
 			},
 		}, nil
@@ -431,6 +432,9 @@ func translateContractV2ToRpcContractV2(body *TxContractV2Body) (*RpcContractV2T
 }
 
 func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
+	if body == nil {
+		return nil, fmt.Errorf("invalid contract body")
+	}
 	var function IRCFunction
 	switch body.FunctionType {
 	case contractv2.Exchange_Init:
