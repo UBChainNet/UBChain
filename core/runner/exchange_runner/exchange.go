@@ -60,6 +60,11 @@ func (es *ExchangeState) Pairs() []exchange.PairInfo {
 	return es.body.Pairs()
 }
 
+func (es *ExchangeState) PairAddress(tokenA, tokenB string) string {
+	token0, token1 := library.SortToken(hasharry.StringToAddress(tokenA), hasharry.StringToAddress(tokenB))
+	return es.body.PairAddress(token0, token1).String()
+}
+
 func (es *ExchangeState) ExchangeRouter(tokenA, tokenB string) [][]string {
 	return es.body.ExchangeRouter(tokenA, tokenB)
 }

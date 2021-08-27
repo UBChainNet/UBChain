@@ -161,6 +161,25 @@ var exMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"PairAddress": &MethodInfo{
+		Name: "PairAddress",
+		Params: []Value{
+			{
+				Name: "tokenA",
+				Type: "string",
+			},
+			{
+				Name: "tokenB",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "pair address",
+				Type: "string",
+			},
+		},
+	},
 }
 
 var pairMethods = map[string]*MethodInfo{

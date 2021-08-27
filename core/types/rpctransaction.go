@@ -299,10 +299,6 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 		if err != nil {
 			return nil, err
 		}
-		amountADesired, _ := NewAmount(createBody.AmountADesired)
-		amountBDesired, _ := NewAmount(createBody.AmountBDesired)
-		amountAMin, _ := NewAmount(createBody.AmountAMin)
-		amountBMin, _ := NewAmount(createBody.AmountBMin)
 		return &TxContractV2Body{
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
@@ -312,10 +308,10 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 				TokenA:         hasharry.StringToAddress(createBody.TokenA),
 				TokenB:         hasharry.StringToAddress(createBody.TokenB),
 				To:             hasharry.StringToAddress(createBody.To),
-				AmountADesired: amountADesired,
-				AmountBDesired: amountBDesired,
-				AmountAMin:     amountAMin,
-				AmountBMin:     amountBMin,
+				AmountADesired: createBody.AmountADesired,
+				AmountBDesired: createBody.AmountBDesired,
+				AmountAMin:     createBody.AmountAMin,
+				AmountBMin:     createBody.AmountBMin,
 				Deadline:       createBody.Deadline,
 			},
 		}, nil
@@ -329,8 +325,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 		if err != nil {
 			return nil, err
 		}
-		amountAMin, _ := NewAmount(remove.AmountAMin)
-		amountBMin, _ := NewAmount(remove.AmountBMin)
+
 		return &TxContractV2Body{
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
@@ -341,8 +336,8 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 				TokenB:     hasharry.StringToAddress(remove.TokenB),
 				To:         hasharry.StringToAddress(remove.To),
 				Liquidity:  remove.Liquidity,
-				AmountAMin: amountAMin,
-				AmountBMin: amountBMin,
+				AmountAMin: remove.AmountAMin,
+				AmountBMin: remove.AmountBMin,
 				Deadline:   remove.Deadline,
 			},
 		}, nil
@@ -398,7 +393,7 @@ func translateToRpcContractV2WithState(body *TxContractV2Body, contractState *Co
 					From:      e.From.String(),
 					To:        e.To.String(),
 					Token:     e.Token.String(),
-					Amount:    Amount(e.Amount).ToCoin(),
+					Amount:    e.Amount,
 					Height:    e.Height,
 				})
 			}
@@ -497,10 +492,10 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			TokenA:         funcBody.TokenA.String(),
 			TokenB:         funcBody.TokenB.String(),
 			To:             funcBody.To.String(),
-			AmountADesired: Amount(funcBody.AmountADesired).ToCoin(),
-			AmountBDesired: Amount(funcBody.AmountBDesired).ToCoin(),
-			AmountAMin:     Amount(funcBody.AmountAMin).ToCoin(),
-			AmountBMin:     Amount(funcBody.AmountBMin).ToCoin(),
+			AmountADesired: funcBody.AmountADesired,
+			AmountBDesired: funcBody.AmountBDesired,
+			AmountAMin:     funcBody.AmountAMin,
+			AmountBMin:     funcBody.AmountBMin,
 			Deadline:       funcBody.Deadline,
 		}
 	case contractv2.Pair_RemoveLiquidity:
@@ -514,8 +509,8 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			TokenB:     funcBody.TokenB.String(),
 			To:         funcBody.To.String(),
 			Liquidity:  funcBody.Liquidity,
-			AmountAMin: Amount(funcBody.AmountAMin).ToCoin(),
-			AmountBMin: Amount(funcBody.AmountBMin).ToCoin(),
+			AmountAMin: funcBody.AmountAMin,
+			AmountBMin: funcBody.AmountBMin,
 			Deadline:   funcBody.Deadline,
 		}
 	}
