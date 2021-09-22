@@ -392,7 +392,6 @@ func (p *PairRunner) AddLiquidity() {
 		} else {
 			p.state.Event = p.events
 		}
-		p.state.Event = p.events
 		p.pairState.library.SetContractV2State(p.tx.Hash().String(), p.state)
 	}()
 	if p.addBody.Deadline != 0 && p.addBody.Deadline < p.height {
