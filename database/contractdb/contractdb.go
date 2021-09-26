@@ -5,11 +5,12 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
+	"github.com/UBChainNet/UBChain/database"
 	"github.com/UBChainNet/UBChain/database/triedb"
 	"github.com/UBChainNet/UBChain/trie"
 )
 
-const synmbolPrefix = "s_"
+const symbolBucket = "s"
 
 type ContractStorage struct {
 	trieDB       *triedb.TrieDB
@@ -85,13 +86,28 @@ func (c *ContractStorage) GetContractV2State(txHash string) *types.ContractV2Sta
 }
 
 func (c *ContractStorage) SetSymbol(symbol string, contract string) {
-	c.contractTrie.Update([]byte(synmbolPrefix + symbol), hasharry.StringToAddress(contract).Bytes())
+	c.contractTrie.Update(database.Key(symbolBucket, []byte(symbol)), hasharry.StringToAddress(contract).Bytes())
 }
 
-func (c *ContractStorage) GetSymbol(symbol string) (string, bool){
-	bytes := c.contractTrie.Get([]byte(synmbolPrefix + symbol))
+func (c *ContractStorage) GetSymbolContract(symbol string) (string, bool){
+	bytes := c.contractTrie.Get(database.Key(symbolBucket, []byte(symbol)))
 	if bytes == nil{
 		return "", false
 	}
 	return hasharry.BytesToAddress(bytes).String(), true
+}
+
+func (c *ContractStorage)TokenList() []*types.Token{
+	iter := c.contractTrie.PrefixIterator(database.Prefix(symbolBucket))
+	var tokens  []*types.Token
+	for iter.Next(true) {
+		if iter.Leaf() {
+			key := iter.LeafKey()
+			tokens = append(tokens, &types.Token{
+				Symbol:   string(database.LeafKeyToKey(symbolBucket, key)),
+				Contract: hasharry.BytesToAddress(iter.LeafBlob()).String(),
+			})
+		}
+	}
+	return tokens
 }

@@ -18,6 +18,8 @@ type IBlockChain interface {
 
 	GetBlockByHeight(height uint64) (*types.Block, error)
 
+	GetBlockByRange(height, count uint64) ([]*types.Block, error)
+
 	GetBlockByHash(hash hasharry.Hash) (*types.Block, error)
 
 	GetRlpBlockByHeight(height uint64) (*types.RlpBlock, error)

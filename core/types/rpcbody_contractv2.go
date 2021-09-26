@@ -26,20 +26,21 @@ type RpcContractState struct {
 }
 
 type RpcEvent struct {
-	EventType int     `json:"eventtype"`
-	From      string  `json:"from"`
-	To        string  `json:"to"`
-	Token     string  `json:"token"`
-	Amount    float64 `json:"amount"`
-	Height    uint64  `json:"height"`
+	EventType int    `json:"eventtype"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+	Token     string `json:"token"`
+	Amount    uint64 `json:"amount"`
+	Height    uint64 `json:"height"`
 }
 
 type IRCFunction interface {
 }
 
 type RpcExchangeInitBody struct {
-	Admin string `json:"admin"`
-	FeeTo string `json:"feeto"`
+	Symbol string `json:"symbol"`
+	Admin  string `json:"admin"`
+	FeeTo  string `json:"feeto"`
 }
 
 type RpcExchangeSetAdminBody struct {
@@ -67,32 +68,24 @@ type RpcExchangeExactOutBody struct {
 }
 
 type RpcExchangeAddLiquidity struct {
-	Exchange       string  `json:"exchange"`
-	TokenA         string  `json:"tokenA"`
-	TokenB         string  `json:"tokenB"`
-	To             string  `json:"to"`
-	AmountADesired float64 `json:"amountadesired"`
-	AmountBDesired float64 `json:"amountbdesired"`
-	AmountAMin     float64 `json:"amountamin"`
-	AmountBMin     float64 `json:"amountbmin"`
-	Deadline       uint64  `json:"deadline"`
+	Exchange       string `json:"exchange"`
+	TokenA         string `json:"tokenA"`
+	TokenB         string `json:"tokenB"`
+	To             string `json:"to"`
+	AmountADesired uint64 `json:"amountadesired"`
+	AmountBDesired uint64 `json:"amountbdesired"`
+	AmountAMin     uint64 `json:"amountamin"`
+	AmountBMin     uint64 `json:"amountbmin"`
+	Deadline       uint64 `json:"deadline"`
 }
 
 type RpcExchangeRemoveLiquidity struct {
-	Exchange   string  `json:"exchange"`
-	TokenA     string  `json:"tokenA"`
-	TokenB     string  `json:"tokenB"`
-	To         string  `json:"to"`
-	Liquidity  uint64  `json:"liquidity"`
-	AmountAMin float64 `json:"amountamin"`
-	AmountBMin float64 `json:"amountbmin"`
-	Deadline   uint64  `json:"deadline"`
-}
-
-type RpcPair struct {
-	Address  string `json:"address"`
-	Token0   string `json:"token0"`
-	Token1   string `json:"token1"`
-	Reserve0 uint64 `json:"reserve0"`
-	Reserve1 uint64 `json:"reserve1"`
+	Exchange   string `json:"exchange"`
+	TokenA     string `json:"tokenA"`
+	TokenB     string `json:"tokenB"`
+	To         string `json:"to"`
+	Liquidity  uint64 `json:"liquidity"`
+	AmountAMin uint64 `json:"amountamin"`
+	AmountBMin uint64 `json:"amountbmin"`
+	Deadline   uint64 `json:"deadline"`
 }

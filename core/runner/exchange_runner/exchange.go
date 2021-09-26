@@ -14,12 +14,191 @@ import (
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 	"math/big"
+	"strings"
 )
 
+type ExchangeState struct {
+	header  *contractv2.ContractV2
+	body    *exchange.Exchange
+	library *library.RunnerLibrary
+}
+
+func NewExchangeState(runnerLibrary *library.RunnerLibrary, exAddress string) (*ExchangeState, error) {
+	exHeader := runnerLibrary.GetContractV2(exAddress)
+	if exHeader == nil {
+		return nil, fmt.Errorf("exchange %s already exist", exAddress)
+	}
+	exBody, _ := exHeader.Body.(*exchange.Exchange)
+	return &ExchangeState{
+		header:  exHeader,
+		body:    exBody,
+		library: runnerLibrary,
+	}, nil
+}
+
+type Value struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type MethodInfo struct {
+	Name    string  `json:"name"`
+	Params  []Value `json:"params"`
+	Returns []Value `json:"returns"`
+}
+
+func (es *ExchangeState) Methods() map[string]*MethodInfo {
+	return exMethods
+}
+
+func (es *ExchangeState) MethodExist(method string) bool {
+	_, exist := exMethods[method]
+	return exist
+}
+
+func (es *ExchangeState) Pairs() []exchange.PairInfo {
+	return es.body.Pairs()
+}
+
+func (es *ExchangeState) PairAddress(tokenA, tokenB string) string {
+	token0, token1 := library.SortToken(hasharry.StringToAddress(tokenA), hasharry.StringToAddress(tokenB))
+	return es.body.PairAddress(token0, token1).String()
+}
+
+func (es *ExchangeState) ExchangeRouter(tokenA, tokenB string) [][]string {
+	return es.body.ExchangeRouter(tokenA, tokenB)
+}
+
+type Router struct {
+	Path      []string `json:"path"`
+	AmountOut float64  `json:"amountOut"`
+	Error     string   `json:"error"`
+}
+
+func (es *ExchangeState) ExchangeRouterWithAmount(tokenA, tokenB string, amountIn float64) []Router {
+	var routers []Router
+	paths := es.body.ExchangeRouter(tokenA, tokenB)
+	for _, path := range paths {
+		var errInfo = ""
+		amountOut, err := es.amountOut(path, amountIn)
+		if err != nil {
+			errInfo = err.Error()
+		}
+		routers = append(routers, Router{
+			Path:      path,
+			AmountOut: amountOut,
+			Error:     errInfo,
+		})
+	}
+	return routers
+}
+
+func (es *ExchangeState) ExchangeOptimalRouter(tokenA, tokenB string, amountIn float64) *Router {
+	paths := es.body.ExchangeRouter(tokenA, tokenB)
+	var maxOut float64
+	var optimal []string
+	for _, path := range paths {
+		amountOut, err := es.amountOut(path, amountIn)
+		if err != nil {
+			continue
+		}
+		if amountOut > maxOut {
+			maxOut = amountOut
+			optimal = path
+		}
+	}
+	if maxOut == float64(0) {
+		return &Router{
+			Path:      nil,
+			AmountOut: 0,
+			Error:     "unable to change",
+		}
+	}
+	return &Router{
+		Path:      optimal,
+		AmountOut: maxOut,
+		Error:     "",
+	}
+}
+
+func (es *ExchangeState) LegalPair(tokenA, tokenB string) (bool, error) {
+	return es.body.LegalPair(tokenA, tokenB)
+}
+
+func (es *ExchangeState) AmountOut(paths string, amountIn float64) (float64, error) {
+	pathsList := strings.Split(paths, ",")
+	return es.amountOut(pathsList, amountIn)
+}
+
+func (es *ExchangeState) amountOut(paths []string, amountIn float64) (float64, error) {
+	arryPaths := make([]hasharry.Address, len(paths))
+	for i, path := range paths {
+		arryPaths[i] = hasharry.StringToAddress(path)
+	}
+	iAmountIn, _ := types.NewAmount(amountIn)
+	outs, err := es.getAmountsOut(iAmountIn, arryPaths)
+	if err != nil {
+		return 0, err
+	}
+	return types.Amount(outs[len(outs)-1]).ToCoin(), nil
+}
+
+func (es *ExchangeState) AmountIn(paths string, amountOut float64) (float64, error) {
+	pathsList := strings.Split(paths, ",")
+	arryPaths := make([]hasharry.Address, len(pathsList))
+	for i, path := range pathsList {
+		arryPaths[i] = hasharry.StringToAddress(path)
+	}
+	iAmountOut, _ := types.NewAmount(amountOut)
+	ins, err := es.getAmountsIn(iAmountOut, arryPaths)
+	if err != nil {
+		return 0, err
+	}
+	return types.Amount(ins[0]).ToCoin(), nil
+}
+
+func (es *ExchangeState) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
+	amounts := make([]uint64, len(path))
+	amounts[0] = amountIn
+	for i := 0; i < len(path)-1; i++ {
+		// 获取储备量
+		token0, token1 := library.SortToken(path[i], path[i+1])
+		pairAddress := es.body.PairAddress(token0, token1)
+		reserveIn, reserveOut, err := es.library.GetReservesByPairAddress(pairAddress, path[i], path[i+1])
+		if err != nil {
+			return nil, err
+		}
+		// 下一个数额 =  当前数额兑换的结果
+		amounts[i+1], err = GetAmountOut(amounts[i], reserveIn, reserveOut)
+		if err != nil {
+			return amounts, err
+		}
+	}
+	return amounts, nil
+}
+
+// getAmountsIn performs chained getAmountIn calculations on any number of pairs
+func (es *ExchangeState) getAmountsIn(amountOut uint64, path []hasharry.Address) ([]uint64, error) {
+	amounts := make([]uint64, len(path))
+	amounts[len(amounts)-1] = amountOut
+	for i := len(path) - 1; i > 0; i-- {
+		// 获取储备量
+		token0, token1 := library.SortToken(path[i-1], path[i])
+		pairAddress := es.body.PairAddress(token0, token1)
+		reserveIn, reserveOut, err := es.library.GetReservesByPairAddress(pairAddress, path[i-1], path[i])
+		if err != nil {
+			return nil, err
+		}
+		amounts[i-1], err = GetAmountIn(amounts[i], reserveIn, reserveOut)
+		if err != nil {
+			return amounts, err
+		}
+	}
+	return amounts, nil
+}
+
 type ExchangeRunner struct {
-	library      *library.RunnerLibrary
-	exHeader     *contractv2.ContractV2
-	exchange     *exchange.Exchange
+	exState      *ExchangeState
 	address      hasharry.Address
 	tx           types.ITransaction
 	contractBody *types.TxContractV2Body
@@ -37,11 +216,14 @@ func NewExchangeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height
 	}
 
 	contractBody := tx.GetTxBody().(*types.TxContractV2Body)
-	return &ExchangeRunner{library: lib,
-		exHeader:     exHeader,
+	return &ExchangeRunner{
+		exState: &ExchangeState{
+			header:  exHeader,
+			body:    ex,
+			library: lib,
+		},
 		address:      address,
 		tx:           tx,
-		exchange:     ex,
 		contractBody: contractBody,
 		events:       make([]*types.Event, 0),
 		height:       height,
@@ -49,21 +231,23 @@ func NewExchangeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height
 }
 
 func (e *ExchangeRunner) PreInitVerify() error {
-	if e.exHeader != nil {
+	if e.exState.header != nil {
 		return fmt.Errorf("exchange %s already exist", e.address.String())
 	}
-	return nil
+	funcBody, _ := e.contractBody.Function.(*exchange_func.ExchangeInitBody)
+	_, err := e.exState.library.GetSymbolContract(funcBody.Symbol)
+	return err
 }
 
 func (e *ExchangeRunner) PreSetVerify() error {
-	if e.exHeader == nil {
+	if e.exState.header == nil {
 		return fmt.Errorf("exchange %s is not exist", e.address.String())
 	}
-	return e.exchange.VerifySetter(e.tx.From())
+	return e.exState.body.VerifySetter(e.tx.From())
 }
 
 func (e *ExchangeRunner) PreExactInVerify(lastHeight uint64) error {
-	if e.exHeader == nil {
+	if e.exState.header == nil {
 		return fmt.Errorf("exchange is not exist")
 	}
 	funcBody, _ := e.contractBody.Function.(*exchange_func.ExactIn)
@@ -74,14 +258,14 @@ func (e *ExchangeRunner) PreExactInVerify(lastHeight uint64) error {
 		return errors.New("invalid path")
 	}
 	for i := 0; i < len(funcBody.Path)-1; i++ {
-		if exist := e.exchange.Exist(library.SortToken(funcBody.Path[i], funcBody.Path[i+1])); !exist {
+		if exist := e.exState.body.Exist(library.SortToken(funcBody.Path[i], funcBody.Path[i+1])); !exist {
 			return fmt.Errorf("the pair of %s and %s does not exist", funcBody.Path[i].String(), funcBody.Path[i+1].String())
 		}
 	}
 	if funcBody.Deadline != 0 && funcBody.Deadline < lastHeight {
 		return fmt.Errorf("past the deadline")
 	}
-	balance := e.library.GetBalance(e.tx.From(), funcBody.Path[0])
+	balance := e.exState.library.GetBalance(e.tx.From(), funcBody.Path[0])
 	if funcBody.Path[0].IsEqual(param.Token) {
 		if balance < funcBody.AmountIn+e.tx.GetFees() {
 			return errors.New("balance not enough")
@@ -95,7 +279,7 @@ func (e *ExchangeRunner) PreExactInVerify(lastHeight uint64) error {
 }
 
 func (e *ExchangeRunner) PreExactOutVerify(lastHeight uint64) error {
-	if e.exHeader == nil {
+	if e.exState.header == nil {
 		return fmt.Errorf("exchange is not exist")
 	}
 	funcBody, _ := e.contractBody.Function.(*exchange_func.ExactOut)
@@ -106,14 +290,14 @@ func (e *ExchangeRunner) PreExactOutVerify(lastHeight uint64) error {
 		return errors.New("invalid path")
 	}
 	for i := 0; i < len(funcBody.Path)-1; i++ {
-		if exist := e.exchange.Exist(library.SortToken(funcBody.Path[i], funcBody.Path[i+1])); !exist {
+		if exist := e.exState.body.Exist(library.SortToken(funcBody.Path[i], funcBody.Path[i+1])); !exist {
 			return fmt.Errorf("the pair of %s and %s does not exist", funcBody.Path[i].String(), funcBody.Path[i+1].String())
 		}
 	}
 	if funcBody.Deadline != 0 && funcBody.Deadline < lastHeight {
 		return fmt.Errorf("past the deadline")
 	}
-	balance := e.library.GetBalance(e.tx.From(), funcBody.Path[0])
+	balance := e.exState.library.GetBalance(e.tx.From(), funcBody.Path[0])
 	if funcBody.Path[0].IsEqual(param.Token) {
 		if balance < funcBody.AmountInMax+e.tx.GetFees() {
 			return errors.New("balance not enough")
@@ -136,7 +320,7 @@ func (e *ExchangeRunner) Init() {
 		} else {
 			state.Event = e.events
 		}
-		e.library.SetContractV2State(e.tx.Hash().String(), state)
+		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
 	}()
 
 	contract := &contractv2.ContractV2{
@@ -145,13 +329,14 @@ func (e *ExchangeRunner) Init() {
 		Type:       e.contractBody.Type,
 		Body:       nil,
 	}
-	if e.exHeader != nil {
+	if e.exState.header != nil {
 		ERR = fmt.Errorf("exchange %s already exist", contract.Address.String())
 		return
 	}
 	initBody := e.contractBody.Function.(*exchange_func.ExchangeInitBody)
-	contract.Body = exchange.NewExchange(initBody.Admin, initBody.FeeTo)
-	e.library.SetContractV2(contract)
+	contract.Body, _ = exchange.NewExchange(initBody.Admin, initBody.FeeTo, initBody.Symbol)
+	e.exState.library.SetSymbol(initBody.Symbol, contract.Address.String())
+	e.exState.library.SetContractV2(contract)
 }
 
 func (e *ExchangeRunner) SetAdmin() {
@@ -164,21 +349,21 @@ func (e *ExchangeRunner) SetAdmin() {
 		} else {
 			state.Event = e.events
 		}
-		e.library.SetContractV2State(e.tx.Hash().String(), state)
+		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
 	}()
 
-	if e.exHeader == nil {
+	if e.exState.header == nil {
 		ERR = fmt.Errorf("exchanges %s is not exist", e.tx.GetTxBody().GetContract().String())
 		return
 	}
 	funcBody, _ := e.contractBody.Function.(*exchange_func.ExchangeAdmin)
-	ex, _ := e.exHeader.Body.(*exchange.Exchange)
+	ex, _ := e.exState.header.Body.(*exchange.Exchange)
 	if err := ex.SetAdmin(funcBody.Address, e.tx.From()); err != nil {
 		ERR = err
 		return
 	}
-	e.exHeader.Body = ex
-	e.library.SetContractV2(e.exHeader)
+	e.exState.header.Body = ex
+	e.exState.library.SetContractV2(e.exState.header)
 }
 
 func (e *ExchangeRunner) SetFeeTo() {
@@ -191,21 +376,21 @@ func (e *ExchangeRunner) SetFeeTo() {
 		} else {
 			state.Event = e.events
 		}
-		e.library.SetContractV2State(e.tx.Hash().String(), state)
+		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
 	}()
 
-	if e.exHeader == nil {
+	if e.exState.header == nil {
 		ERR = fmt.Errorf("exchanges %s is not exist", e.tx.GetTxBody().GetContract().String())
 		return
 	}
 	funcBody, _ := e.contractBody.Function.(*exchange_func.ExchangeFeeTo)
-	ex, _ := e.exHeader.Body.(*exchange.Exchange)
+	ex, _ := e.exState.header.Body.(*exchange.Exchange)
 	if err := ex.SetFeeTo(funcBody.Address, e.tx.From()); err != nil {
 		ERR = err
 		return
 	}
-	e.exHeader.Body = ex
-	e.library.SetContractV2(e.exHeader)
+	e.exState.header.Body = ex
+	e.exState.library.SetContractV2(e.exState.header)
 }
 
 type SwapExactIn struct {
@@ -226,7 +411,7 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 			state.Event = e.events
 		}
 		state.Event = e.events
-		e.library.SetContractV2State(e.tx.Hash().String(), state)
+		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
 	}()
 
 	funcBody, _ := e.contractBody.Function.(*exchange_func.ExactIn)
@@ -235,7 +420,7 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 		ERR = fmt.Errorf("past the deadline")
 		return
 	}
-	amounts, err = e.getAmountsOut(funcBody.AmountIn, funcBody.Path)
+	amounts, err = e.exState.getAmountsOut(funcBody.AmountIn, funcBody.Path)
 	if err != nil {
 		ERR = err
 		return
@@ -245,7 +430,7 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 		ERR = fmt.Errorf("outAmount %d is less than the minimum output %d", SwapInfo.AmountOut, funcBody.AmountOutMin)
 		return
 	}
-	pair0 := e.exchange.PairAddress(library.SortToken(funcBody.Path[0], funcBody.Path[1]))
+	pair0 := e.exState.body.PairAddress(library.SortToken(funcBody.Path[0], funcBody.Path[1]))
 	if err = e.swapAmounts(amounts, funcBody.Path, funcBody.To, blockTime); err != nil {
 		ERR = err
 		return
@@ -263,7 +448,7 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 
 func (e *ExchangeRunner) update() {
 	for _, pairContract := range e.pairList {
-		e.library.SetContractV2(pairContract)
+		e.exState.library.SetContractV2(pairContract)
 	}
 }
 
@@ -285,7 +470,7 @@ func (e *ExchangeRunner) swapAmounts(amounts []uint64, path []hasharry.Address, 
 		}
 		toAddr := to
 		if i < len(path)-2 {
-			toAddr = e.exchange.PairAddress(library.SortToken(output, path[i+2]))
+			toAddr = e.exState.body.PairAddress(library.SortToken(output, path[i+2]))
 		}
 		if err := e.swap(input, output, amount0In, amount1In, amount0Out, amount1Out, toAddr, blockTime); err != nil {
 			return err
@@ -299,10 +484,13 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 		return errors.New("insufficient output amount")
 	}
 	_token0, _token1 := library.SortToken(tokenA, tokenB)
-	pairAddress := e.exchange.PairAddress(_token0, _token1)
-	pairContract := e.library.GetContractV2(pairAddress.String())
+	pairAddress := e.exState.body.PairAddress(_token0, _token1)
+	pairContract := e.exState.library.GetContractV2(pairAddress.String())
 	pair := pairContract.Body.(*exchange.Pair)
-	_reserve0, _reserve1 := e.library.GetReservesByPairAddress(pairAddress, _token0, _token1)
+	_reserve0, _reserve1, err := e.exState.library.GetReservesByPairAddress(pairAddress, _token0, _token1)
+	if err != nil {
+		return err
+	}
 	if amount0Out >= _reserve0 || amount1Out >= _reserve1 {
 		return errors.New("insufficient liquidity")
 	}
@@ -319,8 +507,8 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 		e.transferEvent(pairAddress, to, _token1, amount1Out)
 	}
 
-	balance0 = e.library.GetBalance(pairAddress, _token0)
-	balance1 = e.library.GetBalance(pairAddress, _token1)
+	balance0 = e.exState.library.GetBalance(pairAddress, _token0)
+	balance1 = e.exState.library.GetBalance(pairAddress, _token1)
 	if amount0In > 0 {
 		balance0 = balance0 + amount0In
 	} else {
@@ -375,43 +563,6 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 	return nil
 }
 
-// performs chained getAmountOut calculations on any number of pairs
-func (e *ExchangeRunner) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
-	var err error
-	amounts := make([]uint64, len(path))
-	amounts[0] = amountIn
-	for i := 0; i < len(path)-1; i++ {
-		// 获取储备量
-		token0, token1 := library.SortToken(path[i], path[i+1])
-		pairAddress := e.exchange.PairAddress(token0, token1)
-		reserveIn, reserveOut := e.library.GetReservesByPairAddress(pairAddress, path[i], path[i+1])
-		// 下一个数额 =  当前数额兑换的结果
-		amounts[i+1], err = GetAmountOut(amounts[i], reserveIn, reserveOut)
-		if err != nil {
-			return amounts, err
-		}
-	}
-	return amounts, nil
-}
-
-// getAmountsIn performs chained getAmountIn calculations on any number of pairs
-func (e *ExchangeRunner) getAmountsIn(amountOut uint64, path []hasharry.Address) ([]uint64, error) {
-	var err error
-	amounts := make([]uint64, len(path))
-	amounts[len(amounts)-1] = amountOut
-	for i := len(path) - 1; i > 0; i-- {
-		// 获取储备量
-		token0, token1 := library.SortToken(path[i-1], path[i])
-		pairAddress := e.exchange.PairAddress(token0, token1)
-		reserveIn, reserveOut := e.library.GetReservesByPairAddress(pairAddress, path[i-1], path[i])
-		amounts[i-1], err = GetAmountIn(amounts[i], reserveIn, reserveOut)
-		if err != nil {
-			return amounts, err
-		}
-	}
-	return amounts, nil
-}
-
 // GetAmountOut given an input amount of an asset and pair reserves, returns the maximum output amount of the other asset
 func GetAmountOut(amountIn, reserveIn, reserveOut uint64) (uint64, error) {
 	if amountIn <= 0 {
@@ -420,9 +571,9 @@ func GetAmountOut(amountIn, reserveIn, reserveOut uint64) (uint64, error) {
 	if reserveIn <= 0 || reserveOut <= 0 {
 		return 0, errors.New("insufficient liquidity")
 	}
-	// amountInWithFee = amountIn * 995
+	// amountInWithFee = amountIn * 997
 	// 0.5% fees
-	amountInWithFee := big.NewInt(0).Mul(big.NewInt(int64(amountIn)), big.NewInt(995))
+	amountInWithFee := big.NewInt(0).Mul(big.NewInt(int64(amountIn)), big.NewInt(997))
 	// numerator = amountInWithFee * reserveOut
 	numerator := big.NewInt(0).Mul(amountInWithFee, big.NewInt(int64(reserveOut)))
 	// denominator = reserveIn * 1000 + amountInWithFee
@@ -448,8 +599,8 @@ func GetAmountIn(amountOut, reserveIn, reserveOut uint64) (uint64, error) {
 		reserveOut = reserveOut / 10000000*/
 	// numerator = amountOut * reserveIn * 1000
 	numerator := big.NewInt(0).Mul(big.NewInt(0).Mul(big.NewInt(int64(amountOut)), big.NewInt(int64(reserveIn))), big.NewInt(1000))
-	// denominator = (reserveOut - amountOut) (* 995)
-	denominator := big.NewInt(0).Mul(big.NewInt(0).Sub(big.NewInt(int64(reserveOut)), big.NewInt(int64(amountOut))), big.NewInt(995))
+	// denominator = (reserveOut - amountOut) (* 997)
+	denominator := big.NewInt(0).Mul(big.NewInt(0).Sub(big.NewInt(int64(reserveOut)), big.NewInt(int64(amountOut))), big.NewInt(997))
 	// amountIn = (numerator\denominator) + 1
 	x := big.NewInt(0).Div(numerator, denominator)
 
@@ -469,7 +620,7 @@ func (e *ExchangeRunner) SwapExactOut(blockTime uint64) {
 		} else {
 			state.Event = e.events
 		}
-		e.library.SetContractV2State(e.tx.Hash().String(), state)
+		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
 	}()
 
 	funcBody, _ := e.contractBody.Function.(*exchange_func.ExactOut)
@@ -478,7 +629,7 @@ func (e *ExchangeRunner) SwapExactOut(blockTime uint64) {
 		ERR = fmt.Errorf("past the deadline")
 		return
 	}
-	amounts, err = e.getAmountsIn(funcBody.AmountOut, funcBody.Path)
+	amounts, err = e.exState.getAmountsIn(funcBody.AmountOut, funcBody.Path)
 	if err != nil {
 		ERR = err
 		return
@@ -488,7 +639,7 @@ func (e *ExchangeRunner) SwapExactOut(blockTime uint64) {
 		ERR = fmt.Errorf("amountIn %d is greater than the maximum input amount %d", amounts[0], funcBody.AmountInMax)
 		return
 	}
-	pair0 := e.exchange.PairAddress(library.SortToken(funcBody.Path[0], funcBody.Path[1]))
+	pair0 := e.exState.body.PairAddress(library.SortToken(funcBody.Path[0], funcBody.Path[1]))
 	if err := e.swapAmounts(amounts, funcBody.Path, funcBody.To, blockTime); err != nil {
 		ERR = err
 		return
@@ -516,12 +667,12 @@ func (e *ExchangeRunner) transferEvent(from, to, token hasharry.Address, amount 
 
 func (e *ExchangeRunner) runEvents() error {
 	for _, event := range e.events {
-		if err := e.library.PreRunEvent(event); err != nil {
+		if err := e.exState.library.PreRunEvent(event); err != nil {
 			return err
 		}
 	}
 	for _, event := range e.events {
-		e.library.RunEvent(event)
+		e.exState.library.RunEvent(event)
 	}
 	return nil
 }

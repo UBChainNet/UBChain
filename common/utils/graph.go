@@ -101,8 +101,9 @@ func (g *Graph) path(node1, node2 *Node, path []*Node, key *PathKey) ([][]*Node,
 	nexts := g.edges[*node]
 	for _, next := range nexts {
 		if next.id == node2.id {
-			path = append(path, next)
-			paths = append(paths, path)
+			newPath := copyPath(path)
+			newPath = append(newPath, next)
+			paths = append(paths, newPath)
 		} else {
 			if !key.Exist(next.id) {
 				newKey := key.Copy()
@@ -126,6 +127,14 @@ func pathKey(nodes []*Node) string {
 		key = fmt.Sprintf("%s%v", key, node.id)
 	}
 	return key
+}
+
+func copyPath(path []*Node) []*Node {
+	newPath := make([]*Node, len(path))
+	for i, node := range path {
+		newPath[i] = node
+	}
+	return newPath
 }
 
 // 输出节点

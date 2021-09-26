@@ -1,6 +1,7 @@
 package database
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"github.com/boltdb/bolt"
@@ -91,3 +92,17 @@ func (b *Base) GetForeach(bucket string, f func(k []byte, v []byte) error) error
 	})
 	return err
 }
+
+func Key(bucket string, key []byte) []byte {
+	return bytes.Join([][]byte{
+		[]byte(bucket + "_"), key}, []byte{})
+}
+
+func Prefix(bucket string) []byte {
+	return []byte(bucket + "_")
+}
+
+func LeafKeyToKey(bucket string, key []byte) []byte {
+	return key[len(Prefix(bucket)):]
+}
+

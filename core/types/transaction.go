@@ -199,8 +199,9 @@ func (t *Transaction) verifyTxType() error {
 		return nil
 	case Contract_:
 		return nil
-		/*case ContractV2_:
+	case ContractV2_:
 		return nil
+		/*
 		case VoteToCandidate:
 			return nil
 		case LoginCandidate_:

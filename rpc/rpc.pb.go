@@ -103,6 +103,45 @@ func (m *Address) GetAddress() string {
 	return ""
 }
 
+type Symbol struct {
+	Symbol               string   `protobuf:"bytes,1,opt,name=Symbol,proto3" json:"Symbol,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Symbol) Reset()         { *m = Symbol{} }
+func (m *Symbol) String() string { return proto.CompactTextString(m) }
+func (*Symbol) ProtoMessage()    {}
+func (*Symbol) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{2}
+}
+
+func (m *Symbol) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Symbol.Unmarshal(m, b)
+}
+func (m *Symbol) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Symbol.Marshal(b, m, deterministic)
+}
+func (m *Symbol) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Symbol.Merge(m, src)
+}
+func (m *Symbol) XXX_Size() int {
+	return xxx_messageInfo_Symbol.Size(m)
+}
+func (m *Symbol) XXX_DiscardUnknown() {
+	xxx_messageInfo_Symbol.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Symbol proto.InternalMessageInfo
+
+func (m *Symbol) GetSymbol() string {
+	if m != nil {
+		return m.Symbol
+	}
+	return ""
+}
+
 type Hash struct {
 	Hash                 string   `protobuf:"bytes,1,opt,name=hash,proto3" json:"hash,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -114,7 +153,7 @@ func (m *Hash) Reset()         { *m = Hash{} }
 func (m *Hash) String() string { return proto.CompactTextString(m) }
 func (*Hash) ProtoMessage()    {}
 func (*Hash) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{2}
+	return fileDescriptor_77a6da22d6a3feb1, []int{3}
 }
 
 func (m *Hash) XXX_Unmarshal(b []byte) error {
@@ -144,6 +183,7 @@ func (m *Hash) GetHash() string {
 
 type Height struct {
 	Height               uint64   `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	Count                uint64   `protobuf:"varint,2,opt,name=count,proto3" json:"count,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -153,7 +193,7 @@ func (m *Height) Reset()         { *m = Height{} }
 func (m *Height) String() string { return proto.CompactTextString(m) }
 func (*Height) ProtoMessage()    {}
 func (*Height) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{3}
+	return fileDescriptor_77a6da22d6a3feb1, []int{4}
 }
 
 func (m *Height) XXX_Unmarshal(b []byte) error {
@@ -181,6 +221,13 @@ func (m *Height) GetHeight() uint64 {
 	return 0
 }
 
+func (m *Height) GetCount() uint64 {
+	if m != nil {
+		return m.Count
+	}
+	return 0
+}
+
 type Null struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -191,7 +238,7 @@ func (m *Null) Reset()         { *m = Null{} }
 func (m *Null) String() string { return proto.CompactTextString(m) }
 func (*Null) ProtoMessage()    {}
 func (*Null) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{4}
+	return fileDescriptor_77a6da22d6a3feb1, []int{5}
 }
 
 func (m *Null) XXX_Unmarshal(b []byte) error {
@@ -212,6 +259,61 @@ func (m *Null) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Null proto.InternalMessageInfo
 
+type Method struct {
+	Contract             string   `protobuf:"bytes,1,opt,name=contract,proto3" json:"contract,omitempty"`
+	Method               string   `protobuf:"bytes,2,opt,name=method,proto3" json:"method,omitempty"`
+	Params               []string `protobuf:"bytes,3,rep,name=params,proto3" json:"params,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *Method) Reset()         { *m = Method{} }
+func (m *Method) String() string { return proto.CompactTextString(m) }
+func (*Method) ProtoMessage()    {}
+func (*Method) Descriptor() ([]byte, []int) {
+	return fileDescriptor_77a6da22d6a3feb1, []int{6}
+}
+
+func (m *Method) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_Method.Unmarshal(m, b)
+}
+func (m *Method) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_Method.Marshal(b, m, deterministic)
+}
+func (m *Method) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_Method.Merge(m, src)
+}
+func (m *Method) XXX_Size() int {
+	return xxx_messageInfo_Method.Size(m)
+}
+func (m *Method) XXX_DiscardUnknown() {
+	xxx_messageInfo_Method.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_Method proto.InternalMessageInfo
+
+func (m *Method) GetContract() string {
+	if m != nil {
+		return m.Contract
+	}
+	return ""
+}
+
+func (m *Method) GetMethod() string {
+	if m != nil {
+		return m.Method
+	}
+	return ""
+}
+
+func (m *Method) GetParams() []string {
+	if m != nil {
+		return m.Params
+	}
+	return nil
+}
+
 // The response message containing the greetings
 type Response struct {
 	Code                 int32    `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
@@ -226,7 +328,7 @@ func (m *Response) Reset()         { *m = Response{} }
 func (m *Response) String() string { return proto.CompactTextString(m) }
 func (*Response) ProtoMessage()    {}
 func (*Response) Descriptor() ([]byte, []int) {
-	return fileDescriptor_77a6da22d6a3feb1, []int{5}
+	return fileDescriptor_77a6da22d6a3feb1, []int{7}
 }
 
 func (m *Response) XXX_Unmarshal(b []byte) error {
@@ -271,40 +373,48 @@ func (m *Response) GetErr() string {
 func init() {
 	proto.RegisterType((*Bytes)(nil), "rpc.Bytes")
 	proto.RegisterType((*Address)(nil), "rpc.Address")
+	proto.RegisterType((*Symbol)(nil), "rpc.Symbol")
 	proto.RegisterType((*Hash)(nil), "rpc.Hash")
 	proto.RegisterType((*Height)(nil), "rpc.Height")
 	proto.RegisterType((*Null)(nil), "rpc.Null")
+	proto.RegisterType((*Method)(nil), "rpc.Method")
 	proto.RegisterType((*Response)(nil), "rpc.Response")
 }
 
 func init() { proto.RegisterFile("rpc.proto", fileDescriptor_77a6da22d6a3feb1) }
 
 var fileDescriptor_77a6da22d6a3feb1 = []byte{
-	// 370 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0xe1, 0x8a, 0xda, 0x40,
-	0x14, 0x85, 0x6b, 0x4d, 0xa2, 0x5e, 0xb5, 0x95, 0xa1, 0x94, 0x20, 0x14, 0x24, 0x42, 0x11, 0x2a,
-	0x62, 0xdb, 0x27, 0xd0, 0x52, 0x62, 0xa1, 0x88, 0x64, 0x7d, 0x81, 0x71, 0x72, 0x35, 0x61, 0xb3,
-	0x33, 0x61, 0x66, 0x04, 0x7d, 0xa6, 0x7d, 0xc9, 0x25, 0x37, 0x11, 0x04, 0x77, 0xe3, 0xfe, 0x3b,
-	0x87, 0xfb, 0xcd, 0x99, 0x3b, 0x07, 0x06, 0x3a, 0x3a, 0x17, 0xb3, 0x5c, 0x2b, 0xab, 0x58, 0x53,
-	0xe7, 0x22, 0xf8, 0x06, 0xee, 0xf2, 0x6c, 0xd1, 0xb0, 0x2f, 0xe0, 0xee, 0x0a, 0xe1, 0x37, 0x46,
-	0x8d, 0x49, 0x2f, 0x2a, 0x4d, 0x30, 0x86, 0xd6, 0x22, 0x8e, 0x35, 0x1a, 0xc3, 0x7c, 0x68, 0xf1,
-	0x52, 0x12, 0xd2, 0x89, 0x2e, 0x36, 0x18, 0x82, 0xb3, 0xe2, 0x26, 0x61, 0x0c, 0x9c, 0x84, 0x9b,
-	0xa4, 0x1a, 0x93, 0x0e, 0x46, 0xe0, 0xad, 0x30, 0x3d, 0x24, 0x96, 0x7d, 0x05, 0x2f, 0x21, 0x45,
-	0x73, 0x27, 0xaa, 0x5c, 0xe0, 0x81, 0xb3, 0x3e, 0x66, 0x59, 0xb0, 0x82, 0x76, 0x84, 0x26, 0x57,
-	0xd2, 0x60, 0x91, 0x24, 0x54, 0x8c, 0x44, 0xba, 0x11, 0xe9, 0xe2, 0xbc, 0x46, 0x73, 0xcc, 0xac,
-	0xff, 0x91, 0x36, 0xac, 0x1c, 0x1b, 0x40, 0x13, 0xb5, 0xf6, 0x9b, 0x74, 0x69, 0x21, 0x7f, 0x3d,
-	0x3b, 0xd0, 0x0a, 0x35, 0xa2, 0x45, 0xcd, 0x66, 0xf0, 0xf9, 0x01, 0x65, 0xbc, 0xd5, 0x5c, 0x1a,
-	0x2e, 0x6c, 0xaa, 0x24, 0x83, 0x59, 0xd1, 0x01, 0xbd, 0x7a, 0xd8, 0x27, 0x7d, 0xb9, 0x37, 0xf8,
-	0xc0, 0x7e, 0x00, 0x84, 0x68, 0x17, 0x42, 0xa8, 0xa3, 0xb4, 0xac, 0x47, 0xe3, 0xaa, 0x81, 0x5b,
-	0x78, 0x0a, 0x9f, 0x42, 0xb4, 0xd7, 0xd9, 0x1d, 0x42, 0x8a, 0x36, 0xde, 0xa2, 0x97, 0x99, 0x12,
-	0x8f, 0xcb, 0x33, 0x15, 0x56, 0x47, 0xcf, 0x61, 0x70, 0x45, 0x97, 0x15, 0x76, 0x4b, 0x9e, 0xcc,
-	0xed, 0x89, 0x09, 0xad, 0xbe, 0x51, 0x2a, 0xdb, 0x9e, 0x4c, 0x95, 0x5d, 0x34, 0xfb, 0xda, 0x23,
-	0xfb, 0x21, 0xda, 0xff, 0xdc, 0xd8, 0x2a, 0xb8, 0x0e, 0x9e, 0x42, 0x37, 0x44, 0xfb, 0x47, 0x49,
-	0xab, 0xb9, 0xb8, 0x5b, 0xc9, 0x1c, 0x58, 0x49, 0xef, 0x53, 0xfd, 0x84, 0xf1, 0x3b, 0xf2, 0xc7,
-	0xe0, 0x6e, 0x10, 0x75, 0xfd, 0xc6, 0xdf, 0xa1, 0xbd, 0x56, 0x31, 0xfe, 0x93, 0x7b, 0x55, 0xcb,
-	0xfd, 0xa4, 0xd6, 0xfe, 0x9e, 0x44, 0xc2, 0xe5, 0x01, 0x37, 0x3c, 0xd5, 0xe6, 0xce, 0xc6, 0x3b,
-	0x8f, 0x7e, 0xc3, 0xef, 0x97, 0x00, 0x00, 0x00, 0xff, 0xff, 0xf2, 0x56, 0xd1, 0xa3, 0x1a, 0x03,
-	0x00, 0x00,
+	// 473 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0x6f, 0x6b, 0xdb, 0x30,
+	0x10, 0xc6, 0xd7, 0x39, 0x76, 0xe2, 0x4b, 0xfa, 0x07, 0x6d, 0x0c, 0x13, 0x18, 0x04, 0x17, 0xb6,
+	0x8e, 0x95, 0xac, 0xac, 0xb0, 0xf7, 0xcd, 0x5e, 0x38, 0x83, 0xae, 0x14, 0x37, 0x5f, 0x40, 0xb1,
+	0xaf, 0x75, 0xa8, 0x23, 0x19, 0x49, 0x81, 0xe5, 0xeb, 0xee, 0x93, 0x0c, 0x9d, 0xe4, 0x2d, 0x90,
+	0xcd, 0xd9, 0xbb, 0xe7, 0x91, 0x7e, 0x27, 0x3d, 0xbe, 0x13, 0x86, 0x58, 0x35, 0xc5, 0xb4, 0x51,
+	0xd2, 0x48, 0x16, 0xa8, 0xa6, 0x48, 0xdf, 0x42, 0x38, 0xdb, 0x1a, 0xd4, 0xec, 0x35, 0x84, 0x4b,
+	0x2b, 0x92, 0xa3, 0xc9, 0xd1, 0xc5, 0x28, 0x77, 0x26, 0x3d, 0x87, 0xfe, 0x4d, 0x59, 0x2a, 0xd4,
+	0x9a, 0x25, 0xd0, 0xe7, 0x4e, 0x12, 0x12, 0xe7, 0xad, 0x4d, 0x27, 0x10, 0x3d, 0x6c, 0xd7, 0x4b,
+	0x59, 0xb3, 0x37, 0xad, 0xf2, 0x88, 0x77, 0xe9, 0x18, 0x7a, 0x73, 0xae, 0x2b, 0xc6, 0xa0, 0x57,
+	0x71, 0x5d, 0xf9, 0x5d, 0xd2, 0xe9, 0x17, 0x88, 0xe6, 0xb8, 0x7a, 0xaa, 0x8c, 0xad, 0xae, 0x48,
+	0xd1, 0x7e, 0x2f, 0xf7, 0xce, 0x46, 0x2b, 0xe4, 0x46, 0x98, 0xe4, 0x25, 0x2d, 0x3b, 0x93, 0x46,
+	0xd0, 0xbb, 0xdb, 0xd4, 0x75, 0xba, 0x80, 0xe8, 0x3b, 0x9a, 0x4a, 0x96, 0x6c, 0x0c, 0x83, 0x42,
+	0x0a, 0xa3, 0x78, 0x61, 0xfc, 0x0d, 0xbf, 0xbd, 0x3d, 0x7b, 0x4d, 0x14, 0x1d, 0x12, 0xe7, 0xde,
+	0xd9, 0xf5, 0x86, 0x2b, 0xbe, 0xd6, 0x49, 0x30, 0x09, 0xec, 0xba, 0x73, 0xe9, 0x1c, 0x06, 0x39,
+	0xea, 0x46, 0x0a, 0x8d, 0x36, 0x75, 0x21, 0x4b, 0xa4, 0x33, 0xc3, 0x9c, 0xb4, 0xad, 0x53, 0xa8,
+	0x37, 0xb5, 0x0b, 0x35, 0xca, 0xbd, 0x63, 0x67, 0x10, 0xa0, 0x52, 0x49, 0x40, 0x97, 0x58, 0xf9,
+	0xf9, 0x67, 0x08, 0xfd, 0x4c, 0x21, 0x1a, 0x54, 0x6c, 0x0a, 0xa7, 0x0f, 0x28, 0xca, 0x85, 0xe2,
+	0x42, 0xf3, 0xc2, 0xac, 0xa4, 0x60, 0x30, 0xb5, 0x13, 0xa1, 0x19, 0x8c, 0x8f, 0x49, 0xb7, 0xf7,
+	0xa6, 0x2f, 0xd8, 0x47, 0x80, 0x0c, 0xcd, 0x4d, 0x41, 0x5f, 0xcc, 0x46, 0xb4, 0xed, 0xe7, 0xb1,
+	0x0f, 0x5f, 0xc2, 0x49, 0x86, 0x66, 0xf7, 0xec, 0x98, 0x10, 0xdb, 0xf9, 0x7f, 0xd1, 0xb3, 0x5a,
+	0x16, 0xcf, 0xb3, 0x2d, 0x0d, 0xa7, 0x8b, 0xbe, 0x82, 0xb3, 0x1d, 0xda, 0x8d, 0x65, 0xe8, 0x78,
+	0x32, 0xfb, 0x15, 0x9f, 0xe0, 0xf4, 0x4f, 0x45, 0xce, 0xc5, 0x13, 0x1e, 0x28, 0xb8, 0xa0, 0x6f,
+	0xbd, 0x97, 0xb2, 0x5e, 0xfc, 0xd0, 0x3e, 0x8c, 0x1d, 0xf0, 0xdf, 0xba, 0x72, 0x9c, 0xa1, 0xb9,
+	0xe5, 0xda, 0xf8, 0x24, 0x5d, 0xf0, 0x25, 0x0c, 0x33, 0x34, 0x5f, 0xdb, 0x77, 0x70, 0xa0, 0x87,
+	0xd7, 0xf0, 0x6a, 0x87, 0x9e, 0x6d, 0xfd, 0xbb, 0x76, 0xc9, 0x9d, 0xd9, 0x2f, 0x9a, 0xc2, 0x49,
+	0x5b, 0xe1, 0x5f, 0xa2, 0xe3, 0x9d, 0xd9, 0xe7, 0xdf, 0x43, 0xbc, 0x90, 0xcf, 0x28, 0x6e, 0x57,
+	0xba, 0x3b, 0xfb, 0x07, 0x18, 0xfa, 0xd9, 0x1f, 0x44, 0xaf, 0x80, 0xb9, 0xe0, 0x8f, 0x2b, 0xb5,
+	0xc6, 0xf2, 0x3f, 0x1a, 0x73, 0x0e, 0xe1, 0x3d, 0xa2, 0xea, 0x6e, 0xf5, 0x3b, 0x18, 0xdc, 0xc9,
+	0x12, 0xbf, 0x89, 0x47, 0xd9, 0xc5, 0x2d, 0x23, 0xfa, 0xa5, 0x5c, 0xff, 0x0a, 0x00, 0x00, 0xff,
+	0xff, 0x52, 0xad, 0x6e, 0x6a, 0x5f, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -325,13 +435,17 @@ type GreeterClient interface {
 	GetTransaction(ctx context.Context, in *Hash, opts ...grpc.CallOption) (*Response, error)
 	GetBlockByHash(ctx context.Context, in *Hash, opts ...grpc.CallOption) (*Response, error)
 	GetBlockByHeight(ctx context.Context, in *Height, opts ...grpc.CallOption) (*Response, error)
+	GetBlockByRange(ctx context.Context, in *Height, opts ...grpc.CallOption) (*Response, error)
 	GetPoolTxs(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
 	GetLastHeight(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
 	GetContract(ctx context.Context, in *Address, opts ...grpc.CallOption) (*Response, error)
+	GetContractBySymbol(ctx context.Context, in *Symbol, opts ...grpc.CallOption) (*Response, error)
+	ContractMethod(ctx context.Context, in *Method, opts ...grpc.CallOption) (*Response, error)
+	TokenList(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
+	AccountList(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
 	GetConfirmedHeight(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
 	Peers(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
 	NodeInfo(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error)
-	GetExchangePairs(ctx context.Context, in *Address, opts ...grpc.CallOption) (*Response, error)
 }
 
 type greeterClient struct {
@@ -387,6 +501,15 @@ func (c *greeterClient) GetBlockByHeight(ctx context.Context, in *Height, opts .
 	return out, nil
 }
 
+func (c *greeterClient) GetBlockByRange(ctx context.Context, in *Height, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/rpc.Greeter/GetBlockByRange", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *greeterClient) GetPoolTxs(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/rpc.Greeter/GetPoolTxs", in, out, opts...)
@@ -408,6 +531,42 @@ func (c *greeterClient) GetLastHeight(ctx context.Context, in *Null, opts ...grp
 func (c *greeterClient) GetContract(ctx context.Context, in *Address, opts ...grpc.CallOption) (*Response, error) {
 	out := new(Response)
 	err := c.cc.Invoke(ctx, "/rpc.Greeter/GetContract", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *greeterClient) GetContractBySymbol(ctx context.Context, in *Symbol, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/rpc.Greeter/GetContractBySymbol", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *greeterClient) ContractMethod(ctx context.Context, in *Method, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/rpc.Greeter/ContractMethod", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *greeterClient) TokenList(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/rpc.Greeter/TokenList", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *greeterClient) AccountList(ctx context.Context, in *Null, opts ...grpc.CallOption) (*Response, error) {
+	out := new(Response)
+	err := c.cc.Invoke(ctx, "/rpc.Greeter/AccountList", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -441,15 +600,6 @@ func (c *greeterClient) NodeInfo(ctx context.Context, in *Null, opts ...grpc.Cal
 	return out, nil
 }
 
-func (c *greeterClient) GetExchangePairs(ctx context.Context, in *Address, opts ...grpc.CallOption) (*Response, error) {
-	out := new(Response)
-	err := c.cc.Invoke(ctx, "/rpc.Greeter/GetExchangePairs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // GreeterServer is the server API for Greeter service.
 type GreeterServer interface {
 	// Sends a greeting
@@ -458,13 +608,17 @@ type GreeterServer interface {
 	GetTransaction(context.Context, *Hash) (*Response, error)
 	GetBlockByHash(context.Context, *Hash) (*Response, error)
 	GetBlockByHeight(context.Context, *Height) (*Response, error)
+	GetBlockByRange(context.Context, *Height) (*Response, error)
 	GetPoolTxs(context.Context, *Null) (*Response, error)
 	GetLastHeight(context.Context, *Null) (*Response, error)
 	GetContract(context.Context, *Address) (*Response, error)
+	GetContractBySymbol(context.Context, *Symbol) (*Response, error)
+	ContractMethod(context.Context, *Method) (*Response, error)
+	TokenList(context.Context, *Null) (*Response, error)
+	AccountList(context.Context, *Null) (*Response, error)
 	GetConfirmedHeight(context.Context, *Null) (*Response, error)
 	Peers(context.Context, *Null) (*Response, error)
 	NodeInfo(context.Context, *Null) (*Response, error)
-	GetExchangePairs(context.Context, *Address) (*Response, error)
 }
 
 // UnimplementedGreeterServer can be embedded to have forward compatible implementations.
@@ -486,6 +640,9 @@ func (*UnimplementedGreeterServer) GetBlockByHash(ctx context.Context, req *Hash
 func (*UnimplementedGreeterServer) GetBlockByHeight(ctx context.Context, req *Height) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlockByHeight not implemented")
 }
+func (*UnimplementedGreeterServer) GetBlockByRange(ctx context.Context, req *Height) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetBlockByRange not implemented")
+}
 func (*UnimplementedGreeterServer) GetPoolTxs(ctx context.Context, req *Null) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPoolTxs not implemented")
 }
@@ -495,6 +652,18 @@ func (*UnimplementedGreeterServer) GetLastHeight(ctx context.Context, req *Null)
 func (*UnimplementedGreeterServer) GetContract(ctx context.Context, req *Address) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetContract not implemented")
 }
+func (*UnimplementedGreeterServer) GetContractBySymbol(ctx context.Context, req *Symbol) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetContractBySymbol not implemented")
+}
+func (*UnimplementedGreeterServer) ContractMethod(ctx context.Context, req *Method) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ContractMethod not implemented")
+}
+func (*UnimplementedGreeterServer) TokenList(ctx context.Context, req *Null) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method TokenList not implemented")
+}
+func (*UnimplementedGreeterServer) AccountList(ctx context.Context, req *Null) (*Response, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AccountList not implemented")
+}
 func (*UnimplementedGreeterServer) GetConfirmedHeight(ctx context.Context, req *Null) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfirmedHeight not implemented")
 }
@@ -503,9 +672,6 @@ func (*UnimplementedGreeterServer) Peers(ctx context.Context, req *Null) (*Respo
 }
 func (*UnimplementedGreeterServer) NodeInfo(ctx context.Context, req *Null) (*Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method NodeInfo not implemented")
-}
-func (*UnimplementedGreeterServer) GetExchangePairs(ctx context.Context, req *Address) (*Response, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetExchangePairs not implemented")
 }
 
 func RegisterGreeterServer(s *grpc.Server, srv GreeterServer) {
@@ -602,6 +768,24 @@ func _Greeter_GetBlockByHeight_Handler(srv interface{}, ctx context.Context, dec
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Greeter_GetBlockByRange_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Height)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).GetBlockByRange(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.Greeter/GetBlockByRange",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).GetBlockByRange(ctx, req.(*Height))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Greeter_GetPoolTxs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Null)
 	if err := dec(in); err != nil {
@@ -652,6 +836,78 @@ func _Greeter_GetContract_Handler(srv interface{}, ctx context.Context, dec func
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GreeterServer).GetContract(ctx, req.(*Address))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Greeter_GetContractBySymbol_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Symbol)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).GetContractBySymbol(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.Greeter/GetContractBySymbol",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).GetContractBySymbol(ctx, req.(*Symbol))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Greeter_ContractMethod_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Method)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).ContractMethod(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.Greeter/ContractMethod",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).ContractMethod(ctx, req.(*Method))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Greeter_TokenList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Null)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).TokenList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.Greeter/TokenList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).TokenList(ctx, req.(*Null))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Greeter_AccountList_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Null)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GreeterServer).AccountList(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/rpc.Greeter/AccountList",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GreeterServer).AccountList(ctx, req.(*Null))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -710,24 +966,6 @@ func _Greeter_NodeInfo_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Greeter_GetExchangePairs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Address)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GreeterServer).GetExchangePairs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/rpc.Greeter/GetExchangePairs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GreeterServer).GetExchangePairs(ctx, req.(*Address))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 var _Greeter_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "rpc.Greeter",
 	HandlerType: (*GreeterServer)(nil),
@@ -753,6 +991,10 @@ var _Greeter_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Greeter_GetBlockByHeight_Handler,
 		},
 		{
+			MethodName: "GetBlockByRange",
+			Handler:    _Greeter_GetBlockByRange_Handler,
+		},
+		{
 			MethodName: "GetPoolTxs",
 			Handler:    _Greeter_GetPoolTxs_Handler,
 		},
@@ -765,6 +1007,22 @@ var _Greeter_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Greeter_GetContract_Handler,
 		},
 		{
+			MethodName: "GetContractBySymbol",
+			Handler:    _Greeter_GetContractBySymbol_Handler,
+		},
+		{
+			MethodName: "ContractMethod",
+			Handler:    _Greeter_ContractMethod_Handler,
+		},
+		{
+			MethodName: "TokenList",
+			Handler:    _Greeter_TokenList_Handler,
+		},
+		{
+			MethodName: "AccountList",
+			Handler:    _Greeter_AccountList_Handler,
+		},
+		{
 			MethodName: "GetConfirmedHeight",
 			Handler:    _Greeter_GetConfirmedHeight_Handler,
 		},
@@ -775,10 +1033,6 @@ var _Greeter_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "NodeInfo",
 			Handler:    _Greeter_NodeInfo_Handler,
-		},
-		{
-			MethodName: "GetExchangePairs",
-			Handler:    _Greeter_GetExchangePairs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

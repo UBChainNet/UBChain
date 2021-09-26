@@ -10,8 +10,10 @@ import (
 	"github.com/UBChainNet/UBChain/core/runner"
 	coreTypes "github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/p2p"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/rpc/rpctypes"
 	"github.com/UBChainNet/UBChain/services/reqmgr"
+	"github.com/UBChainNet/UBChain/ut"
 	"strconv"
 )
 
@@ -129,6 +131,21 @@ func (a *Api) GetBlockByHeight(height uint64) (*coreTypes.RpcBlock, error) {
 	return rpcBlock, nil
 }
 
+func (a *Api) GetBlockByRange(height uint64, count uint64) ([]*coreTypes.RpcBlock, error) {
+	blocks, err := a.chain.GetBlockByRange(height, count)
+	if err != nil {
+		return nil, err
+	}
+
+	var rpcBlocks []*coreTypes.RpcBlock
+	for _, block := range blocks {
+		rpcBlock, _ := coreTypes.TranslateBlockToRpcBlock(block, a.chain.GetConfirmedHeight(), a.chain.GetContractState)
+		rpcBlocks = append(rpcBlocks, rpcBlock)
+	}
+
+	return rpcBlocks, nil
+}
+
 func (a *Api) GetPoolTxs() (*coreTypes.TxPool, error) {
 	preparedTxs, futureTxs := a.txPool.GetAll()
 	txPoolTxs, _ := coreTypes.TranslateTxsToRpcTxPool(preparedTxs, futureTxs)
@@ -149,12 +166,40 @@ func (a *Api) GetLastHeight() (string, error) {
 	return sHeight, nil
 }
 
-func (a *Api) GetContract(address string) (*coreTypes.RpcContract, error) {
-	contract := a.contractState.GetContract(address)
-	if contract == nil {
-		return nil, fmt.Errorf("contract address %s is not exist", address)
+func (a *Api) GetContract(address string) (interface{}, error) {
+	if ut.IsContractV2Address(param.Net, address) {
+		contractV2 := a.contractState.GetContractV2(address)
+		if contractV2 == nil {
+			return nil, fmt.Errorf("contract %s is not exist", address)
+		}
+		return coreTypes.TranslateContractV2ToRpcContractV2(contractV2), nil
+	} else {
+		contract := a.contractState.GetContract(address)
+		if contract == nil {
+			return nil, fmt.Errorf("contract %s is not exist", address)
+		}
+		return coreTypes.TranslateContractToRpcContract(contract), nil
 	}
-	return coreTypes.TranslateContractToRpcContract(contract), nil
+}
+
+func (a *Api) GetContractBySymbol(symbol string) (interface{}, error) {
+	contract, exist := a.contractState.GetSymbolContract(symbol)
+	if !exist {
+		return nil, fmt.Errorf("symbol %s does not exist", contract)
+	}
+	return a.GetContract(contract)
+}
+
+func (a *Api) TokenList() (interface{}, error) {
+	return a.contractState.TokenList(), nil
+}
+
+func (a *Api) AccountList() (interface{}, error) {
+	return a.accountState.AccountList(), nil
+}
+
+func (a *Api) ContractMethod(contract, function string, params []string) (interface{}, error) {
+	return a.runner.ReadMethod(contract, function, params)
 }
 
 func (a *Api) GetConfirmedHeight() (string, error) {
@@ -171,12 +216,4 @@ func (a *Api) Peers() ([]*coreTypes.NodeInfo, error) {
 func (a *Api) NodeInfo() (*coreTypes.NodeInfo, error) {
 	node := a.peers.NodeInfo()
 	return node, nil
-}
-
-func (a *Api) GetExchangePairs(address string) ([]*coreTypes.RpcPair, error) {
-	pairs, err := a.runner.ExchangePair(hasharry.StringToAddress(address))
-	if err != nil {
-		return nil, err
-	}
-	return pairs, nil
 }
