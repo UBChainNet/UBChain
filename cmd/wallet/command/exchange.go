@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/UBChainNet/UBChain/common/hasharry"
+	"github.com/UBChainNet/UBChain/core/runner/exchange_runner"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/rpc"
 	"github.com/UBChainNet/UBChain/rpc/rpctypes"
@@ -33,23 +34,23 @@ func init() {
 }
 
 var CreateExchangeCmd = &cobra.Command{
-	Use:     "CreateExchange {from} {admin} {feeTo} {password} {nonce}; Create a decentralized exchange;",
+	Use:     "CreateExchange {from} {admin} {feeTo} {symbol} {password} {nonce}; Create a decentralized exchange;",
 	Aliases: []string{"CreateExchange", "createexchange", "ce", "CE"},
-	Short:   "CreateExchange {from} {admin} {feeTo} {password} {nonce}; Create a decentralized exchange;",
+	Short:   "CreateExchange {from} {admin} {feeTo} {symbol} {password} {nonce}; Create a decentralized exchange;",
 	Example: `
-	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 123456
+	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE "ABC" 123456
 		OR
-	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 123456 1
+	CreateExchange 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE  "ABC" 123456 1
 	`,
-	Args: cobra.MinimumNArgs(3),
+	Args: cobra.MinimumNArgs(4),
 	Run:  CreateExchange,
 }
 
 func CreateExchange(cmd *cobra.Command, args []string) {
 	var passwd []byte
 	var err error
-	if len(args) > 3 {
-		passwd = []byte(args[3])
+	if len(args) > 4 {
+		passwd = []byte(args[4])
 	} else {
 		fmt.Println("please input password：")
 		passwd, err = readPassWd()
@@ -105,13 +106,14 @@ func parseCEParams(args []string, nonce uint64) (*types.Transaction, error) {
 	from := hasharry.StringToAddress(args[0])
 	admin := args[1]
 	feeTo := args[2]
-	if len(args) > 4 {
-		nonce, err = strconv.ParseUint(args[4], 10, 64)
+	symbol := args[3]
+	if len(args) > 5 {
+		nonce, err = strconv.ParseUint(args[5], 10, 64)
 		if err != nil {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	tx, err := transaction.NewExchange(Net, from.String(), admin, feeTo, nonce, "")
+	tx, err := transaction.NewExchange(Net, from.String(), admin, feeTo, symbol, nonce, "")
 	if err != nil {
 		return nil, err
 	}
@@ -606,12 +608,8 @@ func parseSEIParams(args []string, nonce uint64) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	pairs, err := GetAllPairByRpc(exchange)
-	if err != nil {
-		return nil, err
-	}
-	paths := transaction.CalculateShortestPath(hasharry.StringToAddress(tokenA), hasharry.StringToAddress(tokenB), pairs)
-	if len(paths) == 0 {
+	paths, err := GetExchangeRouter(exchange, tokenA, tokenB)
+	if err != nil && len(paths) == 0 {
 		return nil, fmt.Errorf("not found")
 	}
 	tx, err := transaction.NewSwapExactIn(from, to, exchange, amountIn, amountOutMin, paths, deadline, nonce, "")
@@ -717,12 +715,8 @@ func parseSEOParams(args []string, nonce uint64) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	pairs, err := GetAllPairByRpc(exchange)
-	if err != nil {
-		return nil, err
-	}
-	paths := transaction.CalculateShortestPath(hasharry.StringToAddress(tokenA), hasharry.StringToAddress(tokenB), pairs)
-	if len(paths) == 0 {
+	paths, err := GetExchangeRouter(exchange, tokenA, tokenB)
+	if err != nil && len(paths) == 0 {
 		return nil, fmt.Errorf("not found")
 	}
 	tx, err := transaction.NewSwapExactOut(from, to, exchange, amountOut, amountInMax, paths, deadline, nonce, "")
@@ -746,7 +740,7 @@ var GetAllPairsCmd = &cobra.Command{
 }
 
 func GetAllPairs(cmd *cobra.Command, args []string) {
-	client, err := NewRpcClient()
+	/*client, err := NewRpcClient()
 	if err != nil {
 		log.Error(cmd.Use+" err: ", err)
 		return
@@ -765,11 +759,11 @@ func GetAllPairs(cmd *cobra.Command, args []string) {
 		output(string(resp.Result))
 		return
 	}
-	outputRespError(cmd.Use, resp)
+	outputRespError(cmd.Use, resp)*/
 }
 
 func GetAllPairByRpc(addr string) ([]*types.RpcPair, error) {
-	client, err := NewRpcClient()
+	/*client, err := NewRpcClient()
 	if err != nil {
 		return nil, err
 	}
@@ -787,6 +781,39 @@ func GetAllPairByRpc(addr string) ([]*types.RpcPair, error) {
 	pairs := make([]*types.RpcPair, 0)
 	if err := json.Unmarshal(rs.Result, &pairs); err != nil {
 		return nil, err
+	}*/
+	return nil, nil
+}
+
+func GetExchangeRouter(exchange string, tokenA, tokenB string) ([]string, error) {
+	client, err := NewRpcClient()
+	if err != nil {
+		return nil, err
 	}
-	return pairs, nil
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*20)
+	defer cancel()
+	rs, err := client.Gc.ContractMethod(ctx, &rpc.Method{
+		Contract: exchange,
+		Method:   "ExchangeOptimalRouter",
+		Params: []string{
+			tokenA,
+			tokenB,
+			"1",
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	if rs.Code != rpctypes.RpcSuccess {
+		return nil, errors.New(rs.Err)
+	}
+	fmt.Println(string(rs.Result))
+	router := &exchange_runner.Router{}
+	if err := json.Unmarshal(rs.Result, router); err != nil {
+		return nil, err
+	}
+	fmt.Println(router)
+	return router.Path, nil
 }

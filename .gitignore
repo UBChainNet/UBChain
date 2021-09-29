@@ -9,5 +9,7 @@ config1.toml
 config2.toml
 config3.toml
 data
+data-back
 cmd/wallet/UBCkey.zip
+cmd/wallet/keystore.zip
 ubchain.pem

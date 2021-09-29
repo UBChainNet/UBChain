@@ -145,6 +145,35 @@ func (blc *BlockChain) GetBlockByHeight(height uint64) (*types.Block, error) {
 	return block, nil
 }
 
+func (blc *BlockChain) GetBlockByRange(height, count uint64) ([]*types.Block, error) {
+	lastHeight := blc.GetLastHeight()
+	var endHeight uint64
+	if height > lastHeight {
+		return nil, errors.New("does not exist")
+	}
+	if height+count <= lastHeight {
+		endHeight = height + count
+	} else {
+		endHeight = lastHeight
+	}
+	var blocks []*types.Block
+	for ; height < endHeight; height++ {
+		header, err := blc.storage.GetHeaderByHeight(height)
+		if err != nil {
+			return nil, err
+		}
+		txs, err := blc.storage.GetTransactions(header.TxRoot)
+		if err != nil {
+			return nil, err
+		}
+		rlpBody := &types.RlpBody{Transactions: txs}
+		block := &types.Block{Header: header, Body: rlpBody.TranslateToBody()}
+		blocks = append(blocks, block)
+	}
+
+	return blocks, nil
+}
+
 func (blc *BlockChain) GetBlockByHash(hash hasharry.Hash) (*types.Block, error) {
 	header, err := blc.GetHeaderByHash(hash)
 	if err != nil {

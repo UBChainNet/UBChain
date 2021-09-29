@@ -7,10 +7,10 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
-	"github.com/deckarep/golang-set"
 	"github.com/UBChainNet/UBChain/common/utils"
 	"github.com/UBChainNet/UBChain/config"
 	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/deckarep/golang-set"
 	"golang.org/x/net/context"
 	"io"
 	"net"
@@ -170,6 +170,8 @@ func (s *RpcServer) startHTTP(listenAddrs []string) error {
 	rpcServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Connection", "close")
 		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
+		w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
 		r.Close = true
 
 		// Limit the number of connections to max allowed.

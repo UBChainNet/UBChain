@@ -5,8 +5,8 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/database/statedb"
-	"github.com/UBChainNet/UBChain/param"
 	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/param"
 	"sync"
 	"time"
 )
@@ -36,7 +36,14 @@ func (as *AccountState) InitTrie(stateRoot hasharry.Hash) error {
 	return as.stateDb.InitTrie(stateRoot)
 }
 
-// Get account status, if the account status needs to be updated
+func (as *AccountState) AccountList() []string {
+	as.accountMutex.RLock()
+	defer as.accountMutex.RUnlock()
+
+	return as.stateDb.AccountList()
+}
+
+// GetAccountState Get account status, if the account status needs to be updated
 // according to the effective block height, it will be updated,
 // but not stored.
 func (as *AccountState) GetAccountState(stateKey hasharry.Address) types.IAccount {
@@ -70,7 +77,7 @@ func (as *AccountState) setAccountState(account types.IAccount) {
 	as.stateDb.SetAccountState(account)
 }
 
-// Update sender account status based on transaction information
+// UpdateContractFrom Update sender account status based on transaction information
 func (as *AccountState) UpdateContractFrom(tx types.ITransaction, blockHeight uint64) error {
 	if tx.IsCoinBase() {
 		return nil

@@ -39,6 +39,18 @@ func (s *StateStorage) Close() error {
 	return s.trieDB.Close()
 }
 
+func (s *StateStorage) AccountList() []string {
+	iter := s.stateTrie.PrefixIterator([]byte{})
+	var accounts  []string
+	for iter.Next(true) {
+		if iter.Leaf() {
+			key := iter.LeafKey()
+			accounts = append(accounts, hasharry.BytesToAddress(key).String())
+		}
+	}
+	return accounts
+}
+
 func (s *StateStorage) GetAccountState(stateKey hasharry.Address) types.IAccount {
 	account := types.NewAccount(stateKey)
 	bytes := s.stateTrie.Get(stateKey.Bytes())
