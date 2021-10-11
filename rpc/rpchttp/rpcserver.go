@@ -170,8 +170,13 @@ func (s *RpcServer) startHTTP(listenAddrs []string) error {
 	rpcServeMux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Connection", "close")
 		w.Header().Set("Content-Type", "application/json")
-		w.Header().Set("Access-Control-Allow-Origin", "*")             //允许访问所有域
-		w.Header().Add("Access-Control-Allow-Headers", "Content-Type") //header的类型
+		w.Header().Set("Access-Control-Allow-Origin", r.Header.Get("Origin"))                          //允许访问所有域
+		w.Header().Add("Access-Control-Allow-Headers", r.Header.Get("Access-Control-Request-Headers")) //header的类型
+		r.Close = true
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
 		r.Close = true
 
 		// Limit the number of connections to max allowed.
