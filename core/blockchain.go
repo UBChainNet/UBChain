@@ -430,7 +430,7 @@ func (blc *BlockChain) verifyBlock(block *types.Block) error {
 		log.Warn("consensus root wrong", "height", block.Header.Height, "consensus root", block.Header.ConsensusRoot.String())
 		return errors.New("wrong consensus root")
 	}
-	if err := blc.verifyTxs(block.Transactions, block.Height); err != nil {
+	if err := blc.verifyTxs(block.Transactions, block.Height, block.Signer.String()); err != nil {
 		return err
 	}
 	parent, err := blc.GetHeaderByHash(block.ParentHash)
@@ -479,11 +479,11 @@ func (blc *BlockChain) verifyBusiness(tx types.ITransaction, blockHeight uint64)
 	return nil
 }
 
-func (blc *BlockChain) verifyTxs(txs types.Transactions, blockHeight uint64) error {
+func (blc *BlockChain) verifyTxs(txs types.Transactions, blockHeight uint64, miner string) error {
 	address := make(map[string]bool)
 	for _, tx := range txs {
 		if tx.IsCoinBase() {
-			if err := blc.verifyCoinBaseTx(tx, blockHeight, 0); err != nil {
+			if err := blc.verifyCoinBaseTx(tx, blockHeight, 0, miner); err != nil {
 				return err
 			}
 		} else {
@@ -502,8 +502,8 @@ func (blc *BlockChain) verifyTxs(txs types.Transactions, blockHeight uint64) err
 	return nil
 }
 
-func (blc *BlockChain) verifyCoinBaseTx(tx types.ITransaction, height, sumFees uint64) error {
-	return tx.VerifyCoinBaseTx(height, sumFees)
+func (blc *BlockChain) verifyCoinBaseTx(tx types.ITransaction, height, sumFees uint64, miner string) error {
+	return tx.VerifyCoinBaseTx(height, sumFees, miner)
 }
 
 // When a serious inconsistency occurs, it can fall back to any height

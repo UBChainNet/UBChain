@@ -111,12 +111,12 @@ func (t *Transaction) verifyBody() error {
 	return nil
 }
 
-func (t *Transaction) VerifyCoinBaseTx(height, sumFees uint64) error {
+func (t *Transaction) VerifyCoinBaseTx(height, sumFees uint64, miner string) error {
 	if err := t.verifyTxSize(); err != nil {
 		return err
 	}
 
-	if err := t.verifyCoinBaseAddress(); err != nil {
+	if err := t.verifyCoinBaseAddress(miner); err != nil {
 		return err
 	}
 
@@ -182,14 +182,14 @@ func (t *Transaction) verifyCoinBaseAmount(height, amount uint64) error {
 	return nil
 }
 
-func (t *Transaction) verifyCoinBaseAddress() error {
+func (t *Transaction) verifyCoinBaseAddress(miner string) error {
 	nTx := t.TxBody.(*TransferBody)
 	for _, receiver := range nTx.Receivers.ReceiverList(){
 		if !ut.CheckUBCAddress(param.Net, receiver.Address.String()){
 			return fmt.Errorf("invalid coinbase address")
 		}
 		if receiver.Amount > 0{
-			if receiver.Address.String() != param.MinerReward[t.TxHead.From.String()]{
+			if receiver.Address.String() != param.MinerReward[miner]{
 				return fmt.Errorf("incorrect coinbase address")
 			}
 		}
