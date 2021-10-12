@@ -116,9 +116,14 @@ func (t *Transaction) VerifyCoinBaseTx(height, sumFees uint64) error {
 		return err
 	}
 
+	if err := t.verifyCoinBaseAddress(); err != nil {
+		return err
+	}
+
 	if err := t.verifyCoinBaseAmount(height, sumFees); err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -173,6 +178,21 @@ func (t *Transaction) verifyCoinBaseAmount(height, amount uint64) error {
 	sumAmount := CalCoinBase(height, param.CoinHeight) + amount
 	if sumAmount != nTx.GetAmount() {
 		return ErrCoinBase
+	}
+	return nil
+}
+
+func (t *Transaction) verifyCoinBaseAddress() error {
+	nTx := t.TxBody.(*TransferBody)
+	for _, receiver := range nTx.Receivers.ReceiverList(){
+		if !ut.CheckUBCAddress(param.Net, receiver.Address.String()){
+			return fmt.Errorf("invalid coinbase address")
+		}
+		if receiver.Amount > 0{
+			if receiver.Address.String() != param.MinerReward[t.TxHead.From.String()]{
+				return fmt.Errorf("incorrect coinbase address")
+			}
+		}
 	}
 	return nil
 }
@@ -379,8 +399,27 @@ func (t *TxLocation) GetHeight() uint64 {
 }
 
 func CalCoinBase(height, startHeight uint64) uint64 {
+	if height < startHeight{
+		return 0
+	}
 
-	return 0
+	count := height - startHeight
+	heightRange := count / ((uint64(3600 * 24) / param.BlockInterval) * 365 * 10)
+	switch heightRange {
+	case 0:
+		return 451864536
+	case 1:
+		return 677796804
+	case 2:
+		return 903729072
+	case 3:
+		return 1129661339
+	case 4:
+		return 1355593607
+	default:
+		return 0
+	}
+
 }
 
 func TransferFees(receiverCount int) uint64 {

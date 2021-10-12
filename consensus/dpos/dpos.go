@@ -78,7 +78,7 @@ func (dpos *DPos) GetGenesisBlock() *types.Block {
 		},
 		Body: &types.Body{Transactions: types.Transactions{}},
 	}
-	for _, info := range initialCandidates {
+	for _, info := range param.InitialCandidates {
 		var peerId types.PeerId
 		copy(peerId[:], info.PeerId)
 		tx := &types.Transaction{

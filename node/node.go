@@ -42,6 +42,7 @@ type Node struct {
 }
 
 func NewNode(cfg *config.Config) (*Node, error) {
+	param.InitMinerReward()
 	var err error
 	node := &Node{}
 	revBlkCh := make(chan *types.Block, 100)
