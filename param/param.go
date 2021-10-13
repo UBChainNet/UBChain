@@ -74,7 +74,7 @@ const (
 
 	TokenConsumption uint64 = 1 * AtomsPerCoin
 
-	CoinHeight = 56500
+	CoinHeight = 565000
 
 	MaximumReceiver = 1000
 )
