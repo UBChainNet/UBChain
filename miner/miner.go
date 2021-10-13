@@ -159,7 +159,11 @@ func (miner *Miner) getCoinBase(txs types.Transactions, height uint64) uint64 {
 
 func (miner *Miner) generateCoinBaseTx(coinBase uint64) types.ITransaction {
 	res := types.NewReceivers()
-	res.Add(miner.signer, coinBase)
+	reward := miner.signer
+	if coinBase > 0{
+		reward = hasharry.StringToAddress(param.MinerReward[miner.signer.String()])
+	}
+	res.Add(reward, coinBase)
 	return &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxHash:     hasharry.Hash{},

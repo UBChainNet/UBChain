@@ -1,6 +1,8 @@
 package param
 
-import "github.com/UBChainNet/UBChain/common/hasharry"
+import (
+	"github.com/UBChainNet/UBChain/common/hasharry"
+)
 
 const (
 	// Mainnet logo
@@ -72,7 +74,7 @@ const (
 
 	TokenConsumption uint64 = 1 * AtomsPerCoin
 
-	CoinHeight = 1
+	CoinHeight = 565000
 
 	MaximumReceiver = 1000
 )
@@ -99,3 +101,71 @@ var MappingCoin = []MappingInfo{
 		Amount:  5000 * 1e4 * 1e8,
 	},
 }
+
+
+type CandidatesInfo struct {
+	Address string
+	Reward  string
+	PeerId  string
+}
+
+var MinerReward = map[string]string{}
+
+func InitMinerReward(){
+	for _, candidate := range InitialCandidates{
+		MinerReward[candidate.Address] = candidate.Reward
+	}
+}
+// initialCandidates the first super node of the block generation cycle.
+// The first half is the address of the block, the second half is the id of the block node
+var InitialCandidates = []CandidatesInfo{
+	{
+		Address: "UBCUnJZqeyLurgWQ2PvQhMGus36t4585T25C",
+		Reward:  "UBCdvXm83tnWDkVReQipXnKAkdH1qEnmFHf9",
+		PeerId:  "16Uiu2HAkwzWaFqLs6Xn8kUhhXXtcwmRsLkzBrPREpUBEM3qjMwFL",
+	},
+	{
+		Address: "UBCLDyD7zpzuMDJF8GagDgVDtqR7tosdjEWX",
+		Reward:  "UBCNry75WY4T6jwdzaBV1VZ9YqQTDs3AZUWj",
+		PeerId:  "16Uiu2HAmFTT8zNsHYywAQmcd8k35aDLbfvgKKku7D1Tbc8GApxUt",
+	},
+	{
+		Address: "UBCNZ8bg8DhaoYEprADH3RpRgwvEKXvLPqBj",
+		Reward:  "UBCcJ9uNnAbfwJu8dEp8PPmmJUQSJdD8k94X",
+		PeerId:  "16Uiu2HAmVaCCCCXHvaCZ9jzeqeEk4WJXFgfDtV4ryPWzmsBwYG9P",
+	},
+	{
+		Address: "UBChoP2pHAZusPKEzYDPUke7Vqn4KWi2UBNJ",
+		Reward:  "UBCXxJsYzkUV5ChcBkHpBDvTLCYaTaVfnxHR",
+		PeerId:  "16Uiu2HAm7KXydcXNuJp7rZD5VP7eRaqQneW2GJ485yYnKrnwz2LF",
+	},
+	{
+		Address: "UBCLp9kXXGwU9h8Vs6VNQgkrUYEFmU5XqTeo",
+		Reward:  "UBCbeMHqktshSb3az45Q9ot5rT37RNmgEdpx",
+		PeerId:  "16Uiu2HAmEBBoCPP1CKmbND64pRR7FzNiaZdvMW1DwgPnmSxLFzLj",
+	},
+	{
+		Address: "UBCgavpVj7cHqf9dzWxeaMwshkUNBo4ebpT8",
+		Reward:  "UBCNNbMmyknMVoTthTYb5NPvADR2vSt9VJhc",
+		PeerId:  "16Uiu2HAmT1U3mQVsNC9GPS7jZEeCeLrineNE98rC1oX5M3oMyvmP",
+	},
+	{
+		Address: "UBCPxNiZiP8q4kdU9awjYNVtsFCdPBTfFwaK",
+		Reward:  "UBCWaWPr2sQuw6NmvdPfTSkFbzsWzdDMHWED",
+		PeerId:  "16Uiu2HAkxxhNJS8E5qZCHaN2STjRcd1iMzwKmrdhNCAVbKUyK8sm",
+	},
+	{
+		Address: "UBCWvnbP2JJpP74gFejokjWxL9ggG4vd6Gzt",
+		Reward:  "UBCT7A9prqVzmhgFa72LjZegYbRxkTTECdz6",
+		PeerId:  "16Uiu2HAm97ceWF1xRcrhD9zwM3JMQZ2Ps2RLuekfSZ1RN8YgXian",
+	},
+	{
+		Address: "UBCdN1SfngYus39EhvEsVrm8jmam32fqhjmP",
+		Reward:  "UBCKuSDm39PA41NquWJLuw5jc1crDQWmVXgU",
+		PeerId:  "16Uiu2HAmDtfuGh4J4yzXAvfy2bG7ttbeWUQ1hQ77YYcq65j921M8",
+	},
+}
+
+
+
+
