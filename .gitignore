@@ -13,3 +13,4 @@ data-back
 cmd/wallet/UBCkey.zip
 cmd/wallet/keystore.zip
 ubchain.pem
+uploadUB.sh
