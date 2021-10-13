@@ -53,6 +53,7 @@ cp wallet.toml.example wallet.toml
 ##### Modify wallet configuration file
 
 * set RpcIp
+* set RpcUser
 * set RpcPass
 * If the node has the RpcTLS switch turned on, you need to configure the node's server.pem path to RpcCert and set RpcTLS in wallet.config to true
 
