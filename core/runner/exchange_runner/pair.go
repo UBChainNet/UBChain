@@ -409,6 +409,7 @@ func (p *PairRunner) AddLiquidity() {
 	}
 
 	_reserveA, _reserveB := p.pairState.library.GetReservesByPair(p.pairState.pairBody, p.addBody.TokenA, p.addBody.TokenB)
+
 	_reserve0, _reserve1 := p.pairState.pairBody.Reserve0, p.pairState.pairBody.Reserve1
 
 	amountA, amountB, err := p.pairState.optimalAmount(_reserveA, _reserveB, p.addBody.AmountADesired, p.addBody.AmountBDesired, p.addBody.AmountAMin, p.addBody.AmountBMin)
@@ -550,11 +551,17 @@ func (p *PairRunner) mintLiquidityValue(_reserve0, _reserve1, amount0, amount1 u
 		// sqrt(amount0 * amount1)
 		liquidityBig := big.NewInt(0).Sqrt(big.NewInt(0).Mul(big.NewInt(int64(amount0)), big.NewInt(int64(amount1))))
 		liquidityValue = liquidityBig.Uint64()
-	} else {
+	}else if _reserve0 == 0 && _reserve1 == 0 {
+		liquidityBig := big.NewInt(0).Sqrt(big.NewInt(0).Mul(big.NewInt(int64(amount0)), big.NewInt(int64(amount1))))
+		liquidityValue = liquidityBig.Uint64()
+	}else {
 		// valiquidityValue1 = amount0 / _reserve0 * _totalSupply
 		// valiquidityValue2 = amount1 / _reserve1 * _totalSupply
 		value0 := big.NewInt(0).Mul(big.NewInt(int64(amount0)), big.NewInt(int64(_totalSupply)))
 		value1 := big.NewInt(0).Mul(big.NewInt(int64(amount1)), big.NewInt(int64(_totalSupply)))
+		if value1.Uint64() == 0{
+			return 0, 0, false, errors.New("insufficient liquidity minted")
+		}
 		liquidityValue = math.Min(big.NewInt(0).Div(value0, big.NewInt(int64(_reserve0))).Uint64(), big.NewInt(0).Div(value1, big.NewInt(int64(_reserve1))).Uint64())
 		if liquidityValue <= 0 {
 			return 0, 0, false, errors.New("insufficient liquidity minted")
