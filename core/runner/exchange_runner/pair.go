@@ -139,8 +139,17 @@ func (ps *PairState) TotalValue(liquidity float64) (*TotalValue, error) {
 func (ps *PairState) totalValue(tokenA, tokenB hasharry.Address, liquidity uint64) (uint64, uint64, error) {
 	token0, token1 := library.SortToken(tokenA, tokenB)
 	_reserve0, _reserve1 := ps.library.GetReservesByPair(ps.pairBody, token0, token1)
-
 	_totalSupply := ps.pairBody.TotalSupply
+
+	feeOn, feeLiquidity, err := ps.mintFee(_reserve0, _reserve1)
+	if err != nil {
+		return 0, 0, err
+	}
+	// 加上当前新增手续费
+	if feeOn{
+		_totalSupply += feeLiquidity
+	}
+
 	if _totalSupply < liquidity {
 		return 0, 0, fmt.Errorf("exceeding the maximum liquidity value %.8f", types.Amount(_totalSupply).ToCoin())
 	}
@@ -459,7 +468,87 @@ func (p *PairRunner) createPair() {
 	p.isCreate = true
 }
 
+
 func (p *PairRunner) RemoveLiquidity() {
+	if p.height <= 558622{
+		p.RemoveLiquidity_before558622()
+		return
+	}
+
+	var ERR error
+	defer func() {
+		if ERR != nil {
+			p.state.State = types.Contract_Failed
+			p.state.Error = ERR.Error()
+		} else {
+			p.state.Event = p.events
+		}
+		p.pairState.library.SetContractV2State(p.tx.Hash().String(), p.state)
+	}()
+	if p.removeBody.Deadline != 0 && p.removeBody.Deadline < p.height {
+		ERR = fmt.Errorf("past the deadline")
+		return
+	}
+	if p.pairState.exHeader == nil {
+		ERR = fmt.Errorf("exchange %s is not exist", p.addBody.Exchange.String())
+		return
+	}
+
+	if p.pairState.pairBody == nil {
+		ERR = errors.New("pair is not exist")
+		return
+	}
+
+	token0, token1 := library.SortToken(p.removeBody.TokenA, p.removeBody.TokenB)
+	_reserve0, _reserve1 := p.pairState.library.GetReservesByPair(p.pairState.pairBody, token0, token1)
+	feeOn, feeLiquidity, err := p.pairState.mintFee(_reserve0, _reserve1)
+	if err != nil {
+		ERR = err
+		return
+	}
+	if feeOn {
+		p.mintEvent(p.pairState.exBody.FeeTo, p.address, feeLiquidity)
+	}
+	balance := p.pairState.library.GetBalance(p.sender, p.address)
+	_liquidity := p.removeBody.Liquidity
+	if balance < _liquidity {
+		ERR = fmt.Errorf("%s's liquidity token is insufficient", p.sender.String())
+		return
+	}
+	_totalSupply := p.pairState.pairBody.TotalSupply
+	if _totalSupply < p.removeBody.Liquidity {
+		ERR = fmt.Errorf("%s's liquidity token is insufficient", p.address.String())
+		return
+	}
+
+	amount0 := new(big.Int).Div(new(big.Int).Mul(big.NewInt(int64(_liquidity)), big.NewInt(int64(_reserve0))), big.NewInt(int64(_totalSupply))).Uint64()
+	amount1 := new(big.Int).Div(new(big.Int).Mul(big.NewInt(int64(_liquidity)), big.NewInt(int64(_reserve1))), big.NewInt(int64(_totalSupply))).Uint64()
+	if token0.IsEqual(p.removeBody.TokenA) {
+		if amount0 < p.removeBody.AmountAMin || amount1 < p.removeBody.AmountBMin {
+			ERR = fmt.Errorf("not meet expectations")
+			return
+		}
+	} else {
+		if amount0 < p.removeBody.AmountBMin || amount1 < p.removeBody.AmountAMin {
+			ERR = fmt.Errorf("not meet expectations")
+			return
+		}
+	}
+	p.pairState.pairBody.UpdatePair(_reserve0-amount0, _reserve1-amount1, _reserve0, _reserve1, p.height, feeOn)
+
+
+	p.burnEvent(p.sender, p.address, p.removeBody.Liquidity)
+	p.transferEvent(p.address, p.removeBody.To, token0, amount0)
+	p.transferEvent(p.address, p.removeBody.To, token1, amount1)
+
+	if err = p.runEvents(); err != nil {
+		ERR = err
+		return
+	}
+	p.update()
+}
+
+func (p *PairRunner) RemoveLiquidity_before558622() {
 	var ERR error
 	defer func() {
 		if ERR != nil {
