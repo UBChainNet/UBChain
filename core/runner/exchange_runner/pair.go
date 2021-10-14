@@ -470,8 +470,9 @@ func (p *PairRunner) createPair() {
 
 
 func (p *PairRunner) RemoveLiquidity() {
-	if p.height <= 558622{
-		p.RemoveLiquidity_before558622()
+	// 高度558900之后移除规则变更
+	if p.height <= 558900{
+		p.RemoveLiquidity_before558900()
 		return
 	}
 
@@ -548,7 +549,7 @@ func (p *PairRunner) RemoveLiquidity() {
 	p.update()
 }
 
-func (p *PairRunner) RemoveLiquidity_before558622() {
+func (p *PairRunner) RemoveLiquidity_before558900() {
 	var ERR error
 	defer func() {
 		if ERR != nil {
