@@ -162,6 +162,49 @@ func (ps *PairState) totalValue(tokenA, tokenB hasharry.Address, liquidity uint6
 	return amount1, amount0, nil
 }
 
+
+func (ps *PairState) Profit(liquidity float64) (*TotalValue, error) {
+	iLiquidity, _ := types.NewAmount(liquidity)
+	amount0, amount1, err := ps.profitValue(ps.pairBody.Token0, ps.pairBody.Token1, iLiquidity)
+	if err != nil {
+		return nil, err
+	}
+	return &TotalValue{
+		Token0:  ps.pairBody.Token0.String(),
+		Symbol0: ps.pairBody.Symbol0,
+		Value0:  types.Amount(amount0).ToCoin(),
+		Token1:  ps.pairBody.Token1.String(),
+		Symbol1: ps.pairBody.Symbol1,
+		Value1:  types.Amount(amount1).ToCoin(),
+	}, nil
+}
+
+func (ps *PairState) profitValue(tokenA, tokenB hasharry.Address, liquidity uint64) (uint64, uint64, error) {
+	token0, token1 := library.SortToken(tokenA, tokenB)
+	_reserve0, _reserve1 := ps.library.GetReservesByPair(ps.pairBody, token0, token1)
+	_totalSupply := ps.pairBody.TotalSupply
+
+	feeOn, feeLiquidity, err := ps.mintFee(_reserve0, _reserve1)
+	if err != nil {
+		return 0, 0, err
+	}
+	// 加上当前新增手续费
+	if feeOn{
+		_totalSupply += feeLiquidity
+	}
+
+	/*if _totalSupply < liquidity {
+		return 0, 0, fmt.Errorf("exceeding the maximum liquidity value %.8f", types.Amount(_totalSupply).ToCoin())
+	}*/
+
+	amount0 := new(big.Int).Div(new(big.Int).Mul(big.NewInt(int64(liquidity)), big.NewInt(int64(_reserve0))), big.NewInt(int64(_totalSupply))).Uint64()
+	amount1 := new(big.Int).Div(new(big.Int).Mul(big.NewInt(int64(liquidity)), big.NewInt(int64(_reserve1))), big.NewInt(int64(_totalSupply))).Uint64()
+	if tokenA.IsEqual(token0) {
+		return amount0, amount1, nil
+	}
+	return amount1, amount0, nil
+}
+
 // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
 func (ps *PairState) mintFee(_reserve0, _reserve1 uint64) (bool, uint64, error) {
 	var feeLiquidity uint64
