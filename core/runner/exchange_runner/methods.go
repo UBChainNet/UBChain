@@ -243,4 +243,19 @@ var pairMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"Profit": &MethodInfo{
+		Name: "Profit",
+		Params: []Value{
+			{
+				Name: "liquidity",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
 }
