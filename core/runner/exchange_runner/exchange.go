@@ -507,8 +507,16 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 		e.transferEvent(pairAddress, to, _token1, amount1Out)
 	}
 
-	balance0 = e.exState.library.GetBalance(pairAddress, _token0)
-	balance1 = e.exState.library.GetBalance(pairAddress, _token1)
+	// 规则变更
+	if e.height < 633800{
+		// pair账户有lock余额，导致出错
+		balance0 = e.exState.library.GetBalance(pairAddress, _token0)
+		balance1 = e.exState.library.GetBalance(pairAddress, _token1)
+	}else{
+		balance0 = _reserve0
+		balance1 = _reserve1
+	}
+
 	if amount0In > 0 {
 		balance0 = balance0 + amount0In
 	} else {
