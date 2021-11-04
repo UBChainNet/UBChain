@@ -691,3 +691,5 @@ func ExchangeAddress(net, from string, nonce uint64) (string, error) {
 	bytes = append(base58.Decode(from), nonceBytes...)
 	return ut.GenerateContractV2Address(net, bytes)
 }
+
+

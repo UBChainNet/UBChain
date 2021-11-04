@@ -380,6 +380,27 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.ExchangeRemoveLiquidity)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Init:
+			function, _ := body.Function.(*exchange_func.PledgeInitBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Add:
+			function, _ := body.Function.(*exchange_func.PledgeAddBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Remove:
+			function, _ := body.Function.(*exchange_func.PledgeRemoveBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_RewardRemove:
+			function, _ := body.Function.(*exchange_func.PledgeRewardRemoveBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Update:
+			function, _ := body.Function.(*exchange_func.PledgeUpdateBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+
 		}
 		rlpTx.TxBody, _ = rlp.EncodeToBytes(rlpC.TxBody)
 	default:

@@ -18,7 +18,7 @@ const (
 	Func_PairAddress ReadFunction = "pairAddress"
 	Func_PairList                 = "pairAddress"
 
-	maxPairTokenLen = 5
+	maxPairTokenLen = 3
 )
 
 type PairAddress struct {
@@ -84,6 +84,15 @@ func (e *Exchange) Exist(token0, token1 hasharry.Address) bool {
 	if ok {
 		_, ok := token1Map[token1]
 		return ok
+	}
+	return false
+}
+
+func (e *Exchange) PairExist(pairAddress hasharry.Address) bool {
+	for _, pair := range e.AllPairs{
+		if pair.Address.IsEqual(pairAddress){
+			return true
+		}
 	}
 	return false
 }

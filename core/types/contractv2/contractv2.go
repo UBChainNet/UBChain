@@ -31,6 +31,8 @@ const (
 	Pledge_Init = 200000
 	Pledge_Add = 200001
 	Pledge_Remove = 200002
+	Pledge_RewardRemove = 200003
+	Pledge_Update = 200004
 
 	Token_Create = 300000
 )
@@ -99,6 +101,13 @@ func DecodeContractV2(bytes []byte) (*ContractV2, error) {
 		return contract, err
 	case Pair_:
 		pair, err := exchange.DecodeToPair(rlpContract.Body)
+		if err != nil {
+			return nil, err
+		}
+		contract.Body = pair
+		return contract, err
+	case Pledge_:
+		pair, err := exchange.DecodeToPledge(rlpContract.Body)
 		if err != nil {
 			return nil, err
 		}

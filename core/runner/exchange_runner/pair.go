@@ -45,6 +45,22 @@ func NewPairState(runnerLibrary *library.RunnerLibrary, pairAddress string) (*Pa
 	}, nil
 }
 
+func NewPairStateWithExchange(runnerLibrary *library.RunnerLibrary, pairAddress string, exHeader *contractv2.ContractV2) (*PairState, error) {
+	pairHeader := runnerLibrary.GetContractV2(pairAddress)
+	if pairHeader == nil {
+		return nil, fmt.Errorf("pair %s already exist", pairAddress)
+	}
+	pairBody, _ := pairHeader.Body.(*exchange2.Pair)
+	exBody, _ := exHeader.Body.(*exchange2.Exchange)
+	return &PairState{
+		library:    runnerLibrary,
+		exHeader:   exHeader,
+		exBody:     exBody,
+		pairHeader: pairHeader,
+		pairBody:   pairBody,
+	}, nil
+}
+
 func (ps *PairState) Methods() map[string]*MethodInfo {
 	return pairMethods
 }
@@ -141,10 +157,7 @@ func (ps *PairState) totalValue(tokenA, tokenB hasharry.Address, liquidity uint6
 	_reserve0, _reserve1 := ps.library.GetReservesByPair(ps.pairBody, token0, token1)
 	_totalSupply := ps.pairBody.TotalSupply
 
-	feeOn, feeLiquidity, err := ps.mintFee(_reserve0, _reserve1)
-	if err != nil {
-		return 0, 0, err
-	}
+	feeOn, feeLiquidity := ps.mintFee(_reserve0, _reserve1)
 	// 加上当前新增手续费
 	if feeOn{
 		_totalSupply += feeLiquidity
@@ -184,10 +197,8 @@ func (ps *PairState) profitValue(tokenA, tokenB hasharry.Address, liquidity uint
 	_reserve0, _reserve1 := ps.library.GetReservesByPair(ps.pairBody, token0, token1)
 	_totalSupply := ps.pairBody.TotalSupply
 
-	feeOn, feeLiquidity, err := ps.mintFee(_reserve0, _reserve1)
-	if err != nil {
-		return 0, 0, err
-	}
+	feeOn, feeLiquidity := ps.mintFee(_reserve0, _reserve1)
+
 	// 加上当前新增手续费
 	if feeOn{
 		_totalSupply += feeLiquidity
@@ -206,7 +217,7 @@ func (ps *PairState) profitValue(tokenA, tokenB hasharry.Address, liquidity uint
 }
 
 // if fee is on, mint liquidity equivalent to 1/6th of the growth in sqrt(k)
-func (ps *PairState) mintFee(_reserve0, _reserve1 uint64) (bool, uint64, error) {
+func (ps *PairState) mintFee(_reserve0, _reserve1 uint64) (bool, uint64) {
 	var feeLiquidity uint64
 	feeTo := ps.exBody.FeeTo
 	// 收费地址被设置，则收费开
@@ -233,7 +244,7 @@ func (ps *PairState) mintFee(_reserve0, _reserve1 uint64) (bool, uint64, error) 
 	} else if _kLast.Cmp(big.NewInt(0)) != 0 {
 		ps.pairBody.KLast = big.NewInt(0)
 	}
-	return feeOn, feeLiquidity, nil
+	return feeOn, feeLiquidity
 }
 
 type PairRunner struct {
@@ -520,6 +531,7 @@ func (p *PairRunner) RemoveLiquidity() {
 	}
 
 	var ERR error
+	var err error
 	defer func() {
 		if ERR != nil {
 			p.state.State = types.Contract_Failed
@@ -545,11 +557,8 @@ func (p *PairRunner) RemoveLiquidity() {
 
 	token0, token1 := library.SortToken(p.removeBody.TokenA, p.removeBody.TokenB)
 	_reserve0, _reserve1 := p.pairState.library.GetReservesByPair(p.pairState.pairBody, token0, token1)
-	feeOn, feeLiquidity, err := p.pairState.mintFee(_reserve0, _reserve1)
-	if err != nil {
-		ERR = err
-		return
-	}
+	feeOn, feeLiquidity := p.pairState.mintFee(_reserve0, _reserve1)
+
 	if feeOn {
 		p.mintEvent(p.pairState.exBody.FeeTo, p.address, feeLiquidity)
 	}
@@ -594,6 +603,7 @@ func (p *PairRunner) RemoveLiquidity() {
 
 func (p *PairRunner) RemoveLiquidity_before558900() {
 	var ERR error
+	var err error
 	defer func() {
 		if ERR != nil {
 			p.state.State = types.Contract_Failed
@@ -619,11 +629,7 @@ func (p *PairRunner) RemoveLiquidity_before558900() {
 
 	token0, token1 := library.SortToken(p.removeBody.TokenA, p.removeBody.TokenB)
 	_reserve0, _reserve1 := p.pairState.library.GetReservesByPair(p.pairState.pairBody, token0, token1)
-	feeOn, feeLiquidity, err := p.pairState.mintFee(_reserve0, _reserve1)
-	if err != nil {
-		ERR = err
-		return
-	}
+	feeOn, feeLiquidity := p.pairState.mintFee(_reserve0, _reserve1)
 	balance := p.pairState.library.GetBalance(p.sender, p.address)
 	_liquidity := p.removeBody.Liquidity
 	if balance < _liquidity {
@@ -674,10 +680,7 @@ func (p *PairRunner) mintLiquidityValue(_reserve0, _reserve1, amount0, amount1 u
 	// must be defined here since totalSupply can update in mintFee
 	_totalSupply := p.pairState.pairBody.TotalSupply
 	// 返回铸造币的手续费开关
-	feeOn, feeLiquidity, err := p.pairState.mintFee(_reserve0, _reserve1)
-	if err != nil {
-		return 0, 0, false, err
-	}
+	feeOn, feeLiquidity := p.pairState.mintFee(_reserve0, _reserve1)
 	var liquidityValue uint64
 
 	if _totalSupply == 0 {

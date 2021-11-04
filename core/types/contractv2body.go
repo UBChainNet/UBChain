@@ -85,6 +85,20 @@ func (c *TxContractV2Body) checkType() error {
 			return nil
 		}
 		return errors.New("invalid contract function type")
+	case contractv2.Pledge_:
+		switch c.FunctionType {
+		case contractv2.Pledge_Init:
+			return nil
+		case contractv2.Pledge_Add:
+			return nil
+		case contractv2.Pledge_Remove:
+			return nil
+		case contractv2.Pledge_RewardRemove:
+			return nil
+		case contractv2.Pledge_Update:
+			return nil
+		}
+		return errors.New("invalid contract function type")
 	}
 	return errors.New("invalid contract type")
 }

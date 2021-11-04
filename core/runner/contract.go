@@ -57,6 +57,20 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 			pair := exchange_runner.NewPairRunner(c.library, tx, 0, 0)
 			return pair.PreRemoveLiquidityVerify(lastHeight)
 		}
+	case contractv2.Pledge_:
+		pledge := exchange_runner.NewPledgeRunner(c.library, tx, 0)
+		switch body.FunctionType {
+		case contractv2.Pledge_Init:
+			return pledge.PreInitVerify()
+		case contractv2.Pledge_Add:
+			return pledge.PreAddPledgeVerify()
+		case contractv2.Pledge_Remove:
+			return pledge.PreRemovePledgeVerify()
+		case contractv2.Pledge_RewardRemove:
+			return pledge.PreRemoveRewardVerify()
+		case contractv2.Pledge_Update:
+			return pledge.PreUpdatePledgeVerify()
+		}
 	}
 	return nil
 }
@@ -90,6 +104,20 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 			pairRunner := exchange_runner.NewPairRunner(c.library, tx, blockHeight, blockTime)
 			pairRunner.RemoveLiquidity()
 		}
+	case contractv2.Pledge_:
+		pledgeRunner := exchange_runner.NewPledgeRunner(c.library, tx, blockHeight)
+		switch body.FunctionType {
+		case contractv2.Pledge_Init:
+			pledgeRunner.Init()
+		case contractv2.Pledge_Add:
+			pledgeRunner.AddPledge()
+		case contractv2.Pledge_Remove:
+			pledgeRunner.RemovePledge()
+		case contractv2.Pledge_RewardRemove:
+			pledgeRunner.RemoveReward()
+		case contractv2.Pledge_Update:
+			pledgeRunner.UpdatePledge()
+		}
 	}
 	return nil
 }
@@ -122,6 +150,11 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 		}
 	case contractv2.Pair_:
 		open, err = exchange_runner.NewPairState(c.library, address)
+		if err != nil {
+			return nil, err
+		}
+	case contractv2.Pledge_:
+		open, err = exchange_runner.NewPledgeState(c.library, address)
 		if err != nil {
 			return nil, err
 		}

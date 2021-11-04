@@ -259,3 +259,33 @@ var pairMethods = map[string]*MethodInfo{
 		},
 	},
 }
+
+
+var pledgeMethods = map[string]*MethodInfo{
+	"Methods": &MethodInfo{
+		Name:   "Methods",
+		Params: nil,
+		Returns: []Value{
+			{
+				Name: "Open methods",
+				Type: "json",
+			},
+		},
+	},
+	"MethodExist": &MethodInfo{
+		Name: "MethodExist",
+		Params: []Value{
+			{
+				Name: "method",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "exist",
+				Type: "bool",
+			},
+		},
+	},
+
+}
