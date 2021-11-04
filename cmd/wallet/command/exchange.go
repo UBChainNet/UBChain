@@ -27,6 +27,11 @@ func init() {
 		SwapExactInCmd,
 		SwapExactOutCmd,
 		GetAllPairsCmd,
+		CreatePledgeCmd,
+		AddPledgeCmd,
+		RemovePledgeCmd,
+		RemovePledgeRewardCmd,
+		UpdatePledgeCmd,
 	}
 	RootCmd.AddCommand(exchangeCmds...)
 	RootSubCmdGroups["exchange"] = exchangeCmds
@@ -809,11 +814,469 @@ func GetExchangeRouter(exchange string, tokenA, tokenB string) ([]string, error)
 	if rs.Code != rpctypes.RpcSuccess {
 		return nil, errors.New(rs.Err)
 	}
-	fmt.Println(string(rs.Result))
 	router := &exchange_runner.Router{}
 	if err := json.Unmarshal(rs.Result, router); err != nil {
 		return nil, err
 	}
-	fmt.Println(router)
 	return router.Path, nil
+}
+
+
+
+var CreatePledgeCmd = &cobra.Command{
+	Use:     "CreatePledge {from} {admin} {exchange} {max supply} {day mint} {password} {nonce};Create exchange pledge;",
+	Aliases: []string{"createpledge", "cp", "CP"},
+	Short:   "CreatePledge {from} {admin} {exchange} {max supply} {day mint} {password} {nonce};Create exchange pledge;",
+	Example: `
+	CreatePledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 10000000 10 123456
+		OR
+	CreatePledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 10000000 10 123456 1
+	`,
+	Args: cobra.MinimumNArgs(5),
+	Run:   CreatePledge,
+}
+
+func  CreatePledge(cmd *cobra.Command, args []string) {
+	var passwd []byte
+	var err error
+	if len(args) > 5 {
+		passwd = []byte(args[5])
+	} else {
+		fmt.Println("please input password：")
+		passwd, err = readPassWd()
+		if err != nil {
+			outputError(cmd.Use+" err: ", fmt.Errorf("read password failed! %s", err.Error()))
+			return
+		}
+	}
+	privKey, err := ReadAddrPrivate(getAddJsonPath(args[0]), passwd)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", fmt.Errorf("wrong password"))
+		return
+	}
+	resp, err := GetAccountByRpc(args[0])
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+	if resp.Code != 0 {
+		outputRespError(cmd.Use, resp)
+		return
+	}
+	var account *rpctypes.Account
+	if err := json.Unmarshal(resp.Result, &account); err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	tx, err := parseCPParams(args, account.Nonce+1)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	if !signTx(cmd, tx, privKey.Private) {
+		log.Error(cmd.Use+" err: ", errors.New("signature failure"))
+		return
+	}
+
+	rs, err := sendTx(cmd, tx)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+	} else if rs.Code != 0 {
+		outputRespError(cmd.Use, rs)
+	} else {
+		fmt.Println()
+		fmt.Println(string(rs.Result))
+	}
+}
+
+func parseCPParams(args []string, nonce uint64) (*types.Transaction, error) {
+	var err error
+	from := args[0]
+	admin := args[1]
+	exchange := args[2]
+	maxSupplyStr := args[3]
+	dayMintStr := args[4]
+	maxSupplyf, err := strconv.ParseFloat(maxSupplyStr, 64)
+	if err != nil {
+		return nil, errors.New("wrong maxSupply")
+	}
+	maxSupply, _ := types.NewAmount(maxSupplyf)
+
+	dayMintStrf, err := strconv.ParseFloat(dayMintStr, 64)
+	if err != nil {
+		return nil, errors.New("wrong dayMintStr")
+	}
+	dayMint, _ := types.NewAmount(dayMintStrf)
+
+	if len(args) > 6 {
+		nonce, err = strconv.ParseUint(args[6], 10, 64)
+		if err != nil {
+			return nil, errors.New("wrong nonce")
+		}
+	}
+	contract, _ := exchange_runner.PledgeAddress(Net, from, nonce)
+	tx, err := transaction.NewPledgeInit(from, admin, exchange, contract, maxSupply, dayMint, nonce, "")
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+
+var AddPledgeCmd = &cobra.Command{
+	Use:     "AddPledge {from} {contract} {pair} {amount} {password} {nonce};pledge pair;",
+	Aliases: []string{"addpledge", "ap", "AP"},
+	Short:   "AddPledge {from} {contract} {pair} {amount} {password} {nonce};pledge pair;",
+	Example: `
+	AddPledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 100 123456
+		OR
+	AddPledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 100 123456 1
+	`,
+	Args: cobra.MinimumNArgs(4),
+	Run:   AddPledge,
+}
+
+func  AddPledge(cmd *cobra.Command, args []string) {
+	var passwd []byte
+	var err error
+	if len(args) > 4 {
+		passwd = []byte(args[4])
+	} else {
+		fmt.Println("please input password：")
+		passwd, err = readPassWd()
+		if err != nil {
+			outputError(cmd.Use+" err: ", fmt.Errorf("read password failed! %s", err.Error()))
+			return
+		}
+	}
+	privKey, err := ReadAddrPrivate(getAddJsonPath(args[0]), passwd)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", fmt.Errorf("wrong password"))
+		return
+	}
+	resp, err := GetAccountByRpc(args[0])
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+	if resp.Code != 0 {
+		outputRespError(cmd.Use, resp)
+		return
+	}
+	var account *rpctypes.Account
+	if err := json.Unmarshal(resp.Result, &account); err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	tx, err := parseAPParams(args, account.Nonce+1)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	if !signTx(cmd, tx, privKey.Private) {
+		log.Error(cmd.Use+" err: ", errors.New("signature failure"))
+		return
+	}
+
+	rs, err := sendTx(cmd, tx)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+	} else if rs.Code != 0 {
+		outputRespError(cmd.Use, rs)
+	} else {
+		fmt.Println()
+		fmt.Println(string(rs.Result))
+	}
+}
+
+func parseAPParams(args []string, nonce uint64) (*types.Transaction, error) {
+	var err error
+	from := args[0]
+	contract := args[1]
+	pair := args[2]
+	amountStr := args[3]
+	amountStrf, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		return nil, errors.New("wrong maxSupply")
+	}
+	amount, _ := types.NewAmount(amountStrf)
+	if len(args) > 5 {
+		nonce, err = strconv.ParseUint(args[5], 10, 64)
+		if err != nil {
+			return nil, errors.New("wrong nonce")
+		}
+	}
+	tx, err := transaction.NewAddPledge(from, contract, pair, amount, nonce, "")
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+
+var RemovePledgeCmd = &cobra.Command{
+	Use:     "RemovePledge {from} {contract} {pair} {amount} {password} {nonce};remove pair pledge;",
+	Aliases: []string{"removepledge", "rp", "RP"},
+	Short:   "RemovePledge {from} {contract} {pair} {amount} {password} {nonce};remove pair pledge;",
+	Example: `
+	RemovePledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 100 123456
+		OR
+	RemovePledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 100 123456 1
+	`,
+	Args: cobra.MinimumNArgs(4),
+	Run:   RemovePledge,
+}
+
+func  RemovePledge(cmd *cobra.Command, args []string) {
+	var passwd []byte
+	var err error
+	if len(args) > 4 {
+		passwd = []byte(args[4])
+	} else {
+		fmt.Println("please input password：")
+		passwd, err = readPassWd()
+		if err != nil {
+			outputError(cmd.Use+" err: ", fmt.Errorf("read password failed! %s", err.Error()))
+			return
+		}
+	}
+	privKey, err := ReadAddrPrivate(getAddJsonPath(args[0]), passwd)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", fmt.Errorf("wrong password"))
+		return
+	}
+	resp, err := GetAccountByRpc(args[0])
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+	if resp.Code != 0 {
+		outputRespError(cmd.Use, resp)
+		return
+	}
+	var account *rpctypes.Account
+	if err := json.Unmarshal(resp.Result, &account); err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	tx, err := parseRPParams(args, account.Nonce+1)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	if !signTx(cmd, tx, privKey.Private) {
+		log.Error(cmd.Use+" err: ", errors.New("signature failure"))
+		return
+	}
+
+	rs, err := sendTx(cmd, tx)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+	} else if rs.Code != 0 {
+		outputRespError(cmd.Use, rs)
+	} else {
+		fmt.Println()
+		fmt.Println(string(rs.Result))
+	}
+}
+
+func parseRPParams(args []string, nonce uint64) (*types.Transaction, error) {
+	var err error
+	from := args[0]
+	contract := args[1]
+	pair := args[2]
+	amountStr := args[3]
+	amountStrf, err := strconv.ParseFloat(amountStr, 64)
+	if err != nil {
+		return nil, errors.New("wrong maxSupply")
+	}
+	amount, _ := types.NewAmount(amountStrf)
+	if len(args) > 5 {
+		nonce, err = strconv.ParseUint(args[5], 10, 64)
+		if err != nil {
+			return nil, errors.New("wrong nonce")
+		}
+	}
+	tx, err := transaction.NewRemovePledge(from, contract, pair, amount, nonce, "")
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+
+var RemovePledgeRewardCmd = &cobra.Command{
+	Use:     "RemovePledgeReward {from} {contract} {password} {nonce};remove pair pledge reward;",
+	Aliases: []string{"removepledgereward", "rpr", "RPR"},
+	Short:   "RemovePledgeReward {from} {contract} {password} {nonce};remove pair pledge reward;",
+	Example: `
+	RemovePledgeReward UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 123456
+		OR
+	RemovePledgeReward UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 123456 1
+	`,
+	Args: cobra.MinimumNArgs(2),
+	Run:   RemovePledgeReward,
+}
+
+func RemovePledgeReward(cmd *cobra.Command, args []string) {
+	var passwd []byte
+	var err error
+	if len(args) > 2 {
+		passwd = []byte(args[2])
+	} else {
+		fmt.Println("please input password：")
+		passwd, err = readPassWd()
+		if err != nil {
+			outputError(cmd.Use+" err: ", fmt.Errorf("read password failed! %s", err.Error()))
+			return
+		}
+	}
+	privKey, err := ReadAddrPrivate(getAddJsonPath(args[0]), passwd)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", fmt.Errorf("wrong password"))
+		return
+	}
+	resp, err := GetAccountByRpc(args[0])
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+	if resp.Code != 0 {
+		outputRespError(cmd.Use, resp)
+		return
+	}
+	var account *rpctypes.Account
+	if err := json.Unmarshal(resp.Result, &account); err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	tx, err := parseRPRParams(args, account.Nonce+1)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	if !signTx(cmd, tx, privKey.Private) {
+		log.Error(cmd.Use+" err: ", errors.New("signature failure"))
+		return
+	}
+
+	rs, err := sendTx(cmd, tx)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+	} else if rs.Code != 0 {
+		outputRespError(cmd.Use, rs)
+	} else {
+		fmt.Println()
+		fmt.Println(string(rs.Result))
+	}
+}
+
+func parseRPRParams(args []string, nonce uint64) (*types.Transaction, error) {
+	var err error
+	from := args[0]
+	contract := args[1]
+	if len(args) > 3 {
+		nonce, err = strconv.ParseUint(args[3], 10, 64)
+		if err != nil {
+			return nil, errors.New("wrong nonce")
+		}
+	}
+	tx, err := transaction.NewRemovePledgeReward(from, contract, nonce, "")
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
+}
+
+var UpdatePledgeCmd = &cobra.Command{
+	Use:     "UpdatePledge {from} {contract} {password} {nonce};remove pair pledge reward;",
+	Aliases: []string{"updateledge", "up", "UP"},
+	Short:   "UpdatePledge {from} {contract} {password} {nonce};remove pair pledge reward;",
+	Example: `
+	UpdatePledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 123456
+		OR
+	UpdatePledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 123456 1
+	`,
+	Args: cobra.MinimumNArgs(2),
+	Run:   UpdatePledge,
+}
+
+func UpdatePledge(cmd *cobra.Command, args []string) {
+	var passwd []byte
+	var err error
+	if len(args) > 2 {
+		passwd = []byte(args[2])
+	} else {
+		fmt.Println("please input password：")
+		passwd, err = readPassWd()
+		if err != nil {
+			outputError(cmd.Use+" err: ", fmt.Errorf("read password failed! %s", err.Error()))
+			return
+		}
+	}
+	privKey, err := ReadAddrPrivate(getAddJsonPath(args[0]), passwd)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", fmt.Errorf("wrong password"))
+		return
+	}
+	resp, err := GetAccountByRpc(args[0])
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+	if resp.Code != 0 {
+		outputRespError(cmd.Use, resp)
+		return
+	}
+	var account *rpctypes.Account
+	if err := json.Unmarshal(resp.Result, &account); err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	tx, err := parseUPParams(args, account.Nonce+1)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+		return
+	}
+
+	if !signTx(cmd, tx, privKey.Private) {
+		log.Error(cmd.Use+" err: ", errors.New("signature failure"))
+		return
+	}
+
+	rs, err := sendTx(cmd, tx)
+	if err != nil {
+		log.Error(cmd.Use+" err: ", err)
+	} else if rs.Code != 0 {
+		outputRespError(cmd.Use, rs)
+	} else {
+		fmt.Println()
+		fmt.Println(string(rs.Result))
+	}
+}
+
+func parseUPParams(args []string, nonce uint64) (*types.Transaction, error) {
+	var err error
+	from := args[0]
+	contract := args[1]
+	if len(args) > 3 {
+		nonce, err = strconv.ParseUint(args[3], 10, 64)
+		if err != nil {
+			return nil, errors.New("wrong nonce")
+		}
+	}
+	tx, err := transaction.NewUpdatePledgeReward(from, contract, nonce, "")
+	if err != nil {
+		return nil, err
+	}
+	return tx, nil
 }

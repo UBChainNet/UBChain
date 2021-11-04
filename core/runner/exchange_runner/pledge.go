@@ -3,13 +3,16 @@ package exchange_runner
 import (
 	"errors"
 	"fmt"
+	"github.com/UBChainNet/UBChain/common/codec"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/runner/library"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	exchange2 "github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/crypto/base58"
 	"github.com/UBChainNet/UBChain/param"
+	"github.com/UBChainNet/UBChain/ut"
 	"math/big"
 )
 
@@ -411,4 +414,11 @@ func (p *PledgeRunner) runEvents() error {
 		p.pdState.library.RunEvent(event)
 	}
 	return nil
+}
+
+func PledgeAddress(net, from string, nonce uint64) (string, error) {
+	bytes := make([]byte, 0)
+	nonceBytes := codec.Uint64toBytes(nonce)
+	bytes = append(base58.Decode(from), nonceBytes...)
+	return ut.GenerateContractV2Address(net, bytes)
 }
