@@ -35,10 +35,10 @@ type Pledge struct {
 
 }
 
-//const dayBlocks =  60 * 60 * 24 / param.BlockInterval
-const dayBlocks =  60 * 2 / param.BlockInterval
-//const MatureTime = 10
-const MatureTime = 1
+const dayBlocks =  60 * 60 * 24 / param.BlockInterval
+//const dayBlocks =  60 * 2 / param.BlockInterval
+const MatureTime = 10
+//const MatureTime = 1
 
 func NewPledge(from, exchange hasharry.Address, symbol string, maxSupply, dayMint, height uint64)*Pledge{
 	return &Pledge{
