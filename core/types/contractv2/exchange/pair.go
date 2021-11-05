@@ -64,6 +64,7 @@ func (p *Pair) Burn(number uint64) {
 	p.TotalSupply = p.TotalSupply - number
 }
 
+// 调用该方法有错误，blocktime应该为timestamp, 而非高度。如果需要用到价格预言机，则需要修改该方法的调用
 func (p *Pair) UpdatePair(balance0, balance1, _reserve0, _reserve1, blockTime uint64, feeOn bool) {
 	p.UpdateReserve(balance0, balance1, _reserve0, _reserve1, blockTime)
 	if feeOn {

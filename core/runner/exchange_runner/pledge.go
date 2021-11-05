@@ -38,9 +38,71 @@ func NewPledgeState(runnerLibrary *library.RunnerLibrary, pdAddress string) (*Pl
 func (ps *PledgeState)Methods() map[string]*MethodInfo{
 	return pledgeMethods
 }
+
 func (ps *PledgeState) MethodExist(method string) bool{
-	_, exist := exMethods[method]
+	_, exist := pledgeMethods[method]
 	return exist
+}
+
+
+type PledgeReward struct {
+	Token string  `json:"token"`
+	Symbol string `json:"symbol"`
+	Amount float64 `json:"amount"`
+	Pair 	string `json:"pair"`
+}
+
+func (ps *PledgeState)GetPledgeReward(address string, pair string) *PledgeReward{
+	reward := ps.body.GetPledgeReward(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
+	return &PledgeReward{
+		Token:  ps.body.Reward.String(),
+		Symbol: ps.body.RewardSymbol,
+		Amount: types.Amount(reward).ToCoin(),
+		Pair:   pair,
+	}
+}
+
+func (ps *PledgeState)GetPledgeRewards(address string) []*PledgeReward{
+	var rewards []*PledgeReward
+	rewardMap := ps.body.GetPledgeRewards(hasharry.StringToAddress(address))
+	if rewardMap != nil{
+		for pair, reward := range rewardMap{
+			rewards = append(rewards, &PledgeReward{
+				Token:  ps.body.Reward.String(),
+				Symbol: ps.body.RewardSymbol,
+				Amount: types.Amount(reward).ToCoin(),
+				Pair:   pair.String(),
+			})
+		}
+	}
+	return rewards
+}
+
+type PledgeValue struct {
+	MaturePledge float64 `json:"maturePledge"`
+	UnripePledge float64 `json:"unripePledge"`
+	Pair string `json:"pair"`
+}
+
+func (ps *PledgeState)GetPledge(address string, pair string) *PledgeValue{
+	maturePledge := ps.body.GetMaturePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
+	unripePledge := ps.body.GetUnripePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
+	return &PledgeValue{
+		MaturePledge:  types.Amount(maturePledge).ToCoin(),
+		UnripePledge:  types.Amount(unripePledge).ToCoin(),
+		Pair:   pair,
+	}
+}
+
+func (ps *PledgeState)GetPledges(address string) []*PledgeValue{
+	var pledges []*PledgeValue
+	for pair, _ := range ps.body.PledgePair {
+		pledge := ps.GetPledge(address, pair.String())
+		if pledge.UnripePledge != 0 || pledge.MaturePledge != 0{
+			pledges = append(pledges, pledge)
+		}
+	}
+	return pledges
 }
 
 type PledgeRunner struct {
@@ -52,12 +114,16 @@ type PledgeRunner struct {
 	height       uint64
 }
 
-func NewPledgeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height uint64) *PledgeRunner {
+func NewPledgeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height uint64) (*PledgeRunner, error) {
 	var pd *exchange2.Pledge
+	var ok bool
 	address := tx.GetTxBody().GetContract()
 	exHeader := lib.GetContractV2(address.String())
 	if exHeader != nil {
-		pd = exHeader.Body.(*exchange2.Pledge)
+		pd, ok  = exHeader.Body.(*exchange2.Pledge)
+		if !ok{
+			return nil, errors.New("invalid contract type")
+		}
 	}
 
 	contractBody := tx.GetTxBody().(*types.TxContractV2Body)
@@ -72,7 +138,7 @@ func NewPledgeRunner(lib *library.RunnerLibrary, tx types.ITransaction, height u
 		contractBody: contractBody,
 		events:       make([]*types.Event, 0),
 		height:       height,
-	}
+	}, nil
 }
 
 func (p *PledgeRunner) PreInitVerify() error{
@@ -82,6 +148,9 @@ func (p *PledgeRunner) PreInitVerify() error{
 	}
 	initBody := p.contractBody.Function.(*exchange_func.PledgeInitBody)
 	ex, err := p.pdState.library.GetExchange(initBody.Exchange)
+	if err != nil{
+		return err
+	}
 	if !ex.Admin.IsEqual(p.tx.From()){
 		return fmt.Errorf("forbidden")
 	}
@@ -107,13 +176,18 @@ func (p *PledgeRunner) Init() {
 		Type:       p.contractBody.Type,
 		Body:       nil,
 	}
+
 	initBody := p.contractBody.Function.(*exchange_func.PledgeInitBody)
-	contract.Body = exchange2.NewPledge(initBody.Admin, initBody.Exchange, initBody.MaxSupply, initBody.DayMint, p.height)
+	ex, _ := p.pdState.library.GetExchange(initBody.Exchange)
+	contract.Body = exchange2.NewPledge(initBody.Admin, initBody.Exchange, ex.Symbol, initBody.MaxSupply, initBody.DayMint, p.height)
 	p.pdState.library.SetContractV2(contract)
 }
 
 
 func (p *PledgeRunner)PreAddPledgeVerify() error{
+	if p.pdState.body == nil{
+		return errors.New("pledge contract does not exist")
+	}
 	height := p.height
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddBody)
 	if funcBody == nil {
@@ -173,12 +247,13 @@ func (p *PledgeRunner)AddPledge() {
 	pair := funcBody.Pair
 	amount := funcBody.Amount
 
+	p.updatePledge(height)
+
 	if err = p.pdState.body.In(height, p.tx.From(), pair, amount);err != nil{
 		ERR = err
 		return
 	}
 
-	p.updatePledge(height)
 
 	p.transferEvent(p.tx.From(), p.address, pair, amount)
 	if err = p.runEvents(); err != nil {
@@ -189,6 +264,9 @@ func (p *PledgeRunner)AddPledge() {
 }
 
 func (p *PledgeRunner)PreRemovePledgeVerify() error{
+	if p.pdState.body == nil{
+		return errors.New("pledge contract does not exist")
+	}
 	height := p.height
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeRemoveBody)
 	if funcBody == nil {
@@ -238,12 +316,12 @@ func (p *PledgeRunner)RemovePledge() {
 	pair := funcBody.Pair
 	amount := funcBody.Amount
 
+	p.updatePledge(height)
+
 	if err = p.pdState.body.Out(p.tx.From(), pair, amount);err != nil{
 		ERR = err
 		return
 	}
-
-	p.updatePledge(height)
 
 	p.transferEvent(p.address, p.tx.From(), pair, amount)
 	if err = p.runEvents(); err != nil {
@@ -254,6 +332,10 @@ func (p *PledgeRunner)RemovePledge() {
 }
 
 func (p *PledgeRunner)PreRemoveRewardVerify() error{
+	if p.pdState.body == nil{
+		return errors.New("pledge contract does not exist")
+	}
+	p.updatePledge(p.height)
 	rewards := p.pdState.body.RemoveReward(p.tx.From())
 	if len(rewards) == 0{
 		return errors.New("no rewards")
@@ -275,16 +357,16 @@ func (p *PledgeRunner)RemoveReward(){
 		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
 	}()
 
+	p.updatePledge(p.height)
+
 	rewards := p.pdState.body.RemoveReward(p.tx.From())
 	if len(rewards) == 0{
 		ERR = errors.New("no rewards")
 		return
 	}
 
-	p.updatePledge(p.height)
-
 	for _, reward := range rewards{
-		p.mintEvent(p.address, reward.Token, reward.Amount)
+		p.mintEvent(p.tx.From(), p.pdState.body.Reward, reward.Amount)
 	}
 
 	if err = p.runEvents(); err != nil {
@@ -295,6 +377,9 @@ func (p *PledgeRunner)RemoveReward(){
 }
 
 func (p *PledgeRunner)PreUpdatePledgeVerify() error{
+	if p.pdState.body == nil{
+		return errors.New("pledge contract does not exist")
+	}
 	if !p.tx.From().IsEqual(p.pdState.body.Admin){
 		return errors.New("forbidden")
 	}
@@ -330,7 +415,7 @@ func (p *PledgeRunner)updatePledge(height uint64){
 		pairValue := map[hasharry.Address]uint64{}
 		var totalValue uint64
 		ex := p.pdState.library.GetContractV2(p.pdState.body.Reward.String())
-		for pairAddr, total := range p.pdState.body.PledgePair{
+		for pairAddr, total := range p.pdState.body.MaturePair{
 			value, _ := p.getPairValue(pairAddr, total, ex)
 			totalValue += value
 			pairValue[pairAddr] = value
@@ -347,32 +432,33 @@ func (p *PledgeRunner)getPairValue(pairAddr hasharry.Address, totalLp uint64, ex
 	if err != nil{
 		return 0, err
 	}
-	if pairTotal.Token0 == param.Token.String(){
-		token0value, _ = types.NewAmount(pairTotal.Value0)
+	pairToken0, _ := types.NewAmount(pairTotal.Value0)
+	pairToken1, _ := types.NewAmount(pairTotal.Value1)
+	if pairTotal.Token0 == param.Token.String() || pairTotal.Token1 == param.Token.String() {
+		token0value = pairToken0
+		token1value = pairToken1
 	}else{
-		pairWithMain, _ := PairAddress(param.Net, pairState.pairBody.Token0, param.Token, p.pdState.body.Reward)
-		pairWithMainBody, _ := p.pdState.library.GetPair(hasharry.StringToAddress(pairWithMain))
-		if pairState.pairBody.Token0.IsEqual(pairWithMainBody.Token0){
-			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairTotal.Value0)), big.NewInt(int64(pairWithMainBody.Reserve1))),
-				big.NewInt(int64(pairWithMainBody.Reserve0))).Uint64()
+		token0WithMain, _ := PairAddress(param.Net, pairState.pairBody.Token0, param.Token, p.pdState.body.Reward)
+		token0WithMainBody, _ := p.pdState.library.GetPair(hasharry.StringToAddress(token0WithMain))
+		if pairState.pairBody.Token0.IsEqual(token0WithMainBody.Token0){
+			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken0)), big.NewInt(int64(token0WithMainBody.Reserve1))),
+				big.NewInt(int64(token0WithMainBody.Reserve0))).Uint64()
 		}else{
-			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairTotal.Value0)), big.NewInt(int64(pairWithMainBody.Reserve0))),
-				big.NewInt(int64(pairWithMainBody.Reserve1))).Uint64()
+			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken0)), big.NewInt(int64(token0WithMainBody.Reserve0))),
+				big.NewInt(int64(token0WithMainBody.Reserve1))).Uint64()
+		}
+
+		token1WithMain, _ := PairAddress(param.Net, pairState.pairBody.Token1, param.Token, p.pdState.body.Reward)
+		token1WithMainBody, _ := p.pdState.library.GetPair(hasharry.StringToAddress(token1WithMain))
+		if pairState.pairBody.Token1.IsEqual(token1WithMainBody.Token0){
+			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken1)), big.NewInt(int64(token1WithMainBody.Reserve1))),
+				big.NewInt(int64(token1WithMainBody.Reserve0))).Uint64()
+		}else{
+			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken1)), big.NewInt(int64(token1WithMainBody.Reserve0))),
+				big.NewInt(int64(token1WithMainBody.Reserve1))).Uint64()
 		}
 	}
-	if pairTotal.Token1 == param.Token.String(){
-		token1value, _ = types.NewAmount(pairTotal.Value1)
-	}else{
-		pairWithMain, _ := PairAddress(param.Net, pairState.pairBody.Token1, param.Token, p.pdState.body.Reward)
-		pairWithMainBody, _ := p.pdState.library.GetPair(hasharry.StringToAddress(pairWithMain))
-		if pairState.pairBody.Token1.IsEqual(pairWithMainBody.Token0){
-			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairTotal.Value1)), big.NewInt(int64(pairWithMainBody.Reserve1))),
-				big.NewInt(int64(pairWithMainBody.Reserve0))).Uint64()
-		}else{
-			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairTotal.Value1)), big.NewInt(int64(pairWithMainBody.Reserve0))),
-				big.NewInt(int64(pairWithMainBody.Reserve1))).Uint64()
-		}
-	}
+
 	return token0value + token1value, nil
 }
 

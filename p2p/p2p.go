@@ -277,6 +277,9 @@ func (p *P2pServer) discovery() error {
 					} else {
 						break OUTCHAN
 					}
+				case _ = <-p.stop:
+					p.hasStop <- true
+					return nil
 				}
 			}
 		}

@@ -917,7 +917,7 @@ func parseCPParams(args []string, nonce uint64) (*types.Transaction, error) {
 		}
 	}
 	contract, _ := exchange_runner.PledgeAddress(Net, from, nonce)
-	tx, err := transaction.NewPledgeInit(from, admin, exchange, contract, maxSupply, dayMint, nonce, "")
+	tx, err := transaction.NewPledgeInit(from, admin, contract, exchange, maxSupply, dayMint, nonce, "")
 	if err != nil {
 		return nil, err
 	}
