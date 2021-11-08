@@ -34,7 +34,7 @@ const (
 	Pledge_RewardRemove = 200003
 	Pledge_Update = 200004
 
-	Token_Create = 300000
+	Token_Init = 300000
 )
 
 type ContractV2 struct {
