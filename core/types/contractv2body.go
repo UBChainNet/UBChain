@@ -89,6 +89,8 @@ func (c *TxContractV2Body) checkType() error {
 		switch c.FunctionType {
 		case contractv2.Pledge_Init:
 			return nil
+		case contractv2.Pledge_AddPool:
+			return nil
 		case contractv2.Pledge_Add:
 			return nil
 		case contractv2.Pledge_Remove:

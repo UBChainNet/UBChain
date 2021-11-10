@@ -55,7 +55,7 @@ type PledgeReward struct {
 func (ps *PledgeState)GetPledgeReward(address string, pair string) *PledgeReward{
 	reward := ps.body.GetPledgeReward(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	return &PledgeReward{
-		Token:  ps.body.Reward.String(),
+		Token:  ps.body.RewardToken.String(),
 		Symbol: ps.body.RewardSymbol,
 		Amount: types.Amount(reward).ToCoin(),
 		Pair:   pair,
@@ -68,7 +68,7 @@ func (ps *PledgeState)GetPledgeRewards(address string) []*PledgeReward{
 	if rewardMap != nil{
 		for pair, reward := range rewardMap{
 			rewards = append(rewards, &PledgeReward{
-				Token:  ps.body.Reward.String(),
+				Token:  ps.body.RewardToken.String(),
 				Symbol: ps.body.RewardSymbol,
 				Amount: types.Amount(reward).ToCoin(),
 				Pair:   pair.String(),
@@ -103,6 +103,78 @@ func (ps *PledgeState)GetPledges(address string) []*PledgeValue{
 		}
 	}
 	return pledges
+}
+
+type Pool struct {
+	Pair string 	`json:"pair"`
+	Weight float64 `json:"weight"`
+}
+
+func (ps *PledgeState)GetPairPool() []*Pool{
+	var poolList  = make([]*Pool, 0)
+	pairValue := map[hasharry.Address]uint64{}
+	var totalValue uint64
+	ex := ps.library.GetContractV2(ps.body.RewardToken.String())
+	for pairAddr, total := range ps.body.MaturePair{
+		value, _ := ps.getPairValue(pairAddr, total, ex)
+		totalValue += value
+		pairValue[pairAddr] = value
+	}
+	for pairAddr, _ := range ps.body.PairPool{
+		value := pairValue[pairAddr]
+		if totalValue != 0{
+			poolList = append(poolList, &Pool{
+				Pair:   pairAddr.String(),
+				Weight: float64(value) / float64(totalValue),
+			})
+		}else{
+			poolList = append(poolList, &Pool{
+				Pair:   pairAddr.String(),
+				Weight: 0,
+			})
+		}
+
+	}
+	return poolList
+}
+
+
+func (ps *PledgeState)getPairValue(pairAddr hasharry.Address, totalLp uint64, exchange *contractv2.ContractV2)(uint64, error){
+	var token0value uint64
+	var token1value uint64
+	pairState, _ := NewPairStateWithExchange(ps.library, pairAddr.String(), exchange)
+	pairTotal, err := pairState.TotalValue(types.Amount(totalLp).ToCoin())
+	if err != nil{
+		return 0, err
+	}
+	pairToken0, _ := types.NewAmount(pairTotal.Value0)
+	pairToken1, _ := types.NewAmount(pairTotal.Value1)
+	if pairTotal.Token0 == param.Token.String() || pairTotal.Token1 == param.Token.String() {
+		token0value = pairToken0
+		token1value = pairToken1
+	}else{
+		token0WithMain, _ := PairAddress(param.Net, pairState.pairBody.Token0, param.Token, ps.body.RewardToken)
+		token0WithMainBody, _ := ps.library.GetPair(hasharry.StringToAddress(token0WithMain))
+		if pairState.pairBody.Token0.IsEqual(token0WithMainBody.Token0){
+			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken0)), big.NewInt(int64(token0WithMainBody.Reserve1))),
+				big.NewInt(int64(token0WithMainBody.Reserve0))).Uint64()
+		}else{
+			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken0)), big.NewInt(int64(token0WithMainBody.Reserve0))),
+				big.NewInt(int64(token0WithMainBody.Reserve1))).Uint64()
+		}
+
+		token1WithMain, _ := PairAddress(param.Net, pairState.pairBody.Token1, param.Token, ps.body.RewardToken)
+		token1WithMainBody, _ := ps.library.GetPair(hasharry.StringToAddress(token1WithMain))
+		if pairState.pairBody.Token1.IsEqual(token1WithMainBody.Token0){
+			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken1)), big.NewInt(int64(token1WithMainBody.Reserve1))),
+				big.NewInt(int64(token1WithMainBody.Reserve0))).Uint64()
+		}else{
+			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken1)), big.NewInt(int64(token1WithMainBody.Reserve0))),
+				big.NewInt(int64(token1WithMainBody.Reserve1))).Uint64()
+		}
+	}
+
+	return token0value + token1value, nil
 }
 
 type PledgeRunner struct {
@@ -179,8 +251,104 @@ func (p *PledgeRunner) Init() {
 
 	initBody := p.contractBody.Function.(*exchange_func.PledgeInitBody)
 	ex, _ := p.pdState.library.GetExchange(initBody.Exchange)
-	contract.Body = exchange2.NewPledge(initBody.Admin, initBody.Exchange, ex.Symbol, initBody.MaxSupply, initBody.DayMint, p.height)
+	pledgeData := exchange2.NewPledge(
+		initBody.Exchange, initBody.Receiver, initBody.Admin, ex.Symbol, initBody.MaxSupply,
+		initBody.DayMintAmount, initBody.PreMint, initBody.DayRewardAmount, initBody.PledgeMatureTime, p.height,
+		)
+	contract.Body = pledgeData
+
+	if pledgeData.PreMint != 0{
+		p.mintEvent(pledgeData.Receiver, pledgeData.RewardToken, pledgeData.PreMint)
+		if err := p.runEvents(); err != nil {
+			ERR = err
+			return
+		}
+	}
 	p.pdState.library.SetContractV2(contract)
+}
+
+func (p *PledgeRunner)PreAddPairPoolVerify() error{
+	if p.pdState.body == nil{
+		return errors.New("pledge contract does not exist")
+	}
+	height := p.height
+	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddPoolBody)
+	if funcBody == nil {
+		return errors.New("wrong contractV2 function")
+	}
+	exchange := p.pdState.body.RewardToken
+	pair := funcBody.Pair
+
+	if !p.pdState.body.Admin.IsEqual(p.tx.From()){
+		return errors.New("forbidden")
+	}
+
+	if height < p.pdState.body.Start{
+		return errors.New("invalid height")
+	}
+	exBody, err := p.pdState.library.GetExchange(exchange)
+	if err != nil{
+		return errors.New("invalid exchange")
+	}
+	if !exBody.PairExist(pair){
+		return errors.New("invalid pair")
+	}
+	if p.pdState.body.ExistPairPool(pair){
+		return errors.New("the pair already exists")
+	}
+	pairBody, _ := p.pdState.library.GetPair(pair)
+	if !pairBody.Token0.IsEqual(param.Token){
+		pairAddress, _ := PairAddress(param.Net, param.Token, pairBody.Token0, exchange)
+		_, err = p.pdState.library.GetPair(hasharry.StringToAddress(pairAddress))
+		if err != nil{
+			return fmt.Errorf("token %s must have a pairing with %s", pairBody.Token0.String(), param.Token.String())
+		}
+	}
+	if !pairBody.Token1.IsEqual(param.Token){
+		pairAddress, _ := PairAddress(param.Net, param.Token, pairBody.Token1, exchange)
+		_, err = p.pdState.library.GetPair(hasharry.StringToAddress(pairAddress))
+		if err != nil{
+			return fmt.Errorf("token %s must have a pairing with %s", pairBody.Token0.String(), param.Token.String())
+		}
+	}
+	return nil
+}
+
+func (p *PledgeRunner)AddPairPool(){
+	var ERR error
+	var err error
+	state := &types.ContractV2State{State: types.Contract_Success}
+	defer func() {
+		if ERR != nil {
+			state.State = types.Contract_Failed
+			state.Error = ERR.Error()
+		} else {
+			state.Event = p.events
+		}
+		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
+	}()
+	height := p.height
+	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddPoolBody)
+	pair := funcBody.Pair
+
+	if p.pdState.body.ExistPairPool(pair){
+		ERR = errors.New("the pair already exists")
+		return
+	}
+
+	mintAmount := p.updatePledge(height)
+
+	if mintAmount != 0{
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
+
+	p.pdState.body.AddPirPool(pair)
+
+	if err = p.runEvents(); err != nil {
+		ERR = err
+		return
+	}
+	p.update()
 }
 
 
@@ -193,7 +361,7 @@ func (p *PledgeRunner)PreAddPledgeVerify() error{
 	if funcBody == nil {
 		return errors.New("wrong contractV2 function")
 	}
-	exchange := p.pdState.body.Reward
+	exchange := p.pdState.body.RewardToken
 	pair := funcBody.Pair
 	amount := funcBody.Amount
 
@@ -207,21 +375,10 @@ func (p *PledgeRunner)PreAddPledgeVerify() error{
 	if !exBody.PairExist(pair){
 		return errors.New("invalid pair")
 	}
-	pairBody, _ := p.pdState.library.GetPair(pair)
-	if !pairBody.Token0.IsEqual(param.Token){
-		pairAddress, _ := PairAddress(param.Net, param.Token, pairBody.Token0, exchange)
-		_, err := p.pdState.library.GetPair(hasharry.StringToAddress(pairAddress))
-		if err != nil{
-			return fmt.Errorf("token %s must have a pairing with %s", pairBody.Token0.String(), param.Token.String())
-		}
+	if !p.pdState.body.ExistPairPool(pair){
+		return errors.New("the pair was not found")
 	}
-	if !pairBody.Token1.IsEqual(param.Token){
-		pairAddress, _ := PairAddress(param.Net, param.Token, pairBody.Token1, exchange)
-		_, err := p.pdState.library.GetPair(hasharry.StringToAddress(pairAddress))
-		if err != nil{
-			return fmt.Errorf("token %s must have a pairing with %s", pairBody.Token0.String(), param.Token.String())
-		}
-	}
+
 	balance := p.pdState.library.GetBalance(p.tx.From(), pair)
 	if balance < amount{
 		return fmt.Errorf("insufficient balance %s", p.tx.From().String())
@@ -246,8 +403,15 @@ func (p *PledgeRunner)AddPledge() {
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddBody)
 	pair := funcBody.Pair
 	amount := funcBody.Amount
+	if !p.pdState.body.ExistPairPool(pair){
+		ERR = errors.New("the pair was not found")
+		return
+	}
+	mintAmount := p.updatePledge(height)
 
-	p.updatePledge(height)
+	if mintAmount != 0{
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
 
 	if err = p.pdState.body.In(height, p.tx.From(), pair, amount);err != nil{
 		ERR = err
@@ -272,7 +436,7 @@ func (p *PledgeRunner)PreRemovePledgeVerify() error{
 	if funcBody == nil {
 		return errors.New("wrong contractV2 function")
 	}
-	exchange := p.pdState.body.Reward
+	exchange := p.pdState.body.RewardToken
 	pair := funcBody.Pair
 	amount := funcBody.Amount
 
@@ -316,7 +480,11 @@ func (p *PledgeRunner)RemovePledge() {
 	pair := funcBody.Pair
 	amount := funcBody.Amount
 
-	p.updatePledge(height)
+	mintAmount := p.updatePledge(height)
+
+	if mintAmount != 0{
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
 
 	if err = p.pdState.body.Out(p.tx.From(), pair, amount);err != nil{
 		ERR = err
@@ -357,7 +525,11 @@ func (p *PledgeRunner)RemoveReward(){
 		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
 	}()
 
-	p.updatePledge(p.height)
+	mintAmount := p.updatePledge(p.height)
+
+	if mintAmount != 0{
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
 
 	rewards := p.pdState.body.RemoveReward(p.tx.From())
 	if len(rewards) == 0{
@@ -366,7 +538,7 @@ func (p *PledgeRunner)RemoveReward(){
 	}
 
 	for _, reward := range rewards{
-		p.mintEvent(p.tx.From(), p.pdState.body.Reward, reward.Amount)
+		p.mintEvent(p.tx.From(), p.pdState.body.RewardToken, reward.Amount)
 	}
 
 	if err = p.runEvents(); err != nil {
@@ -404,63 +576,35 @@ func (p *PledgeRunner)UpdatePledge() {
 		return
 	}
 
-	p.updatePledge(p.height)
+	mintAmount := p.updatePledge(p.height)
+	if mintAmount != 0{
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
 
+	if err := p.runEvents(); err != nil {
+		ERR = err
+		return
+	}
 	p.update()
 }
 
-func (p *PledgeRunner)updatePledge(height uint64){
+func (p *PledgeRunner)updatePledge(height uint64) uint64{
+	var mintAmount uint64
 	if p.pdState.body.IsUpdate(height){
 		p.pdState.body.UpdateMature(height)
 		pairValue := map[hasharry.Address]uint64{}
 		var totalValue uint64
-		ex := p.pdState.library.GetContractV2(p.pdState.body.Reward.String())
+		ex := p.pdState.library.GetContractV2(p.pdState.body.RewardToken.String())
 		for pairAddr, total := range p.pdState.body.MaturePair{
-			value, _ := p.getPairValue(pairAddr, total, ex)
+			value, _ := p.pdState.getPairValue(pairAddr, total, ex)
 			totalValue += value
 			pairValue[pairAddr] = value
 		}
-		p.pdState.body.UpdateReward(p.height, totalValue, pairValue)
+		mintAmount = p.pdState.body.UpdateMint(p.height, totalValue, pairValue)
 	}
+	return mintAmount
 }
 
-func (p *PledgeRunner)getPairValue(pairAddr hasharry.Address, totalLp uint64, exchange *contractv2.ContractV2)(uint64, error){
-	var token0value uint64
-	var token1value uint64
-	pairState, _ := NewPairStateWithExchange(p.pdState.library, pairAddr.String(), exchange)
-	pairTotal, err := pairState.TotalValue(types.Amount(totalLp).ToCoin())
-	if err != nil{
-		return 0, err
-	}
-	pairToken0, _ := types.NewAmount(pairTotal.Value0)
-	pairToken1, _ := types.NewAmount(pairTotal.Value1)
-	if pairTotal.Token0 == param.Token.String() || pairTotal.Token1 == param.Token.String() {
-		token0value = pairToken0
-		token1value = pairToken1
-	}else{
-		token0WithMain, _ := PairAddress(param.Net, pairState.pairBody.Token0, param.Token, p.pdState.body.Reward)
-		token0WithMainBody, _ := p.pdState.library.GetPair(hasharry.StringToAddress(token0WithMain))
-		if pairState.pairBody.Token0.IsEqual(token0WithMainBody.Token0){
-			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken0)), big.NewInt(int64(token0WithMainBody.Reserve1))),
-				big.NewInt(int64(token0WithMainBody.Reserve0))).Uint64()
-		}else{
-			token0value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken0)), big.NewInt(int64(token0WithMainBody.Reserve0))),
-				big.NewInt(int64(token0WithMainBody.Reserve1))).Uint64()
-		}
-
-		token1WithMain, _ := PairAddress(param.Net, pairState.pairBody.Token1, param.Token, p.pdState.body.Reward)
-		token1WithMainBody, _ := p.pdState.library.GetPair(hasharry.StringToAddress(token1WithMain))
-		if pairState.pairBody.Token1.IsEqual(token1WithMainBody.Token0){
-			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken1)), big.NewInt(int64(token1WithMainBody.Reserve1))),
-				big.NewInt(int64(token1WithMainBody.Reserve0))).Uint64()
-		}else{
-			token1value = big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pairToken1)), big.NewInt(int64(token1WithMainBody.Reserve0))),
-				big.NewInt(int64(token1WithMainBody.Reserve1))).Uint64()
-		}
-	}
-
-	return token0value + token1value, nil
-}
 
 func (p *PledgeRunner) update() {
 	p.pdState.header.Body = p.pdState.body

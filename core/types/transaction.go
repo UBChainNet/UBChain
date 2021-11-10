@@ -384,6 +384,10 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.PledgeInitBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_AddPool:
+			function, _ := body.Function.(*exchange_func.PledgeAddPoolBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
 		case contractv2.Pledge_Add:
 			function, _ := body.Function.(*exchange_func.PledgeAddBody)
 			bytes, _ := rlp.EncodeToBytes(function)

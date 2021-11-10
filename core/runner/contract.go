@@ -65,6 +65,8 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 		switch body.FunctionType {
 		case contractv2.Pledge_Init:
 			return pledge.PreInitVerify()
+		case contractv2.Pledge_AddPool:
+			return pledge.PreAddPairPoolVerify()
 		case contractv2.Pledge_Add:
 			return pledge.PreAddPledgeVerify()
 		case contractv2.Pledge_Remove:
@@ -115,6 +117,8 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 		switch body.FunctionType {
 		case contractv2.Pledge_Init:
 			pledgeRunner.Init()
+		case contractv2.Pledge_AddPool:
+			pledgeRunner.AddPairPool()
 		case contractv2.Pledge_Add:
 			pledgeRunner.AddPledge()
 		case contractv2.Pledge_Remove:

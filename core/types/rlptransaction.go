@@ -79,6 +79,10 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			var create *exchange_func.PledgeInitBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
+		case contractv2.Pledge_AddPool:
+			var create *exchange_func.PledgeAddPoolBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
 		case contractv2.Pledge_Add:
 			var create *exchange_func.PledgeAddBody
 			rlp.DecodeBytes(rlpCt.Function, &create)

@@ -92,10 +92,18 @@ type RpcExchangeRemoveLiquidity struct {
 
 
 type RpcPledgeInit struct {
-	Exchange   string `json:"exchange"`
-	Admin string `json:"admin"`
-	MaxSupply uint64 `json:"maxsupply"`
-	DayMint uint64 `json:"daymint"`
+	Exchange         string `json:"exchange"`
+	Receiver         string `json:"receiver"`
+	Admin            string `json:"admin"`
+	PreMint          uint64 `json:"premint"`
+	DayMintAmount    uint64 `json:"daymintamount"`
+	MaxSupply        uint64 `json:"maxsupply"`
+	PledgeMatureTime uint64 `json:"pledgematuretime"`
+	DayRewardAmount  uint64 `json:"dayrewardamount"`
+}
+
+type RpcPledgeAddPool struct {
+	Pair string `json:"pair"`
 }
 
 

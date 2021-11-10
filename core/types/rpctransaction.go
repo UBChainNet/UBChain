@@ -357,10 +357,33 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeInitBody{
-				Exchange:  hasharry.StringToAddress(init.Exchange),
-				Admin:     hasharry.StringToAddress(init.Admin),
-				MaxSupply: init.MaxSupply,
-				DayMint:   init.DayMint,
+				Exchange:         hasharry.StringToAddress(init.Exchange),
+				Receiver:         hasharry.StringToAddress(init.Receiver),
+				Admin:            hasharry.StringToAddress(init.Admin),
+				PreMint:          init.PreMint,
+				DayMintAmount:    init.DayMintAmount,
+				MaxSupply:        init.MaxSupply,
+				PledgeMatureTime: init.PledgeMatureTime,
+				DayRewardAmount:  init.DayRewardAmount,
+			},
+		}, nil
+	case contractv2.Pledge_AddPool:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		addPool := &RpcPledgeAddPool{}
+		err = json.Unmarshal(bytes, addPool)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeAddPoolBody{
+				Pair: hasharry.StringToAddress(addPool.Pair),
 			},
 		}, nil
 	case contractv2.Pledge_Add:
@@ -596,10 +619,22 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeInit{
-			Exchange:  funcBody.Exchange.String(),
-			Admin:     funcBody.Admin.String(),
-			MaxSupply: funcBody.MaxSupply,
-			DayMint:   funcBody.DayMint,
+			Exchange:         funcBody.Exchange.String(),
+			Receiver:         funcBody.Receiver.String(),
+			Admin:            funcBody.Admin.String(),
+			PreMint:          funcBody.PreMint,
+			DayMintAmount:    funcBody.DayMintAmount,
+			MaxSupply:        funcBody.MaxSupply,
+			PledgeMatureTime: funcBody.PledgeMatureTime,
+			DayRewardAmount:  funcBody.DayRewardAmount,
+		}
+	case contractv2.Pledge_AddPool:
+		funcBody, ok := body.Function.(*exchange_func.PledgeAddPoolBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeAddPool{
+			Pair: funcBody.Pair.String(),
 		}
 	case contractv2.Pledge_Add:
 		funcBody, ok := body.Function.(*exchange_func.PledgeAddBody)

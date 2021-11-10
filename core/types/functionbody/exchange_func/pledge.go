@@ -11,10 +11,14 @@ import (
 const minPledge = 10000
 
 type PledgeInitBody struct {
-	Exchange  hasharry.Address
-	Admin     hasharry.Address
-	MaxSupply uint64
-	DayMint   uint64
+	Exchange         hasharry.Address
+	Receiver         hasharry.Address
+	Admin            hasharry.Address
+	PreMint          uint64
+	DayMintAmount    uint64
+	MaxSupply        uint64
+	PledgeMatureTime uint64
+	DayRewardAmount  uint64
 }
 
 func (p *PledgeInitBody) Verify() error {
@@ -24,14 +28,36 @@ func (p *PledgeInitBody) Verify() error {
 	if ok := ut.CheckUBCAddress(param.Net, p.Admin.String()); !ok {
 		return errors.New("wrong admin address")
 	}
+	if ok := ut.CheckUBCAddress(param.Net, p.Receiver.String()); !ok {
+		return errors.New("wrong admin address")
+	}
 	if p.MaxSupply > param.MaxContractCoin{
 		return fmt.Errorf("max supply cannot exceed %d", param.MaxContractCoin)
 	}
-	if p.DayMint > p.MaxSupply {
-		return fmt.Errorf("no more than totalsupply coins can be minted per day")
+	if p.DayMintAmount > p.MaxSupply {
+		return fmt.Errorf("no more than maxsupply coins can be minted per day")
+	}
+	if p.DayRewardAmount > p.MaxSupply {
+		return fmt.Errorf("no more than maxsupply coins can be minted per day")
+	}
+	if p.PreMint > p.MaxSupply {
+		return fmt.Errorf("no more than maxsupply coins can be minted per day")
+	}
+
+	return nil
+}
+
+type PledgeAddPoolBody struct {
+	Pair hasharry.Address
+}
+
+func (p *PledgeAddPoolBody) Verify() error {
+	if ok := ut.IsValidContractAddress(param.Net, p.Pair.String()); !ok {
+		return errors.New("wrong pair address")
 	}
 	return nil
 }
+
 
 type PledgeAddBody struct {
 	Pair hasharry.Address
