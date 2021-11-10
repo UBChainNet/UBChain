@@ -260,7 +260,6 @@ var pairMethods = map[string]*MethodInfo{
 	},
 }
 
-
 var pledgeMethods = map[string]*MethodInfo{
 	"Methods": &MethodInfo{
 		Name:   "Methods",
@@ -356,9 +355,8 @@ var pledgeMethods = map[string]*MethodInfo{
 		},
 	},
 	"GetPairPool": &MethodInfo{
-		Name: "GetPairPool",
-		Params: []Value{
-		},
+		Name:   "GetPairPool",
+		Params: []Value{},
 		Returns: []Value{
 			{
 				Name: "value",

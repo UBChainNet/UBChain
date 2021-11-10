@@ -31,7 +31,7 @@ func (p *PledgeInitBody) Verify() error {
 	if ok := ut.CheckUBCAddress(param.Net, p.Receiver.String()); !ok {
 		return errors.New("wrong admin address")
 	}
-	if p.MaxSupply > param.MaxContractCoin{
+	if p.MaxSupply > param.MaxContractCoin {
 		return fmt.Errorf("max supply cannot exceed %d", param.MaxContractCoin)
 	}
 	if p.DayMintAmount > p.MaxSupply {
@@ -58,9 +58,8 @@ func (p *PledgeAddPoolBody) Verify() error {
 	return nil
 }
 
-
 type PledgeAddBody struct {
-	Pair hasharry.Address
+	Pair   hasharry.Address
 	Amount uint64
 }
 
@@ -68,14 +67,14 @@ func (p *PledgeAddBody) Verify() error {
 	if ok := ut.IsContractV2Address(param.Net, p.Pair.String()); !ok {
 		return errors.New("wrong Pair address")
 	}
-	if p.Amount < minPledge{
+	if p.Amount < minPledge {
 		return fmt.Errorf("the amount pledged shall not be less than %d", minPledge)
 	}
 	return nil
 }
 
 type PledgeRemoveBody struct {
-	Pair hasharry.Address
+	Pair   hasharry.Address
 	Amount uint64
 }
 
@@ -83,12 +82,11 @@ func (p *PledgeRemoveBody) Verify() error {
 	if ok := ut.IsContractV2Address(param.Net, p.Pair.String()); !ok {
 		return errors.New("wrong Pair address")
 	}
-	if p.Amount < minPledge{
+	if p.Amount < minPledge {
 		return fmt.Errorf("the amount pledged shall not be less than %d", minPledge)
 	}
 	return nil
 }
-
 
 type PledgeRewardRemoveBody struct {
 }

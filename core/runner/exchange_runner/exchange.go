@@ -508,11 +508,11 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 	}
 
 	// 规则变更
-	if e.height < 633800{
+	if e.height < 633800 {
 		// pair账户有lock余额，导致出错
 		balance0 = e.exState.library.GetBalance(pairAddress, _token0)
 		balance1 = e.exState.library.GetBalance(pairAddress, _token1)
-	}else{
+	} else {
 		balance0 = _reserve0
 		balance1 = _reserve1
 	}
@@ -691,5 +691,3 @@ func ExchangeAddress(net, from string, nonce uint64) (string, error) {
 	bytes = append(base58.Decode(from), nonceBytes...)
 	return ut.GenerateContractV2Address(net, bytes)
 }
-
-

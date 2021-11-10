@@ -59,7 +59,7 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 		}
 	case contractv2.Pledge_:
 		pledge, err := exchange_runner.NewPledgeRunner(c.library, tx, lastHeight)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		switch body.FunctionType {
@@ -111,7 +111,7 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 		}
 	case contractv2.Pledge_:
 		pledgeRunner, err := exchange_runner.NewPledgeRunner(c.library, tx, blockHeight)
-		if err != nil{
+		if err != nil {
 			return err
 		}
 		switch body.FunctionType {

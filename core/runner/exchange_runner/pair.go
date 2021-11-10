@@ -159,7 +159,7 @@ func (ps *PairState) totalValue(tokenA, tokenB hasharry.Address, liquidity uint6
 
 	feeOn, feeLiquidity := ps.mintFee(_reserve0, _reserve1)
 	// 加上当前新增手续费
-	if feeOn{
+	if feeOn {
 		_totalSupply += feeLiquidity
 	}
 
@@ -174,7 +174,6 @@ func (ps *PairState) totalValue(tokenA, tokenB hasharry.Address, liquidity uint6
 	}
 	return amount1, amount0, nil
 }
-
 
 func (ps *PairState) Profit(liquidity float64) (*TotalValue, error) {
 	iLiquidity, _ := types.NewAmount(liquidity)
@@ -200,7 +199,7 @@ func (ps *PairState) profitValue(tokenA, tokenB hasharry.Address, liquidity uint
 	feeOn, feeLiquidity := ps.mintFee(_reserve0, _reserve1)
 
 	// 加上当前新增手续费
-	if feeOn{
+	if feeOn {
 		_totalSupply += feeLiquidity
 	}
 
@@ -358,7 +357,7 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 		if err != nil {
 			return err
 		}
-	}else{
+	} else {
 		amountA, amountB = p.addBody.AmountADesired, p.addBody.AmountBDesired
 	}
 	balanceA := p.pairState.library.GetBalance(p.sender, p.addBody.TokenA)
@@ -530,10 +529,9 @@ func (p *PairRunner) createPair() {
 	p.isCreate = true
 }
 
-
 func (p *PairRunner) RemoveLiquidity() {
 	// 高度558900之后移除规则变更
-	if p.height <= 558900{
+	if p.height <= 558900 {
 		p.RemoveLiquidity_before558900()
 		return
 	}
@@ -603,7 +601,6 @@ func (p *PairRunner) RemoveLiquidity() {
 	}*/
 
 	p.pairState.pairBody.UpdatePair(_reserve0-amount0, _reserve1-amount1, _reserve0, _reserve1, blockTime, feeOn)
-
 
 	p.burnEvent(p.sender, p.address, p.removeBody.Liquidity)
 	p.transferEvent(p.address, p.removeBody.To, token0, amount0)
@@ -702,15 +699,15 @@ func (p *PairRunner) mintLiquidityValue(_reserve0, _reserve1, amount0, amount1 u
 		// sqrt(amount0 * amount1)
 		liquidityBig := big.NewInt(0).Sqrt(big.NewInt(0).Mul(big.NewInt(int64(amount0)), big.NewInt(int64(amount1))))
 		liquidityValue = liquidityBig.Uint64()
-	}else if _reserve0 == 0 && _reserve1 == 0 {
+	} else if _reserve0 == 0 && _reserve1 == 0 {
 		liquidityBig := big.NewInt(0).Sqrt(big.NewInt(0).Mul(big.NewInt(int64(amount0)), big.NewInt(int64(amount1))))
 		liquidityValue = liquidityBig.Uint64()
-	}else {
+	} else {
 		// valiquidityValue1 = amount0 / _reserve0 * _totalSupply
 		// valiquidityValue2 = amount1 / _reserve1 * _totalSupply
 		value0 := big.NewInt(0).Mul(big.NewInt(int64(amount0)), big.NewInt(int64(_totalSupply)))
 		value1 := big.NewInt(0).Mul(big.NewInt(int64(amount1)), big.NewInt(int64(_totalSupply)))
-		if value1.Uint64() == 0{
+		if value1.Uint64() == 0 {
 			return 0, 0, false, errors.New("insufficient liquidity minted")
 		}
 		liquidityValue = math.Min(big.NewInt(0).Div(value0, big.NewInt(int64(_reserve0))).Uint64(), big.NewInt(0).Div(value1, big.NewInt(int64(_reserve1))).Uint64())

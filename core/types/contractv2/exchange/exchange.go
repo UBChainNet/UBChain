@@ -89,8 +89,8 @@ func (e *Exchange) Exist(token0, token1 hasharry.Address) bool {
 }
 
 func (e *Exchange) PairExist(pairAddress hasharry.Address) bool {
-	for _, pair := range e.AllPairs{
-		if pair.Address.IsEqual(pairAddress){
+	for _, pair := range e.AllPairs {
+		if pair.Address.IsEqual(pairAddress) {
 			return true
 		}
 	}

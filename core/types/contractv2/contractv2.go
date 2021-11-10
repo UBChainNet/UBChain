@@ -28,12 +28,12 @@ const (
 	Pair_AddLiquidity    = 100000
 	Pair_RemoveLiquidity = 100001
 
-	Pledge_Init = 200000
-	Pledge_AddPool = 200001
-	Pledge_Add = 200002
-	Pledge_Remove = 200003
+	Pledge_Init         = 200000
+	Pledge_AddPool      = 200001
+	Pledge_Add          = 200002
+	Pledge_Remove       = 200003
 	Pledge_RewardRemove = 200004
-	Pledge_Update = 200005
+	Pledge_Update       = 200005
 
 	Token_Init = 300000
 )

@@ -90,7 +90,6 @@ type RpcExchangeRemoveLiquidity struct {
 	Deadline   uint64 `json:"deadline"`
 }
 
-
 type RpcPledgeInit struct {
 	Exchange         string `json:"exchange"`
 	Receiver         string `json:"receiver"`
@@ -106,14 +105,13 @@ type RpcPledgeAddPool struct {
 	Pair string `json:"pair"`
 }
 
-
 type RpcPledgeAdd struct {
-	Pair string `json:"pair"`
+	Pair   string `json:"pair"`
 	Amount uint64 `json:"amount"`
 }
 
 type RpcPledgeRemove struct {
-	Pair string `json:"pair"`
+	Pair   string `json:"pair"`
 	Amount uint64 `json:"amount"`
 }
 

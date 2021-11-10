@@ -431,7 +431,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
-			Function: &exchange_func.PledgeRewardRemoveBody{},
+			Function:     &exchange_func.PledgeRewardRemoveBody{},
 		}, nil
 	case contractv2.Pledge_Update:
 
@@ -439,7 +439,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
-			Function: &exchange_func.PledgeUpdateBody{},
+			Function:     &exchange_func.PledgeUpdateBody{},
 		}, nil
 	}
 	return nil, errors.New("wrong transaction body")

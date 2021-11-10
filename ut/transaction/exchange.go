@@ -356,8 +356,7 @@ func NewRemovePledgeReward(from, contract string, nonce uint64, note string) (*t
 			Contract:     hasharry.StringToAddress(contract),
 			Type:         contractv2.Pledge_,
 			FunctionType: contractv2.Pledge_RewardRemove,
-			Function: &exchange_func.PledgeRewardRemoveBody{
-			},
+			Function:     &exchange_func.PledgeRewardRemoveBody{},
 		},
 	}
 	tx.SetHash()
@@ -380,8 +379,7 @@ func NewUpdatePledgeReward(from, contract string, nonce uint64, note string) (*t
 			Contract:     hasharry.StringToAddress(contract),
 			Type:         contractv2.Pledge_,
 			FunctionType: contractv2.Pledge_Update,
-			Function: &exchange_func.PledgeUpdateBody{
-			},
+			Function:     &exchange_func.PledgeUpdateBody{},
 		},
 	}
 	tx.SetHash()
