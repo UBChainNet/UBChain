@@ -79,8 +79,16 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			var create *exchange_func.PledgeInitBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
+		case contractv2.Pledge_Start:
+			var create *exchange_func.PledgeStartBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
 		case contractv2.Pledge_AddPool:
 			var create *exchange_func.PledgeAddPoolBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_RemovePool:
+			var create *exchange_func.PledgeRemovePoolBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
 		case contractv2.Pledge_Add:
@@ -91,7 +99,7 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			var create *exchange_func.PledgeRemoveBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
-		case contractv2.Pledge_RewardRemove:
+		case contractv2.Pledge_RemoveReward:
 			var create *exchange_func.PledgeRewardRemoveBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create

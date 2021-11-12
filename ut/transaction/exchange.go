@@ -231,7 +231,7 @@ func NewSwapExactOut(from, to, exchange string, amountOut, amountInMax uint64, p
 	return tx, nil
 }
 
-func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, preMint, dayMint, dayReward, matureTime, nonce uint64, note string) (*types.Transaction, error) {
+func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, preMint,  nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -252,9 +252,33 @@ func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, p
 				Receiver:         hasharry.StringToAddress(receive),
 				Admin:            hasharry.StringToAddress(admin),
 				PreMint:          preMint,
+				MaxSupply:        maxSupply,
+			},
+		},
+	}
+	tx.SetHash()
+	return tx, nil
+}
+
+func NewPledgeStart(from, contract string, dayMint, dayReward, matureTime, nonce uint64, note string) (*types.Transaction, error) {
+	tx := &types.Transaction{
+		TxHead: &types.TransactionHead{
+			TxType:     types.ContractV2_,
+			TxHash:     hasharry.Hash{},
+			From:       hasharry.StringToAddress(from),
+			Nonce:      nonce,
+			Time:       uint64(time.Now().Unix()),
+			Note:       note,
+			SignScript: &types.SignScript{},
+			Fees:       param.Fees,
+		},
+		TxBody: &types.TxContractV2Body{
+			Contract:     hasharry.StringToAddress(contract),
+			Type:         contractv2.Pledge_,
+			FunctionType: contractv2.Pledge_Start,
+			Function: &exchange_func.PledgeStartBody{
 				DayMintAmount:    dayMint,
 				DayRewardAmount:  dayReward,
-				MaxSupply:        maxSupply,
 				PledgeMatureTime: matureTime,
 			},
 		},
@@ -280,6 +304,32 @@ func NewAddPledgePool(from, contract, pair string, nonce uint64, note string) (*
 			Type:         contractv2.Pledge_,
 			FunctionType: contractv2.Pledge_AddPool,
 			Function: &exchange_func.PledgeAddPoolBody{
+				Pair: hasharry.StringToAddress(pair),
+			},
+		},
+	}
+	tx.SetHash()
+	return tx, nil
+}
+
+
+func NewRemovePledgePool(from, contract, pair string, nonce uint64, note string) (*types.Transaction, error) {
+	tx := &types.Transaction{
+		TxHead: &types.TransactionHead{
+			TxType:     types.ContractV2_,
+			TxHash:     hasharry.Hash{},
+			From:       hasharry.StringToAddress(from),
+			Nonce:      nonce,
+			Time:       uint64(time.Now().Unix()),
+			Note:       note,
+			SignScript: &types.SignScript{},
+			Fees:       param.Fees,
+		},
+		TxBody: &types.TxContractV2Body{
+			Contract:     hasharry.StringToAddress(contract),
+			Type:         contractv2.Pledge_,
+			FunctionType: contractv2.Pledge_RemovePool,
+			Function: &exchange_func.PledgeRemovePoolBody{
 				Pair: hasharry.StringToAddress(pair),
 			},
 		},
@@ -355,7 +405,7 @@ func NewRemovePledgeReward(from, contract string, nonce uint64, note string) (*t
 		TxBody: &types.TxContractV2Body{
 			Contract:     hasharry.StringToAddress(contract),
 			Type:         contractv2.Pledge_,
-			FunctionType: contractv2.Pledge_RewardRemove,
+			FunctionType: contractv2.Pledge_RemoveReward,
 			Function:     &exchange_func.PledgeRewardRemoveBody{},
 		},
 	}

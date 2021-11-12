@@ -384,8 +384,16 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.PledgeInitBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Start:
+			function, _ := body.Function.(*exchange_func.PledgeStartBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
 		case contractv2.Pledge_AddPool:
 			function, _ := body.Function.(*exchange_func.PledgeAddPoolBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_RemovePool:
+			function, _ := body.Function.(*exchange_func.PledgeRemovePoolBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
 		case contractv2.Pledge_Add:
@@ -396,7 +404,7 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.PledgeRemoveBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
-		case contractv2.Pledge_RewardRemove:
+		case contractv2.Pledge_RemoveReward:
 			function, _ := body.Function.(*exchange_func.PledgeRewardRemoveBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes

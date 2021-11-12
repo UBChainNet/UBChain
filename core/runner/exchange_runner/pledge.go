@@ -80,15 +80,18 @@ func (ps *PledgeState) GetPledgeRewards(address string) []*PledgeReward {
 type PledgeValue struct {
 	MaturePledge float64 `json:"maturePledge"`
 	UnripePledge float64 `json:"unripePledge"`
+	DeletePledge float64 `json:"deletePledge"`
 	Pair         string  `json:"pair"`
 }
 
 func (ps *PledgeState) GetPledge(address string, pair string) *PledgeValue {
 	maturePledge := ps.body.GetMaturePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	unripePledge := ps.body.GetUnripePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
+	deletedPledge := ps.body.GetDeletedPledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	return &PledgeValue{
 		MaturePledge: types.Amount(maturePledge).ToCoin(),
 		UnripePledge: types.Amount(unripePledge).ToCoin(),
+		DeletePledge: types.Amount(deletedPledge).ToCoin(),
 		Pair:         pair,
 	}
 }
@@ -98,6 +101,12 @@ func (ps *PledgeState) GetPledges(address string) []*PledgeValue {
 	for pair, _ := range ps.body.PledgePair {
 		pledge := ps.GetPledge(address, pair.String())
 		if pledge.UnripePledge != 0 || pledge.MaturePledge != 0 {
+			pledges = append(pledges, pledge)
+		}
+	}
+	for pair, _ := range ps.body.DeletedPairAccount {
+		pledge := ps.GetPledge(address, pair.String())
+		if pledge.DeletePledge != 0  {
 			pledges = append(pledges, pledge)
 		}
 	}
@@ -251,7 +260,7 @@ func (p *PledgeRunner) Init() {
 	ex, _ := p.pdState.library.GetExchange(initBody.Exchange)
 	pledgeData := exchange2.NewPledge(
 		initBody.Exchange, initBody.Receiver, initBody.Admin, ex.Symbol, initBody.MaxSupply,
-		initBody.DayMintAmount, initBody.PreMint, initBody.DayRewardAmount, initBody.PledgeMatureTime, p.height,
+		initBody.PreMint, p.height,
 	)
 	contract.Body = pledgeData
 
@@ -265,9 +274,55 @@ func (p *PledgeRunner) Init() {
 	p.pdState.library.SetContractV2(contract)
 }
 
+
+func (p *PledgeRunner) PreStartVerify() error {
+	if p.pdState.body == nil {
+		return errors.New("pledge contract does not exist")
+	}
+	if p.pdState.body.Start != 0 {
+		return errors.New("started")
+	}
+	if !p.pdState.body.Admin.IsEqual(p.tx.From()){
+		return errors.New("forbidden")
+	}
+	return nil
+}
+
+func (p *PledgeRunner) Start() {
+	var ERR error
+	state := &types.ContractV2State{State: types.Contract_Success}
+	defer func() {
+		if ERR != nil {
+			state.State = types.Contract_Failed
+			state.Error = ERR.Error()
+		} else {
+			state.Event = p.events
+		}
+		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
+	}()
+	if p.pdState.body.Start != 0 {
+		ERR = errors.New("started")
+		return
+	}
+	if !p.pdState.body.Admin.IsEqual(p.tx.From()){
+		ERR = errors.New("forbidden")
+		return
+	}
+	startBody := p.contractBody.Function.(*exchange_func.PledgeStartBody)
+	if err := p.pdState.body.SetStart(p.height, startBody.DayMintAmount, startBody.DayRewardAmount, startBody.PledgeMatureTime);err != nil{
+		ERR = err
+		return
+	}
+
+	p.update()
+}
+
 func (p *PledgeRunner) PreAddPairPoolVerify() error {
 	if p.pdState.body == nil {
 		return errors.New("pledge contract does not exist")
+	}
+	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
+		return errors.New("it hasn't started yet")
 	}
 	height := p.height
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddPoolBody)
@@ -340,7 +395,78 @@ func (p *PledgeRunner) AddPairPool() {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
 	}
 
-	p.pdState.body.AddPirPool(pair)
+	if err = p.pdState.body.AddPirPool(pair, p.height);err != nil{
+		ERR = err
+		return
+	}
+
+	if err = p.runEvents(); err != nil {
+		ERR = err
+		return
+	}
+	p.update()
+}
+
+
+func (p *PledgeRunner) PreRemovePairPoolVerify() error {
+	if p.pdState.body == nil {
+		return errors.New("pledge contract does not exist")
+	}
+	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
+		return errors.New("it hasn't started yet")
+	}
+	height := p.height
+	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeRemovePoolBody)
+	if funcBody == nil {
+		return errors.New("wrong contractV2 function")
+	}
+	pair := funcBody.Pair
+
+	if !p.pdState.body.Admin.IsEqual(p.tx.From()) {
+		return errors.New("forbidden")
+	}
+
+	if height < p.pdState.body.Start {
+		return errors.New("invalid height")
+	}
+	if !p.pdState.body.ExistPairPool(pair) {
+		return errors.New("the pair does not exist")
+	}
+	return nil
+}
+
+func (p *PledgeRunner) RemovePool() {
+	var ERR error
+	var err error
+	state := &types.ContractV2State{State: types.Contract_Success}
+	defer func() {
+		if ERR != nil {
+			state.State = types.Contract_Failed
+			state.Error = ERR.Error()
+		} else {
+			state.Event = p.events
+		}
+		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
+	}()
+	height := p.height
+	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeRemovePoolBody)
+	pair := funcBody.Pair
+
+	if !p.pdState.body.ExistPairPool(pair) {
+		ERR =  errors.New("the pair does not exist")
+		return
+	}
+
+	mintAmount := p.updatePledge(height)
+
+	if mintAmount != 0 {
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
+
+	if err = p.pdState.body.RemovePairPool(pair);err != nil{
+		ERR = err
+		return
+	}
 
 	if err = p.runEvents(); err != nil {
 		ERR = err
@@ -352,6 +478,9 @@ func (p *PledgeRunner) AddPairPool() {
 func (p *PledgeRunner) PreAddPledgeVerify() error {
 	if p.pdState.body == nil {
 		return errors.New("pledge contract does not exist")
+	}
+	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
+		return errors.New("it hasn't started yet")
 	}
 	height := p.height
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddBody)
@@ -427,6 +556,9 @@ func (p *PledgeRunner) PreRemovePledgeVerify() error {
 	if p.pdState.body == nil {
 		return errors.New("pledge contract does not exist")
 	}
+	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
+		return errors.New("it hasn't started yet")
+	}
 	height := p.height
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeRemoveBody)
 	if funcBody == nil {
@@ -446,8 +578,8 @@ func (p *PledgeRunner) PreRemovePledgeVerify() error {
 	if !exBody.PairExist(pair) {
 		return errors.New("invalid pair")
 	}
-	unripe, mature := p.pdState.body.GetPledgeAmount(p.tx.From(), pair)
-	if amount > unripe+mature {
+	unripe, mature, deleted := p.pdState.body.GetPledgeAmount(p.tx.From(), pair)
+	if amount > unripe+mature+deleted {
 		return errors.New("insufficient pledge")
 	}
 	balance := p.pdState.library.GetBalance(p.address, pair)
@@ -499,6 +631,9 @@ func (p *PledgeRunner) PreRemoveRewardVerify() error {
 	if p.pdState.body == nil {
 		return errors.New("pledge contract does not exist")
 	}
+	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
+		return errors.New("it hasn't started yet")
+	}
 	p.updatePledge(p.height)
 	rewards := p.pdState.body.RemoveReward(p.tx.From())
 	if len(rewards) == 0 {
@@ -547,6 +682,9 @@ func (p *PledgeRunner) RemoveReward() {
 func (p *PledgeRunner) PreUpdatePledgeVerify() error {
 	if p.pdState.body == nil {
 		return errors.New("pledge contract does not exist")
+	}
+	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
+		return errors.New("it hasn't started yet")
 	}
 	if !p.tx.From().IsEqual(p.pdState.body.Admin) {
 		return errors.New("forbidden")
