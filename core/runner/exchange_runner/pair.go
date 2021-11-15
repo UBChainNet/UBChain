@@ -490,9 +490,9 @@ func (p *PairRunner) AddLiquidity() {
 	}
 	// blocktime 错误处理
 	blockTime := p.height
-	/*if p.height >= 684060{
+	if p.height >= 750000{
 		blockTime = p.blockTime
-	}*/
+	}
 	if p.addBody.TokenA.IsEqual(p.pairState.pairBody.Token0) {
 		p.pairState.pairBody.UpdatePair(_reserve0+amountA, _reserve1+amountB, _reserve0, _reserve1, blockTime, feeOn)
 	} else {
@@ -596,9 +596,9 @@ func (p *PairRunner) RemoveLiquidity() {
 
 	// blocktime 错误处理
 	blockTime := p.height
-	/*if p.height >= 684060{
+	if p.height >= 750000{
 		blockTime = p.blockTime
-	}*/
+	}
 
 	p.pairState.pairBody.UpdatePair(_reserve0-amount0, _reserve1-amount1, _reserve0, _reserve1, blockTime, feeOn)
 

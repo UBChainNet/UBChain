@@ -410,7 +410,9 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 		} else {
 			state.Event = e.events
 		}
-		state.Event = e.events
+		if e.height < 750000{
+			state.Event = e.events
+		}
 		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
 	}()
 
