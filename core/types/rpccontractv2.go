@@ -6,28 +6,43 @@ import (
 )
 
 type RpcPair struct {
-	Address 			 string `json:"address"`
-	Exchange             string `json:"exchange"`
-	Symbol               string `json:"symbol"`
-	Token0               string `json:"token0"`
-	Token1               string `json:"token1"`
-	Symbol0              string `json:"symbol0"`
-	Symbol1              string `json:"symbol1"`
+	Address              string  `json:"address"`
+	Exchange             string  `json:"exchange"`
+	Symbol               string  `json:"symbol"`
+	Token0               string  `json:"token0"`
+	Token1               string  `json:"token1"`
+	Symbol0              string  `json:"symbol0"`
+	Symbol1              string  `json:"symbol1"`
 	Reserve0             float64 `json:"reserve0"`
 	Reserve1             float64 `json:"reserve1"`
 	TotalSupply          float64 `json:"totalSupply"`
-	BlockTimestampLast   uint32 `json:"blockTimestampLast"`
-	Price0CumulativeLast uint64 `json:"price0CumulativeLast"`
-	Price1CumulativeLast uint64 `json:"price1CumulativeLast"`
-	KLast                string `json:"kLast"`
+	BlockTimestampLast   uint32  `json:"blockTimestampLast"`
+	Price0CumulativeLast uint64  `json:"price0CumulativeLast"`
+	Price1CumulativeLast uint64  `json:"price1CumulativeLast"`
+	KLast                string  `json:"kLast"`
 }
 
 type RpcExchange struct {
-	Address  string `json:"address"`
-	Symbol   string `json:"symbol"`
-	FeeTo    string `json:"feeTo"`
-	Admin    string `json:"admin"`
-	Pair     map[string]map[string]string `json:"pair"`
+	Address string                       `json:"address"`
+	Symbol  string                       `json:"symbol"`
+	FeeTo   string                       `json:"feeTo"`
+	Admin   string                       `json:"admin"`
+	Pair    map[string]map[string]string `json:"pair"`
+}
+
+type RpcPledge struct {
+	PreMint          uint64 `json:"preMint"`
+	DayMintAmount    uint64 `json:"dayMintAmount"`
+	Receiver         string `json:"receiver"`
+	TotalSupply      uint64 `json:"totalSupply"`
+	MaxSupply        uint64 `json:"maxSupply"`
+	PledgeMatureTime uint64 `json:"pledgeMaturetime"`
+	DayRewardAmount  uint64 `json:"dayRewardAmount"`
+	Start            uint64 `json:"start"`
+	RewardToken      string `json:"rewardToken"`
+	RewardSymbol     string `json:"rewardSymbol"`
+	Admin            string `json:"admin"`
+	LastHeight       uint64 `json:"lastHeight"`
 }
 
 type PairAddress struct {
@@ -35,30 +50,29 @@ type PairAddress struct {
 	Address string `json:"address"`
 }
 
-
-func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interface{}{
+func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interface{} {
 	switch contract.Type {
 	case contractv2.Exchange_:
 		exchange, _ := contract.Body.(*exchange.Exchange)
 		pair := map[string]map[string]string{}
-		for token0, token1AndAddr := range exchange.Pair{
+		for token0, token1AndAddr := range exchange.Pair {
 			addressMap := map[string]string{}
-			for token1, address := range token1AndAddr{
+			for token1, address := range token1AndAddr {
 				addressMap[token1.String()] = address.String()
 			}
 			pair[token0.String()] = addressMap
 		}
 		return &RpcExchange{
-			Address:  contract.Address.String(),
-			FeeTo:    exchange.FeeTo.String(),
-			Admin:    exchange.Admin.String(),
-			Symbol:   exchange.Symbol,
-			Pair:     pair,
+			Address: contract.Address.String(),
+			FeeTo:   exchange.FeeTo.String(),
+			Admin:   exchange.Admin.String(),
+			Symbol:  exchange.Symbol,
+			Pair:    pair,
 		}
 	case contractv2.Pair_:
 		pair, _ := contract.Body.(*exchange.Pair)
 		return &RpcPair{
-			Address: 			  contract.Address.String(),
+			Address:              contract.Address.String(),
 			Exchange:             pair.Exchange.String(),
 			Symbol:               pair.Symbol,
 			Token0:               pair.Token0.String(),
@@ -72,6 +86,22 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 			Price1CumulativeLast: pair.Price1CumulativeLast,
 			KLast:                pair.KLast.String(),
 			TotalSupply:          Amount(pair.TotalSupply).ToCoin(),
+		}
+	case contractv2.Pledge_:
+		pledge, _ := contract.Body.(*exchange.Pledge)
+		return &RpcPledge{
+			PreMint:          pledge.PreMint,
+			DayMintAmount:    pledge.DayMintAmount,
+			Receiver:         pledge.Receiver.String(),
+			TotalSupply:      pledge.TotalSupply,
+			MaxSupply:        pledge.MaxSupply,
+			PledgeMatureTime: pledge.PledgeMatureTime,
+			DayRewardAmount:  pledge.DayRewardAmount,
+			Start:            pledge.Start,
+			RewardToken:      pledge.RewardToken.String(),
+			RewardSymbol:     pledge.RewardSymbol,
+			Admin:            pledge.Admin.String(),
+			LastHeight:       pledge.LastHeight,
 		}
 	}
 	return nil

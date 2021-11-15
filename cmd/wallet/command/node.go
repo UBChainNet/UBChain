@@ -54,7 +54,6 @@ func GetTxPool(cmd *cobra.Command, args []string) {
 	outputRespError(cmd.Use, resp)
 }
 
-
 //GenerateCmd cpu mine block
 var TokenListCmd = &cobra.Command{
 	Use:     "TokenList",

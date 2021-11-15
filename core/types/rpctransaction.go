@@ -341,6 +341,143 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 				Deadline:   remove.Deadline,
 			},
 		}, nil
+	case contractv2.Pledge_Init:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		init := &RpcPledgeInit{}
+		err = json.Unmarshal(bytes, init)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeInitBody{
+				Exchange:         hasharry.StringToAddress(init.Exchange),
+				Receiver:         hasharry.StringToAddress(init.Receiver),
+				Admin:            hasharry.StringToAddress(init.Admin),
+				PreMint:          init.PreMint,
+				MaxSupply:        init.MaxSupply,
+			},
+		}, nil
+	case contractv2.Pledge_Start:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		start := &RpcPledgeStart{}
+		err = json.Unmarshal(bytes, start)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeStartBody{
+				DayMintAmount:    start.DayMintAmount,
+				PledgeMatureTime: start.PledgeMatureTime,
+				DayRewardAmount:  start.DayRewardAmount,
+			},
+		}, nil
+	case contractv2.Pledge_AddPool:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		addPool := &RpcPledgeAddPool{}
+		err = json.Unmarshal(bytes, addPool)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeAddPoolBody{
+				Pair: hasharry.StringToAddress(addPool.Pair),
+			},
+		}, nil
+	case contractv2.Pledge_RemovePool:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		removePool := &RpcPledgeRemovePool{}
+		err = json.Unmarshal(bytes, removePool)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeRemovePoolBody{
+				Pair: hasharry.StringToAddress(removePool.Pair),
+			},
+		}, nil
+	case contractv2.Pledge_Add:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		add := &RpcPledgeAdd{}
+		err = json.Unmarshal(bytes, add)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeAddBody{
+				Pair:   hasharry.StringToAddress(add.Pair),
+				Amount: add.Amount,
+			},
+		}, nil
+	case contractv2.Pledge_Remove:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		remove := &RpcPledgeRemove{}
+		err = json.Unmarshal(bytes, remove)
+		if err != nil {
+			return nil, err
+		}
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &exchange_func.PledgeRemoveBody{
+				Pair:   hasharry.StringToAddress(remove.Pair),
+				Amount: remove.Amount,
+			},
+		}, nil
+	case contractv2.Pledge_RemoveReward:
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function:     &exchange_func.PledgeRewardRemoveBody{},
+		}, nil
+	case contractv2.Pledge_Update:
+
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function:     &exchange_func.PledgeUpdateBody{},
+		}, nil
 	}
 	return nil, errors.New("wrong transaction body")
 }
@@ -513,6 +650,66 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			AmountBMin: funcBody.AmountBMin,
 			Deadline:   funcBody.Deadline,
 		}
+	case contractv2.Pledge_Init:
+		funcBody, ok := body.Function.(*exchange_func.PledgeInitBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeInit{
+			Exchange:         funcBody.Exchange.String(),
+			Receiver:         funcBody.Receiver.String(),
+			Admin:            funcBody.Admin.String(),
+			PreMint:          funcBody.PreMint,
+			MaxSupply:        funcBody.MaxSupply,
+		}
+	case contractv2.Pledge_Start:
+		funcBody, ok := body.Function.(*exchange_func.PledgeStartBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeStart{
+			DayMintAmount:    funcBody.DayMintAmount,
+			PledgeMatureTime: funcBody.PledgeMatureTime,
+			DayRewardAmount:  funcBody.DayRewardAmount,
+		}
+	case contractv2.Pledge_AddPool:
+		funcBody, ok := body.Function.(*exchange_func.PledgeAddPoolBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeAddPool{
+			Pair: funcBody.Pair.String(),
+		}
+	case contractv2.Pledge_RemovePool:
+		funcBody, ok := body.Function.(*exchange_func.PledgeRemovePoolBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeRemovePool{
+			Pair: funcBody.Pair.String(),
+		}
+	case contractv2.Pledge_Add:
+		funcBody, ok := body.Function.(*exchange_func.PledgeAddBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeAdd{
+			Pair:   funcBody.Pair.String(),
+			Amount: funcBody.Amount,
+		}
+	case contractv2.Pledge_Remove:
+		funcBody, ok := body.Function.(*exchange_func.PledgeRemoveBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcPledgeRemove{
+			Pair:   funcBody.Pair.String(),
+			Amount: funcBody.Amount,
+		}
+	case contractv2.Pledge_RemoveReward:
+		function = &RpcPledgeRewardRemove{}
+	case contractv2.Pledge_Update:
+		function = &RpcPledgeUpdate{}
 	}
 	return function, nil
 }

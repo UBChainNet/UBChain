@@ -97,15 +97,23 @@ func (r *RunnerLibrary) GetPair(pairAddress hasharry.Address) (*exchange.Pair, e
 	if pairContract == nil {
 		return nil, errors.New("%s pair does not exist")
 	}
-	return pairContract.Body.(*exchange.Pair), nil
+	pair, ok := pairContract.Body.(*exchange.Pair)
+	if !ok {
+		return nil, errors.New("wrong pair contract")
+	}
+	return pair, nil
 }
 
 func (r *RunnerLibrary) GetExchange(exchangeAddress hasharry.Address) (*exchange.Exchange, error) {
 	exContract := r.GetContractV2(exchangeAddress.String())
-	if exContract != nil {
-		return nil, errors.New("%s exchange does not exist")
+	if exContract == nil {
+		return nil, errors.New("exchange does not exist")
 	}
-	return exContract.Body.(*exchange.Exchange), nil
+	ex, ok := exContract.Body.(*exchange.Exchange)
+	if !ok{
+		return nil, errors.New("wrong exchange contract")
+	}
+	return ex, nil
 }
 
 func (r *RunnerLibrary) GetReservesByPairAddress(pairAddress, tokenA, tokenB hasharry.Address) (uint64, uint64, error) {

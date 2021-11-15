@@ -75,6 +75,38 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			var create *exchange_func.ExchangeRemoveLiquidity
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
+		case contractv2.Pledge_Init:
+			var create *exchange_func.PledgeInitBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_Start:
+			var create *exchange_func.PledgeStartBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_AddPool:
+			var create *exchange_func.PledgeAddPoolBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_RemovePool:
+			var create *exchange_func.PledgeRemovePoolBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_Add:
+			var create *exchange_func.PledgeAddBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_Remove:
+			var create *exchange_func.PledgeRemoveBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_RemoveReward:
+			var create *exchange_func.PledgeRewardRemoveBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.Pledge_Update:
+			var create *exchange_func.PledgeUpdateBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
 		}
 		rlp.DecodeBytes(rt.TxBody, &ct)
 		return &Transaction{

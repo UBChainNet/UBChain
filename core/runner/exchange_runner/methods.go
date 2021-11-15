@@ -259,3 +259,109 @@ var pairMethods = map[string]*MethodInfo{
 		},
 	},
 }
+
+var pledgeMethods = map[string]*MethodInfo{
+	"Methods": &MethodInfo{
+		Name:   "Methods",
+		Params: nil,
+		Returns: []Value{
+			{
+				Name: "Open methods",
+				Type: "json",
+			},
+		},
+	},
+	"MethodExist": &MethodInfo{
+		Name: "MethodExist",
+		Params: []Value{
+			{
+				Name: "method",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "exist",
+				Type: "bool",
+			},
+		},
+	},
+	"GetPledgeReward": &MethodInfo{
+		Name: "GetPledgeReward",
+		Params: []Value{
+			{
+				Name: "address",
+				Type: "string",
+			},
+			{
+				Name: "pair contract address",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPledgeRewards": &MethodInfo{
+		Name: "GetPledgeRewards",
+		Params: []Value{
+			{
+				Name: "address",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPledge": &MethodInfo{
+		Name: "GetPledge",
+		Params: []Value{
+			{
+				Name: "address",
+				Type: "string",
+			},
+			{
+				Name: "pair contract address",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPledges": &MethodInfo{
+		Name: "GetPledges",
+		Params: []Value{
+			{
+				Name: "address",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPairPool": &MethodInfo{
+		Name:   "GetPairPool",
+		Params: []Value{},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+}

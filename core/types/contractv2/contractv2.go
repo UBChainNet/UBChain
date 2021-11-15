@@ -14,7 +14,8 @@ type FunctionType uint
 const (
 	Exchange_ ContractType = 0
 	Pair_                  = 1
-	Token_                 = 2
+	Pledge_                = 2
+	Token_                 = 3
 )
 
 const (
@@ -27,7 +28,16 @@ const (
 	Pair_AddLiquidity    = 100000
 	Pair_RemoveLiquidity = 100001
 
-	Token_Create = 200000
+	Pledge_Init         = 200000
+	Pledge_Start        = 200001
+	Pledge_AddPool      = 200002
+	Pledge_RemovePool   = 200003
+	Pledge_Add          = 200004
+	Pledge_Remove       = 200005
+	Pledge_RemoveReward = 200006
+	Pledge_Update       = 200007
+
+	Token_Init = 300000
 )
 
 type ContractV2 struct {
@@ -94,6 +104,13 @@ func DecodeContractV2(bytes []byte) (*ContractV2, error) {
 		return contract, err
 	case Pair_:
 		pair, err := exchange.DecodeToPair(rlpContract.Body)
+		if err != nil {
+			return nil, err
+		}
+		contract.Body = pair
+		return contract, err
+	case Pledge_:
+		pair, err := exchange.DecodeToPledge(rlpContract.Body)
 		if err != nil {
 			return nil, err
 		}

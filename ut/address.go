@@ -29,7 +29,7 @@ func CheckSymbol(abbr string) error {
 		return errors.New("the coin abbr length must be in the range of 2 and 10")
 	}
 	for _, c := range abbr {
-		if !unicode.IsLetter(c)  {
+		if !unicode.IsLetter(c) {
 			return errors.New("coin abbr must be letter")
 		}
 		if !unicode.IsUpper(c) {
@@ -183,7 +183,7 @@ func IsValidContractAddress(net string, address string) bool {
 	default:
 		return false
 	}
-	if ok := isValidContractAddress(ver, address);!ok{
+	if ok := isValidContractAddress(ver, address); !ok {
 		switch net {
 		case param.MainNet:
 			ver = param.MainPubKeyHashContractID[0:]

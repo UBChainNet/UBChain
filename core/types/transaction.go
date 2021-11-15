@@ -184,12 +184,12 @@ func (t *Transaction) verifyCoinBaseAmount(height, amount uint64) error {
 
 func (t *Transaction) verifyCoinBaseAddress(miner string) error {
 	nTx := t.TxBody.(*TransferBody)
-	for _, receiver := range nTx.Receivers.ReceiverList(){
-		if !ut.CheckUBCAddress(param.Net, receiver.Address.String()){
+	for _, receiver := range nTx.Receivers.ReceiverList() {
+		if !ut.CheckUBCAddress(param.Net, receiver.Address.String()) {
 			return fmt.Errorf("invalid coinbase address")
 		}
-		if receiver.Amount > 0{
-			if receiver.Address.String() != param.MinerReward[miner]{
+		if receiver.Amount > 0 {
+			if receiver.Address.String() != param.MinerReward[miner] {
 				return fmt.Errorf("incorrect coinbase address")
 			}
 		}
@@ -222,12 +222,12 @@ func (t *Transaction) verifyTxType() error {
 	case ContractV2_:
 		return nil
 		/*
-		case VoteToCandidate:
-			return nil
-		case LoginCandidate_:
-			return nil
-		case LogoutCandidate:
-			return nil*/
+			case VoteToCandidate:
+				return nil
+			case LoginCandidate_:
+				return nil
+			case LogoutCandidate:
+				return nil*/
 	}
 	return ErrTxType
 }
@@ -380,6 +380,39 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.ExchangeRemoveLiquidity)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Init:
+			function, _ := body.Function.(*exchange_func.PledgeInitBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Start:
+			function, _ := body.Function.(*exchange_func.PledgeStartBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_AddPool:
+			function, _ := body.Function.(*exchange_func.PledgeAddPoolBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_RemovePool:
+			function, _ := body.Function.(*exchange_func.PledgeRemovePoolBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Add:
+			function, _ := body.Function.(*exchange_func.PledgeAddBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Remove:
+			function, _ := body.Function.(*exchange_func.PledgeRemoveBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_RemoveReward:
+			function, _ := body.Function.(*exchange_func.PledgeRewardRemoveBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.Pledge_Update:
+			function, _ := body.Function.(*exchange_func.PledgeUpdateBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+
 		}
 		rlpTx.TxBody, _ = rlp.EncodeToBytes(rlpC.TxBody)
 	default:
@@ -399,12 +432,12 @@ func (t *TxLocation) GetHeight() uint64 {
 }
 
 func CalCoinBase(height, startHeight uint64) uint64 {
-	if height < startHeight{
+	if height < startHeight {
 		return 0
 	}
 
 	count := height - startHeight
-	heightRange := count / ((uint64(3600 * 24) / param.BlockInterval) * 365 * 10)
+	heightRange := count / ((uint64(3600*24) / param.BlockInterval) * 365 * 10)
 	switch heightRange {
 	case 0:
 		return 451864536
