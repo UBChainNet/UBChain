@@ -380,9 +380,8 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeStartBody{
-				DayMintAmount:    start.DayMintAmount,
+				BlockMintAmount:  start.BlockMintAmount,
 				PledgeMatureTime: start.PledgeMatureTime,
-				DayRewardAmount:  start.DayRewardAmount,
 			},
 		}, nil
 	case contractv2.Pledge_AddPool:
@@ -402,6 +401,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeAddPoolBody{
 				Pair: hasharry.StringToAddress(addPool.Pair),
+				BlockReward: addPool.BlockReward,
 			},
 		}, nil
 	case contractv2.Pledge_RemovePool:
@@ -668,9 +668,8 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeStart{
-			DayMintAmount:    funcBody.DayMintAmount,
+			BlockMintAmount:    funcBody.BlockMintAmount,
 			PledgeMatureTime: funcBody.PledgeMatureTime,
-			DayRewardAmount:  funcBody.DayRewardAmount,
 		}
 	case contractv2.Pledge_AddPool:
 		funcBody, ok := body.Function.(*exchange_func.PledgeAddPoolBody)
@@ -679,6 +678,7 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 		}
 		function = &RpcPledgeAddPool{
 			Pair: funcBody.Pair.String(),
+			BlockReward: funcBody.BlockReward,
 		}
 	case contractv2.Pledge_RemovePool:
 		funcBody, ok := body.Function.(*exchange_func.PledgeRemovePoolBody)

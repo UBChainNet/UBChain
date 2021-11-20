@@ -39,9 +39,8 @@ func (p *PledgeInitBody) Verify() error {
 }
 
 type PledgeStartBody struct {
-	DayMintAmount    uint64
+	BlockMintAmount  uint64
 	PledgeMatureTime uint64
-	DayRewardAmount  uint64
 }
 
 func (p *PledgeStartBody) Verify() error {
@@ -50,6 +49,7 @@ func (p *PledgeStartBody) Verify() error {
 
 type PledgeAddPoolBody struct {
 	Pair hasharry.Address
+	BlockReward uint64
 }
 
 func (p *PledgeAddPoolBody) Verify() error {

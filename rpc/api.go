@@ -199,7 +199,7 @@ func (a *Api) AccountList() (interface{}, error) {
 }
 
 func (a *Api) ContractMethod(contract, function string, params []string) (interface{}, error) {
-	return a.runner.ReadMethod(contract, function, params)
+	return a.runner.ReadMethod(a.chain.GetLastHeight(), contract, function, params)
 }
 
 func (a *Api) GetConfirmedHeight() (string, error) {

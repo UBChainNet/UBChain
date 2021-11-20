@@ -364,4 +364,14 @@ var pledgeMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"GetPledgeYields": &MethodInfo{
+		Name:   "GetPledgeYields",
+		Params: []Value{},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
 }

@@ -13,16 +13,17 @@ import (
 	"github.com/UBChainNet/UBChain/crypto/base58"
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
-	"math/big"
+	"sort"
 )
 
 type PledgeState struct {
 	library *library.RunnerLibrary
 	header  *contractv2.ContractV2
 	body    *exchange2.Pledge
+	chainHeight  uint64
 }
 
-func NewPledgeState(runnerLibrary *library.RunnerLibrary, pdAddress string) (*PledgeState, error) {
+func NewPledgeState(runnerLibrary *library.RunnerLibrary, pdAddress string, height uint64) (*PledgeState, error) {
 	pdHeader := runnerLibrary.GetContractV2(pdAddress)
 	if pdHeader == nil {
 		return nil, fmt.Errorf("pledge %s does not exist", pdAddress)
@@ -32,6 +33,7 @@ func NewPledgeState(runnerLibrary *library.RunnerLibrary, pdAddress string) (*Pl
 		header:  pdHeader,
 		body:    pdBody,
 		library: runnerLibrary,
+		chainHeight : height,
 	}, nil
 }
 
@@ -44,6 +46,27 @@ func (ps *PledgeState) MethodExist(method string) bool {
 	return exist
 }
 
+type PledgeYield struct {
+	Pair string `json:"pair"`
+	YieldRate float64 `json:"yieldRate"`
+}
+
+func (ps *PledgeState) GetPledgeYields() []*PledgeYield {
+	_ = ps.updatePledge(ps.chainHeight)
+	var yieldList []*PledgeYield
+	yields := ps.body.GetPledgeYields()
+	for pair, yield := range yields {
+		yieldList = append(yieldList, &PledgeYield{
+			Pair:      pair.String(),
+			YieldRate: yield,
+		})
+	}
+	sort.Slice(yieldList, func(i, j int) bool {
+		return yieldList[i].YieldRate > yieldList[j].YieldRate
+	})
+	return yieldList
+}
+
 type PledgeReward struct {
 	Token  string  `json:"token"`
 	Symbol string  `json:"symbol"`
@@ -52,6 +75,8 @@ type PledgeReward struct {
 }
 
 func (ps *PledgeState) GetPledgeReward(address string, pair string) *PledgeReward {
+	_ = ps.updatePledge(ps.chainHeight)
+
 	reward := ps.body.GetPledgeReward(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	return &PledgeReward{
 		Token:  ps.body.RewardToken.String(),
@@ -62,6 +87,8 @@ func (ps *PledgeState) GetPledgeReward(address string, pair string) *PledgeRewar
 }
 
 func (ps *PledgeState) GetPledgeRewards(address string) []*PledgeReward {
+	_ = ps.updatePledge(ps.chainHeight)
+
 	var rewards []*PledgeReward
 	rewardMap := ps.body.GetPledgeRewards(hasharry.StringToAddress(address))
 	if rewardMap != nil {
@@ -85,6 +112,8 @@ type PledgeValue struct {
 }
 
 func (ps *PledgeState) GetPledge(address string, pair string) *PledgeValue {
+	_ = ps.updatePledge(ps.chainHeight)
+
 	maturePledge := ps.body.GetMaturePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	unripePledge := ps.body.GetUnripePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	deletedPledge := ps.body.GetDeletedPledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
@@ -97,6 +126,8 @@ func (ps *PledgeState) GetPledge(address string, pair string) *PledgeValue {
 }
 
 func (ps *PledgeState) GetPledges(address string) []*PledgeValue {
+	_ = ps.updatePledge(ps.chainHeight)
+
 	var pledges []*PledgeValue
 	for pair, _ := range ps.body.PledgePair {
 		pledge := ps.GetPledge(address, pair.String())
@@ -115,37 +146,30 @@ func (ps *PledgeState) GetPledges(address string) []*PledgeValue {
 
 type Pool struct {
 	Pair   string  `json:"pair"`
-	Weight float64 `json:"weight"`
+	Reward float64 `json:"reward"`
 }
 
 func (ps *PledgeState) GetPairPool() []*Pool {
 	var poolList = make([]*Pool, 0)
-	pairValue := map[hasharry.Address]uint64{}
-	var totalValue uint64
-	ex := ps.library.GetContractV2(ps.body.RewardToken.String())
-	for pairAddr, total := range ps.body.MaturePair {
-		value, _ := ps.getPairValue(pairAddr, total, ex)
-		totalValue += value
-		pairValue[pairAddr] = value
-	}
-	for pairAddr, _ := range ps.body.PairPool {
-		value := pairValue[pairAddr]
-		if totalValue != 0 {
-			poolList = append(poolList, &Pool{
-				Pair:   pairAddr.String(),
-				Weight: float64(value) / float64(totalValue),
-			})
-		} else {
-			poolList = append(poolList, &Pool{
-				Pair:   pairAddr.String(),
-				Weight: 0,
-			})
-		}
-
+	for pairAddr, reward := range ps.body.PairPoolWithCount {
+		poolList = append(poolList, &Pool{
+			Pair:   pairAddr.String(),
+			Reward: types.Amount(reward).ToCoin(),
+		})
 	}
 	return poolList
 }
 
+func (ps *PledgeState) updatePledge(height uint64) uint64 {
+	var mintAmount uint64
+	if ps.body.IsUpdate(height) {
+		ps.body.UpdateMature(height)
+		mintAmount = ps.body.UpdateMint(height)
+	}
+	return mintAmount
+}
+
+/*
 func (ps *PledgeState) getPairValue(pairAddr hasharry.Address, totalLp uint64, exchange *contractv2.ContractV2) (uint64, error) {
 	var token0value uint64
 	var token1value uint64
@@ -182,7 +206,7 @@ func (ps *PledgeState) getPairValue(pairAddr hasharry.Address, totalLp uint64, e
 	}
 
 	return token0value + token1value, nil
-}
+}*/
 
 type PledgeRunner struct {
 	pdState      *PledgeState
@@ -279,9 +303,6 @@ func (p *PledgeRunner) PreStartVerify() error {
 	if p.pdState.body == nil {
 		return errors.New("pledge contract does not exist")
 	}
-	if p.pdState.body.Start != 0 {
-		return errors.New("started")
-	}
 	if !p.pdState.body.Admin.IsEqual(p.tx.From()){
 		return errors.New("forbidden")
 	}
@@ -300,16 +321,20 @@ func (p *PledgeRunner) Start() {
 		}
 		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
 	}()
-	if p.pdState.body.Start != 0 {
-		ERR = errors.New("started")
-		return
-	}
+
 	if !p.pdState.body.Admin.IsEqual(p.tx.From()){
 		ERR = errors.New("forbidden")
 		return
 	}
+
+	mintAmount := p.pdState.updatePledge(p.height)
+
+	if mintAmount != 0 {
+		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
+	}
+
 	startBody := p.contractBody.Function.(*exchange_func.PledgeStartBody)
-	if err := p.pdState.body.SetStart(p.height, startBody.DayMintAmount, startBody.DayRewardAmount, startBody.PledgeMatureTime);err != nil{
+	if err := p.pdState.body.SetStart(p.height, startBody.BlockMintAmount, startBody.PledgeMatureTime);err != nil{
 		ERR = err
 		return
 	}
@@ -346,9 +371,9 @@ func (p *PledgeRunner) PreAddPairPoolVerify() error {
 	if !exBody.PairExist(pair) {
 		return errors.New("invalid pair")
 	}
-	if p.pdState.body.ExistPairPool(pair) {
+	/*if p.pdState.body.ExistPairPool(pair) {
 		return errors.New("the pair already exists")
-	}
+	}*/
 	pairBody, _ := p.pdState.library.GetPair(pair)
 	if !pairBody.Token0.IsEqual(param.Token) {
 		pairAddress, _ := PairAddress(param.Net, param.Token, pairBody.Token0, exchange)
@@ -384,18 +409,18 @@ func (p *PledgeRunner) AddPairPool() {
 	funcBody, _ := p.contractBody.Function.(*exchange_func.PledgeAddPoolBody)
 	pair := funcBody.Pair
 
-	if p.pdState.body.ExistPairPool(pair) {
+	/*if p.pdState.body.ExistPairPool(pair) {
 		ERR = errors.New("the pair already exists")
 		return
-	}
+	}*/
 
-	mintAmount := p.updatePledge(height)
+	mintAmount := p.pdState.updatePledge(height)
 
 	if mintAmount != 0 {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
 	}
 
-	if err = p.pdState.body.AddPirPool(pair, p.height);err != nil{
+	if err = p.pdState.body.AddPirPool(pair, funcBody.BlockReward, p.height);err != nil{
 		ERR = err
 		return
 	}
@@ -457,7 +482,7 @@ func (p *PledgeRunner) RemovePool() {
 		return
 	}
 
-	mintAmount := p.updatePledge(height)
+	mintAmount := p.pdState.updatePledge(height)
 
 	if mintAmount != 0 {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
@@ -533,7 +558,7 @@ func (p *PledgeRunner) AddPledge() {
 		ERR = errors.New("the pair was not found")
 		return
 	}
-	mintAmount := p.updatePledge(height)
+	mintAmount := p.pdState.updatePledge(height)
 
 	if mintAmount != 0 {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
@@ -608,7 +633,7 @@ func (p *PledgeRunner) RemovePledge() {
 	pair := funcBody.Pair
 	amount := funcBody.Amount
 
-	mintAmount := p.updatePledge(height)
+	mintAmount := p.pdState.updatePledge(height)
 
 	if mintAmount != 0 {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
@@ -634,7 +659,7 @@ func (p *PledgeRunner) PreRemoveRewardVerify() error {
 	if p.pdState.body.Start == 0 || p.height <= p.pdState.body.Start{
 		return errors.New("it hasn't started yet")
 	}
-	p.updatePledge(p.height)
+	p.pdState.updatePledge(p.height)
 	rewards := p.pdState.body.RemoveReward(p.tx.From())
 	if len(rewards) == 0 {
 		return errors.New("no rewards")
@@ -656,7 +681,7 @@ func (p *PledgeRunner) RemoveReward() {
 		p.pdState.library.SetContractV2State(p.tx.Hash().String(), state)
 	}()
 
-	mintAmount := p.updatePledge(p.height)
+	mintAmount := p.pdState.updatePledge(p.height)
 
 	if mintAmount != 0 {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
@@ -710,7 +735,7 @@ func (p *PledgeRunner) UpdatePledge() {
 		return
 	}
 
-	mintAmount := p.updatePledge(p.height)
+	mintAmount := p.pdState.updatePledge(p.height)
 	if mintAmount != 0 {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
 	}
@@ -720,23 +745,6 @@ func (p *PledgeRunner) UpdatePledge() {
 		return
 	}
 	p.update()
-}
-
-func (p *PledgeRunner) updatePledge(height uint64) uint64 {
-	var mintAmount uint64
-	if p.pdState.body.IsUpdate(height) {
-		p.pdState.body.UpdateMature(height)
-		pairValue := map[hasharry.Address]uint64{}
-		var totalValue uint64
-		ex := p.pdState.library.GetContractV2(p.pdState.body.RewardToken.String())
-		for pairAddr, total := range p.pdState.body.MaturePair {
-			value, _ := p.pdState.getPairValue(pairAddr, total, ex)
-			totalValue += value
-			pairValue[pairAddr] = value
-		}
-		mintAmount = p.pdState.body.UpdateMint(p.height, totalValue, pairValue)
-	}
-	return mintAmount
 }
 
 func (p *PledgeRunner) update() {
