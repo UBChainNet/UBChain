@@ -106,7 +106,6 @@ func (ps *PledgeState) GetPledgeRewards(address string) []*PledgeReward {
 
 type PledgeValue struct {
 	MaturePledge float64 `json:"maturePledge"`
-	UnripePledge float64 `json:"unripePledge"`
 	DeletePledge float64 `json:"deletePledge"`
 	Pair         string  `json:"pair"`
 }
@@ -115,11 +114,9 @@ func (ps *PledgeState) GetPledge(address string, pair string) *PledgeValue {
 	_ = ps.updatePledge(ps.chainHeight)
 
 	maturePledge := ps.body.GetMaturePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
-	unripePledge := ps.body.GetUnripePledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	deletedPledge := ps.body.GetDeletedPledge(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	return &PledgeValue{
 		MaturePledge: types.Amount(maturePledge).ToCoin(),
-		UnripePledge: types.Amount(unripePledge).ToCoin(),
 		DeletePledge: types.Amount(deletedPledge).ToCoin(),
 		Pair:         pair,
 	}
@@ -131,7 +128,7 @@ func (ps *PledgeState) GetPledges(address string) []*PledgeValue {
 	var pledges []*PledgeValue
 	for pair, _ := range ps.body.PledgePair {
 		pledge := ps.GetPledge(address, pair.String())
-		if pledge.UnripePledge != 0 || pledge.MaturePledge != 0 {
+		if pledge.MaturePledge != 0 {
 			pledges = append(pledges, pledge)
 		}
 	}
@@ -163,7 +160,6 @@ func (ps *PledgeState) GetPairPool() []*Pool {
 func (ps *PledgeState) updatePledge(height uint64) uint64 {
 	var mintAmount uint64
 	if ps.body.IsUpdate(height) {
-		ps.body.UpdateMature(height)
 		mintAmount = ps.body.UpdateMint(height)
 	}
 	return mintAmount
@@ -603,8 +599,8 @@ func (p *PledgeRunner) PreRemovePledgeVerify() error {
 	if !exBody.PairExist(pair) {
 		return errors.New("invalid pair")
 	}
-	unripe, mature, deleted := p.pdState.body.GetPledgeAmount(p.tx.From(), pair)
-	if amount > unripe+mature+deleted {
+	mature, deleted := p.pdState.body.GetPledgeAmount(p.tx.From(), pair)
+	if amount > mature+deleted {
 		return errors.New("insufficient pledge")
 	}
 	balance := p.pdState.library.GetBalance(p.address, pair)
@@ -660,7 +656,10 @@ func (p *PledgeRunner) PreRemoveRewardVerify() error {
 		return errors.New("it hasn't started yet")
 	}
 	p.pdState.updatePledge(p.height)
-	rewards := p.pdState.body.RemoveReward(p.tx.From())
+	rewards, err := p.pdState.body.RemoveReward(p.tx.From(), p.height)
+	if err != nil{
+		return err
+	}
 	if len(rewards) == 0 {
 		return errors.New("no rewards")
 	}
@@ -687,7 +686,11 @@ func (p *PledgeRunner) RemoveReward() {
 		p.mintEvent(p.pdState.body.Receiver, p.pdState.body.RewardToken, mintAmount)
 	}
 
-	rewards := p.pdState.body.RemoveReward(p.tx.From())
+	rewards, err := p.pdState.body.RemoveReward(p.tx.From(), p.height)
+	if err != nil{
+		ERR = err
+		return
+	}
 	if len(rewards) == 0 {
 		ERR = errors.New("no rewards")
 		return
