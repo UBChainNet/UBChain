@@ -401,7 +401,109 @@ func (p *Pledge) GetPledgeYields() map[hasharry.Address]float64{
 	return yields
 }
 
-func (p *Pledge) ToRlp() *RlpPledgeV2 {
+func (p *Pledge) ToRlp() *RlpPledge {
+	rlpPledge := &RlpPledge{
+		PreMint:           p.PreMint,
+		DayMintAmount:     p.BlockMintAmount,
+		Receiver:          p.Receiver,
+		TotalSupply:       p.TotalSupply,
+		MaxSupply:         p.MaxSupply,
+		PledgeMatureTime:  p.PledgeMatureTime,
+		DayRewardAmount:   p.DayRewardAmount,
+		Start:             p.Start,
+		RewardToken:        p.RewardToken,
+		RewardSymbol:       p.RewardSymbol,
+		Admin:              p.Admin,
+		LastHeight:         p.LastHeight,
+	}
+
+
+	rlpPledge.PairPool = make([]hasharry.Address, 0)
+
+	rlpPledge.PledgePair = make([]PledgePair, 0)
+	for pair, total := range p.PledgePair {
+		rlpPledge.PledgePair = append(rlpPledge.PledgePair, PledgePair{
+			Pair:   pair,
+			Amount: total,
+		})
+	}
+	sort.Slice(rlpPledge.PledgePair, func(i, j int) bool {
+		return strings.Compare(rlpPledge.PledgePair[i].Pair.String(), rlpPledge.PledgePair[j].Pair.String()) < 0
+	})
+
+	rlpPledge.UnripePledge = make([]UnripePledge, 0)
+
+
+	rlpPledge.MaturePair = make([]PledgePair, 0)
+
+	rlpPledge.MaturePairAccount = make([]AccountPledge, 0)
+	for pair, addrValue := range p.MaturePairAccount {
+		for addr, value := range addrValue {
+			rlpPledge.MaturePairAccount = append(rlpPledge.MaturePairAccount, AccountPledge{
+				Address: addr,
+				Pair:    pair,
+				Amount:  value,
+			})
+
+		}
+	}
+	sort.Slice(rlpPledge.MaturePairAccount, func(i, j int) bool {
+		pairCp := strings.Compare(rlpPledge.MaturePairAccount[i].Pair.String(), rlpPledge.MaturePairAccount[j].Pair.String())
+		if pairCp == 0 {
+			return strings.Compare(rlpPledge.MaturePairAccount[i].Address.String(), rlpPledge.MaturePairAccount[j].Address.String()) < 0
+		} else {
+			return pairCp < 0
+		}
+	})
+
+	rlpPledge.DeletedPairAccount = make([]AccountPledge, 0)
+	for pair, addrValue := range p.DeletedPairAccount {
+		for addr, value := range addrValue {
+			rlpPledge.DeletedPairAccount = append(rlpPledge.DeletedPairAccount, AccountPledge{
+				Address: addr,
+				Pair:    pair,
+				Amount:  value,
+			})
+
+		}
+	}
+	sort.Slice(rlpPledge.DeletedPairAccount, func(i, j int) bool {
+		pairCp := strings.Compare(rlpPledge.DeletedPairAccount[i].Pair.String(), rlpPledge.DeletedPairAccount[j].Pair.String())
+		if pairCp == 0 {
+			return strings.Compare(rlpPledge.DeletedPairAccount[i].Address.String(), rlpPledge.DeletedPairAccount[j].Address.String()) < 0
+		} else {
+			return pairCp < 0
+		}
+	})
+
+
+	rlpPledge.PoolReward = make([]PoolReward, 0)
+
+	rlpPledge.AccountReward = make([]AccountReward, 0)
+	for addr, pairReward := range p.AccountReward {
+		for pair, reward := range pairReward {
+			rlpPledge.AccountReward = append(rlpPledge.AccountReward, AccountReward{
+				Address: addr,
+				Pair:    pair,
+				Reward:  reward,
+			})
+
+		}
+	}
+	sort.Slice(rlpPledge.AccountReward, func(i, j int) bool {
+		addrCp := strings.Compare(rlpPledge.AccountReward[i].Address.String(), rlpPledge.AccountReward[j].Address.String())
+		if addrCp == 0 {
+			return strings.Compare(rlpPledge.AccountReward[i].Pair.String(), rlpPledge.AccountReward[j].Pair.String()) < 0
+		} else {
+			return addrCp < 0
+		}
+	})
+
+	return rlpPledge
+}
+
+
+func (p *Pledge) ToRlpV2() *RlpPledgeV2 {
 	rlpPledge := &RlpPledgeV2{
 		PreMint:           p.PreMint,
 		DayMintAmount:     p.BlockMintAmount,
@@ -415,12 +517,6 @@ func (p *Pledge) ToRlp() *RlpPledgeV2 {
 		RewardSymbol:       p.RewardSymbol,
 		Admin:              p.Admin,
 		LastHeight:         p.LastHeight,
-		PairPoolWithCount:  nil,
-		PledgePair:         nil,
-		MaturePair:         nil,
-		MaturePairAccount:  nil,
-		DeletedPairAccount: nil,
-		AccountReward:      nil,
 	}
 
 	rlpPledge.PairPoolWithCount = make([]PairPool, 0)
@@ -434,17 +530,6 @@ func (p *Pledge) ToRlp() *RlpPledgeV2 {
 		return strings.Compare(rlpPledge.PairPoolWithCount[i].Pair.String(), rlpPledge.PairPoolWithCount[j].Pair.String()) < 0
 	})
 
-	rlpPledge.PledgePair = make([]PledgePair, 0)
-	for pair, total := range p.PledgePair {
-		rlpPledge.PledgePair = append(rlpPledge.PledgePair, PledgePair{
-			Pair:   pair,
-			Amount: total,
-		})
-	}
-	sort.Slice(rlpPledge.PledgePair, func(i, j int) bool {
-		return strings.Compare(rlpPledge.PledgePair[i].Pair.String(), rlpPledge.PledgePair[j].Pair.String()) < 0
-	})
-
 	rlpPledge.AccountLastPledge = make([]PledgeHeight, 0)
 	for pair, height := range p.AccountLastPledge {
 		rlpPledge.AccountLastPledge = append(rlpPledge.AccountLastPledge, PledgeHeight{
@@ -454,6 +539,19 @@ func (p *Pledge) ToRlp() *RlpPledgeV2 {
 	}
 	sort.Slice(rlpPledge.AccountLastPledge, func(i, j int) bool {
 		return strings.Compare(rlpPledge.AccountLastPledge[i].Pair.String(), rlpPledge.AccountLastPledge[j].Pair.String()) < 0
+	})
+
+
+
+	rlpPledge.PledgePair = make([]PledgePair, 0)
+	for pair, total := range p.PledgePair {
+		rlpPledge.PledgePair = append(rlpPledge.PledgePair, PledgePair{
+			Pair:   pair,
+			Amount: total,
+		})
+	}
+	sort.Slice(rlpPledge.PledgePair, func(i, j int) bool {
+		return strings.Compare(rlpPledge.PledgePair[i].Pair.String(), rlpPledge.PledgePair[j].Pair.String()) < 0
 	})
 
 
@@ -497,6 +595,7 @@ func (p *Pledge) ToRlp() *RlpPledgeV2 {
 		}
 	})
 
+
 	rlpPledge.AccountReward = make([]AccountReward, 0)
 	for addr, pairReward := range p.AccountReward {
 		for pair, reward := range pairReward {
@@ -521,7 +620,12 @@ func (p *Pledge) ToRlp() *RlpPledgeV2 {
 }
 
 func (p *Pledge) Bytes() []byte {
-	bytes, _ := rlp.EncodeToBytes(p.ToRlp())
+	var bytes []byte
+	if p.Start > 754760{
+		bytes, _ = rlp.EncodeToBytes(p.ToRlpV2())
+	}else{
+		bytes, _ = rlp.EncodeToBytes(p.ToRlp())
+	}
 	return bytes
 }
 
@@ -636,12 +740,18 @@ type RlpPledgeV2 struct {
 	Admin hasharry.Address
 	// 最后高度
 	LastHeight uint64
+	// 弃用
+	PairPool []hasharry.Address
+	// 弃用
+	UnripePledge []UnripePledge
+	// 弃用
+	MaturePair []PledgePair
+	PoolReward []PoolReward
+
 	// pair 池的奖励数量
 	PairPoolWithCount []PairPool
 	// 每个pair总质押量
 	PledgePair []PledgePair
-	// 已经成熟的pair总质押量
-	MaturePair []PledgePair
 	// 最后一次质押高度
 	AccountLastPledge []PledgeHeight
 	// 已经成熟的pair某个地址质押量
