@@ -207,8 +207,13 @@ func (tp *TxPool) GetAll() (types.Transactions, types.Transactions) {
 	return prepareTxs, futureTxs
 }
 
-func (tp *TxPool) Get() types.ITransaction {
-	panic("implement me")
+func (tp *TxPool) GetPendingNonce(address hasharry.Address) uint64 {
+	nonce := tp.txs.GetPendingNonce(address)
+	if nonce == 0{
+		nonce, _ = tp.accountState.GetAccountNonce(address)
+		return nonce
+	}
+	return nonce
 }
 
 // Delete transaction

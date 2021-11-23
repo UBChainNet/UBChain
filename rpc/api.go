@@ -68,6 +68,13 @@ func (a *Api) GetAccount(address string) (*rpctypes.Account, error) {
 	return rpcAccount, nil
 }
 
+func (a *Api) GetPendingNonce(address string) (string, error) {
+	addr := hasharry.StringToAddress(address)
+	nonce := a.txPool.GetPendingNonce(addr)
+	sNonce := strconv.FormatUint(nonce, 10)
+	return sNonce, nil
+}
+
 func (a *Api) GetTransaction(hashStr string) (*coreTypes.RpcTransactionConfirmed, error) {
 	hash, err := hasharry.StringToHash(hashStr)
 	if err != nil {
