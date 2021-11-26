@@ -81,6 +81,7 @@ type RlpContractV2 struct {
 
 type IContractV2Body interface {
 	Bytes() []byte
+	GetSymbol() string
 }
 
 func DecodeContractV2(bytes []byte) (*ContractV2, error) {

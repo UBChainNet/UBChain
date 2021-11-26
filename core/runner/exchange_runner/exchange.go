@@ -410,7 +410,7 @@ func (e *ExchangeRunner) SwapExactIn(blockTime uint64) {
 		} else {
 			state.Event = e.events
 		}
-		if e.height < 750000{
+		if e.height < param.UIPBlock_2{
 			state.Event = e.events
 		}
 		e.exState.library.SetContractV2State(e.tx.Hash().String(), state)
@@ -510,7 +510,7 @@ func (e *ExchangeRunner) swap(tokenA, tokenB hasharry.Address, amount0In, amount
 	}
 
 	// 规则变更
-	if e.height < 633800 {
+	if e.height < param.UIPBlock_1 {
 		// pair账户有lock余额，导致出错
 		balance0 = e.exState.library.GetBalance(pairAddress, _token0)
 		balance1 = e.exState.library.GetBalance(pairAddress, _token1)

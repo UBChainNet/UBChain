@@ -11,7 +11,6 @@ import (
 	exchange2 "github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
 	"github.com/UBChainNet/UBChain/crypto/base58"
-	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 	"sort"
 )
@@ -370,7 +369,7 @@ func (p *PledgeRunner) PreAddPairPoolVerify() error {
 	/*if p.pdState.body.ExistPairPool(pair) {
 		return errors.New("the pair already exists")
 	}*/
-	pairBody, _ := p.pdState.library.GetPair(pair)
+	/*pairBody, _ := p.pdState.library.GetPair(pair)
 	if !pairBody.Token0.IsEqual(param.Token) {
 		pairAddress, _ := PairAddress(param.Net, param.Token, pairBody.Token0, exchange)
 		_, err = p.pdState.library.GetPair(hasharry.StringToAddress(pairAddress))
@@ -384,7 +383,7 @@ func (p *PledgeRunner) PreAddPairPoolVerify() error {
 		if err != nil {
 			return fmt.Errorf("token %s must have a pairing with %s", pairBody.Token0.String(), param.Token.String())
 		}
-	}
+	}*/
 	return nil
 }
 

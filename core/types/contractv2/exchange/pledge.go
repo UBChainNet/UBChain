@@ -619,9 +619,13 @@ func (p *Pledge) ToRlpV2() *RlpPledgeV2 {
 	return rlpPledge
 }
 
+func (p *Pledge)GetSymbol() string{
+	return ""
+}
+
 func (p *Pledge) Bytes() []byte {
 	var bytes []byte
-	if p.Start > 754760{
+	if p.Start > param.UIPBlock_3{
 		bytes, _ = rlp.EncodeToBytes(p.ToRlpV2())
 	}else{
 		bytes, _ = rlp.EncodeToBytes(p.ToRlp())
