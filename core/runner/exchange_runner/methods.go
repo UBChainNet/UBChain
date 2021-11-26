@@ -374,4 +374,29 @@ var pledgeMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"GetPoolInfos": &MethodInfo{
+		Name:   "GetPoolInfos",
+		Params: []Value{},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPoolInfo": &MethodInfo{
+		Name:   "GetPoolInfo",
+		Params: []Value{
+			{
+				Name: "pair contract address",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
 }

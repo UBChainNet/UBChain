@@ -388,6 +388,55 @@ func (p *Pledge) GetDeletedPledge(address, pair hasharry.Address) uint64 {
 	return addrPledge[address]
 }
 
+type PoolInfo struct {
+	Address string
+	YieldRate float64
+	TotalPledge uint64
+	TotalReward uint64
+
+}
+
+func (p *Pledge) GetPoolInfo(pair hasharry.Address) *PoolInfo {
+	blockReward, exist := p.PairPoolWithCount[pair]
+	if !exist{
+		return &PoolInfo{}
+	}
+	pledge := p.PledgePair[pair]
+	var yields float64
+	if pledge != 0{
+		yields = float64(blockReward) / float64(pledge)
+	}else{
+		yields = float64(blockReward) / 1e8
+	}
+	return &PoolInfo{
+		Address:     pair.String(),
+		YieldRate:   yields,
+		TotalPledge: pledge,
+		TotalReward: blockReward,
+	}
+}
+
+func (p *Pledge) GetPoolInfos() []PoolInfo {
+	infos := make([]PoolInfo, 0)
+	for pair, blockReward := range p.PairPoolWithCount{
+		pledge := p.PledgePair[pair]
+		var yields float64
+		if pledge != 0{
+			yields = float64(blockReward) / float64(pledge)
+		}else{
+			yields = float64(blockReward) / 1e8
+		}
+		infos = append(infos, PoolInfo{
+			Address:     pair.String(),
+			YieldRate:   yields,
+			TotalPledge: pledge,
+			TotalReward: blockReward,
+		})
+
+	}
+	return infos
+}
+
 func (p *Pledge) GetPledgeYields() map[hasharry.Address]float64{
 	yields := map[hasharry.Address]float64{}
 	for pair, blockReward := range p.PairPoolWithCount{

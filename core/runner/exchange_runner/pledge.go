@@ -13,6 +13,7 @@ import (
 	"github.com/UBChainNet/UBChain/crypto/base58"
 	"github.com/UBChainNet/UBChain/ut"
 	"sort"
+	"strings"
 )
 
 type PledgeState struct {
@@ -45,13 +46,47 @@ func (ps *PledgeState) MethodExist(method string) bool {
 	return exist
 }
 
+type PledgePool struct {
+	Address string `json:"address"`
+	YieldRate float64 `json:"yieldRate"`
+	TotalPledge float64 `json:"totalPledge"`
+	TotalReward float64 `json:"totalReward"`
+}
+
+func (ps *PledgeState) GetPoolInfos() []*PledgePool {
+	var pledgePools []*PledgePool
+	infos := ps.body.GetPoolInfos()
+	for _, info := range infos {
+		pledgePools = append(pledgePools, &PledgePool{
+			Address:     info.Address,
+			YieldRate:   info.YieldRate,
+			TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
+			TotalReward: types.Amount(info.TotalReward).ToCoin(),
+		})
+	}
+	sort.Slice(pledgePools, func(i, j int) bool {
+		return strings.Compare(pledgePools[i].Address , pledgePools[j].Address) < 0
+	})
+	return pledgePools
+}
+
+func (ps *PledgeState) GetPoolInfo(pair string) *PledgePool {
+	info := ps.body.GetPoolInfo(hasharry.StringToAddress(pair))
+	return &PledgePool{
+		Address:     info.Address,
+		YieldRate:   info.YieldRate,
+		TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
+		TotalReward: types.Amount(info.TotalReward).ToCoin(),
+	}
+}
+
+
 type PledgeYield struct {
 	Pair string `json:"pair"`
 	YieldRate float64 `json:"yieldRate"`
 }
 
 func (ps *PledgeState) GetPledgeYields() []*PledgeYield {
-	_ = ps.updatePledge(ps.chainHeight)
 	var yieldList []*PledgeYield
 	yields := ps.body.GetPledgeYields()
 	for pair, yield := range yields {
