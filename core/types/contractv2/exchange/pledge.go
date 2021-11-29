@@ -248,17 +248,15 @@ func (p *Pledge) RemoveReward(address hasharry.Address, height uint64) ([]Reward
 func (p *Pledge) GetPledgeAmount(address, pair hasharry.Address) (matureLp uint64, deleteLp uint64) {
 	matureLp = 0
 	addrPledge, exist := p.MaturePairAccount[pair]
-	if !exist {
-		return
+	if exist {
+		matureLp = addrPledge[address]
 	}
-	matureLp = addrPledge[address]
 
 	deleteLp = 0
 	addrPledge, exist = p.DeletedPairAccount[pair]
-	if !exist {
-		return
+	if exist {
+		deleteLp = addrPledge[address]
 	}
-	deleteLp = addrPledge[address]
 	return
 }
 
