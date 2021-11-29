@@ -140,30 +140,26 @@ func (p *Pledge) Out(address hasharry.Address, pair hasharry.Address, amount uin
 	if addrPledge, exist := p.DeletedPairAccount[pair];exist{
 		if addrPledge[address] >= amount{
 			addrPledge[address] -= amount
-			return nil
 		}else{
 			return errors.New("insufficient pledge")
 		}
-	}
-	//
-	if amount == 0 {
-		return nil
-	}
-	addrPledge, exist := p.MaturePairAccount[pair]
-	if !exist {
-		return fmt.Errorf("insufficient pledge")
-	}
-	lp := addrPledge[address]
-	if lp >= amount {
-		addrPledge[address] -= amount
-		if addrPledge[address] == 0 {
-			delete(addrPledge, address)
+	}else{
+		addrPledge, exist = p.MaturePairAccount[pair]
+		if !exist {
+			return fmt.Errorf("insufficient pledge")
 		}
-	} else {
-		return fmt.Errorf("insufficient pledge")
-	}
-	if len(addrPledge) == 0 {
-		delete(p.MaturePairAccount, pair)
+		lp := addrPledge[address]
+		if lp >= amount {
+			addrPledge[address] -= amount
+			if addrPledge[address] == 0 {
+				delete(addrPledge, address)
+			}
+		} else {
+			return fmt.Errorf("insufficient pledge")
+		}
+		if len(addrPledge) == 0 {
+			delete(p.MaturePairAccount, pair)
+		}
 	}
 
 	//
