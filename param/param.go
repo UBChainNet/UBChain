@@ -21,8 +21,8 @@ var (
 	// Token name
 	Token = hasharry.StringToAddress("UBC")
 
-	FeeAddress   = hasharry.StringToAddress("UBCWUP6SUEmr9A4zn5Zg32ECksunWYCK1pME")
-	EaterAddress = hasharry.StringToAddress("UBCCoinEaterAddressDontSend000000000")
+	FeeAddress   = hasharry.StringToAddress("ubcbaQvSw9oerHyJUWah4GhSkdUPAmqg4qpx")
+	EaterAddress = hasharry.StringToAddress("ubcCoinEaterAddressDontSend000000000")
 )
 
 const (
@@ -108,7 +108,7 @@ type MappingInfo struct {
 
 var MappingCoin = []MappingInfo{
 	{
-		Address: "UBCcPiBk8whzcvponweqryK5yi4qvRFLuxwt",
+		Address: "ubcdkaH2gypSVGiq3bLG1NJsqwqXautd3xak",
 		Note:    "",
 		Amount:  5000 * 1e4 * 1e8,
 	},
@@ -132,19 +132,19 @@ func InitMinerReward(){
 // The first half is the address of the block, the second half is the id of the block node
 var InitialCandidates = []CandidatesInfo{
 	{
-		Address: "UBCg9GXPwdctmXNW4nhcLU1StoqiKEcbkrnu",
-		Reward:  "UBCg9GXPwdctmXNW4nhcLU1StoqiKEcbkrnu",
-		PeerId:  "16Uiu2HAmQPMKG7YmTgSfawNhGxqtpHD9UgZJDeT3M9SwUMZvX8ZG",
+		Address: "ubci8DDtULsHyYAa8XJMD5qADv2JdCDGcUkJ",
+		Reward:  "ubci8DDtULsHyYAa8XJMD5qADv2JdCDGcUkJ",
+		PeerId:  "16Uiu2HAkvMA9jU45K8ndvJ4rsRL8a91d4YtLc1kxa2LRaAeeUFYX",
 	},
 	{
-		Address: "UBCb67g1craQPLMaWfzCWjQAhRdnaB3YJCWm",
-		Reward:  "UBCb67g1craQPLMaWfzCWjQAhRdnaB3YJCWm",
-		PeerId:  "16Uiu2HAm52qoL4iX9svhzS8neSo18mcu4qJiTYW9mXgBriHy7j4Q",
+		Address: "ubcbVHm347qfaFw9bpyDyztTyhvqDbVZbD5t",
+		Reward:  "ubcbVHm347qfaFw9bpyDyztTyhvqDbVZbD5t",
+		PeerId:  "16Uiu2HAmMhj8As8V7Q9oVyPB65Bb7E5oXzwe2BHK16HuqKKSCS5S",
 	},
 	{
-		Address: "UBCNgDzJGyp1vGuZU7Q8YunzAVDjhe4JPSwr",
-		Reward:  "UBCNgDzJGyp1vGuZU7Q8YunzAVDjhe4JPSwr",
-		PeerId:  "16Uiu2HAmHPdnVSs68yEct8bggyfuPQLQykBQipLfkrn8wftL2V8C",
+		Address: "ubcgZrNvnQED7zHZhF5AHeMkBHYcqZCRmcWN",
+		Reward:  "ubcgZrNvnQED7zHZhF5AHeMkBHYcqZCRmcWN",
+		PeerId:  "16Uiu2HAmL3mrRHLRdiSovm6pXCuepeVE4zT76AKtiWGzMwFnXn7G",
 	},
 	/*{
 		Address: "UBChoP2pHAZusPKEzYDPUke7Vqn4KWi2UBNJ",
