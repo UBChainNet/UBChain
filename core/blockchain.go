@@ -585,7 +585,7 @@ func (blc *BlockChain) FallBackTo(height uint64) error {
 func (blc *BlockChain) FallBack() {
 	err := blc.FallBackTo(blc.GetConfirmedHeight())
 	if err != nil {
-		blc.FallBackTo(blc.GetConfirmedHeight() - param.MaxWinnerSize)
+		blc.FallBackTo(blc.GetConfirmedHeight() - uint64(param.MaxWinnerSize))
 	}
 }
 

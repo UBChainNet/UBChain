@@ -499,7 +499,7 @@ func (p *PairRunner) AddLiquidity() {
 	}
 	// blocktime 错误处理
 	blockTime := p.height
-	if p.height >= param.UIPBlock_2{
+	if p.height >= param.UIPBlock2 {
 		blockTime = p.blockTime
 	}
 	if p.addBody.TokenA.IsEqual(p.pairState.pairBody.Token0) {
@@ -605,7 +605,7 @@ func (p *PairRunner) RemoveLiquidity() {
 
 	// blocktime 错误处理
 	blockTime := p.height
-	if p.height >= param.UIPBlock_2{
+	if p.height >= param.UIPBlock2 {
 		blockTime = p.blockTime
 	}
 

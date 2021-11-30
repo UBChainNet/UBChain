@@ -21,22 +21,23 @@ var (
 	// Token name
 	Token = hasharry.StringToAddress("UBC")
 
-	FeeAddress   = hasharry.StringToAddress("ubcbaQvSw9oerHyJUWah4GhSkdUPAmqg4qpx")
-	EaterAddress = hasharry.StringToAddress("ubcCoinEaterAddressDontSend000000000")
+	FeeAddress   = hasharry.StringToAddress("UBCWUP6SUEmr9A4zn5Zg32ECksunWYCK1pME")
+	EaterAddress = hasharry.StringToAddress("UBCCoinEaterAddressDontSend000000000")
 )
 
-const (
+var (
 	// Block interval period
-	BlockInterval = uint64(5)
+	BlockInterval = uint64(15)
 	// Re-election interval
-	TermInterval = 60 * 60 * 24 * 365 * 100
+	TermInterval uint64 = 60 * 60 * 24 * 365 * 100
 	// Maximum number of super nodes
-	MaxWinnerSize = 3
+	MaxWinnerSize = 9
 	// The minimum number of nodes required to confirm the transaction
 	SafeSize = MaxWinnerSize*2/3 + 1
 	// The minimum threshold at which a block is valid
-	ConsensusSize                 = MaxWinnerSize*2/3 + 1
-	SkipCurrentWinnerWaitTimeBase = BlockInterval * MaxWinnerSize * 1
+	ConsensusSize  = MaxWinnerSize*2/3 + 1
+
+	SkipCurrentWinnerWaitTimeBase  = int(BlockInterval) * (MaxWinnerSize) * 1
 )
 
 const (
@@ -79,17 +80,11 @@ const (
 	MaximumReceiver = 1000
 )
 
-const(
-	/*UIPBlock_1 = 633800
-	UIPBlock_2 = 750000
-	UIPBlock_3 = 754760*/
-	UIPBlock_1 = 0
-	UIPBlock_2 = 0
-	UIPBlock_3 = 0
+var(
+	UIPBlock1 uint64 = 633800
+	UIPBlock2 uint64 = 750000
+	UIPBlock3 uint64 = 754760
 )
-
-
-
 
 var (
 	MainPubKeyHashAddrID  = [3]byte{0x03, 0x77, 0x7d} //UBC 3, 82, 32
@@ -108,7 +103,7 @@ type MappingInfo struct {
 
 var MappingCoin = []MappingInfo{
 	{
-		Address: "ubcdkaH2gypSVGiq3bLG1NJsqwqXautd3xak",
+		Address: "UBCVHn5fGP34Uf3iRCHJrw2HnvCWVVJmmZ3K",
 		Note:    "",
 		Amount:  5000 * 1e4 * 1e8,
 	},
@@ -132,21 +127,21 @@ func InitMinerReward(){
 // The first half is the address of the block, the second half is the id of the block node
 var InitialCandidates = []CandidatesInfo{
 	{
-		Address: "ubci8DDtULsHyYAa8XJMD5qADv2JdCDGcUkJ",
-		Reward:  "ubci8DDtULsHyYAa8XJMD5qADv2JdCDGcUkJ",
-		PeerId:  "16Uiu2HAkvMA9jU45K8ndvJ4rsRL8a91d4YtLc1kxa2LRaAeeUFYX",
+		Address: "UBCUnJZqeyLurgWQ2PvQhMGus36t4585T25C",
+		Reward:  "UBCdvXm83tnWDkVReQipXnKAkdH1qEnmFHf9",
+		PeerId:  "16Uiu2HAkwzWaFqLs6Xn8kUhhXXtcwmRsLkzBrPREpUBEM3qjMwFL",
 	},
 	{
-		Address: "ubcbVHm347qfaFw9bpyDyztTyhvqDbVZbD5t",
-		Reward:  "ubcbVHm347qfaFw9bpyDyztTyhvqDbVZbD5t",
-		PeerId:  "16Uiu2HAmMhj8As8V7Q9oVyPB65Bb7E5oXzwe2BHK16HuqKKSCS5S",
+		Address: "UBCLDyD7zpzuMDJF8GagDgVDtqR7tosdjEWX",
+		Reward:  "UBCNry75WY4T6jwdzaBV1VZ9YqQTDs3AZUWj",
+		PeerId:  "16Uiu2HAmFTT8zNsHYywAQmcd8k35aDLbfvgKKku7D1Tbc8GApxUt",
 	},
 	{
-		Address: "ubcgZrNvnQED7zHZhF5AHeMkBHYcqZCRmcWN",
-		Reward:  "ubcgZrNvnQED7zHZhF5AHeMkBHYcqZCRmcWN",
-		PeerId:  "16Uiu2HAmL3mrRHLRdiSovm6pXCuepeVE4zT76AKtiWGzMwFnXn7G",
+		Address: "UBCNZ8bg8DhaoYEprADH3RpRgwvEKXvLPqBj",
+		Reward:  "UBCcJ9uNnAbfwJu8dEp8PPmmJUQSJdD8k94X",
+		PeerId:  "16Uiu2HAmVaCCCCXHvaCZ9jzeqeEk4WJXFgfDtV4ryPWzmsBwYG9P",
 	},
-	/*{
+	{
 		Address: "UBChoP2pHAZusPKEzYDPUke7Vqn4KWi2UBNJ",
 		Reward:  "UBCXxJsYzkUV5ChcBkHpBDvTLCYaTaVfnxHR",
 		PeerId:  "16Uiu2HAm7KXydcXNuJp7rZD5VP7eRaqQneW2GJ485yYnKrnwz2LF",
@@ -175,9 +170,9 @@ var InitialCandidates = []CandidatesInfo{
 		Address: "UBCdN1SfngYus39EhvEsVrm8jmam32fqhjmP",
 		Reward:  "UBCKuSDm39PA41NquWJLuw5jc1crDQWmVXgU",
 		PeerId:  "16Uiu2HAmDtfuGh4J4yzXAvfy2bG7ttbeWUQ1hQ77YYcq65j921M8",
-	},*/
+	},
 }
 
-
-
-
+var Boots  = []string{
+	"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
+}

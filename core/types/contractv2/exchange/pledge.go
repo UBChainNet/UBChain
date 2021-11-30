@@ -59,9 +59,6 @@ type Pledge struct {
 	AccountReward map[hasharry.Address]map[hasharry.Address]uint64
 }
 
-const dayBlocks =  60 * 60 * 24 / param.BlockInterval
-//const dayBlocks = 60 * 2 / param.BlockInterval
-
 func NewPledge(exchange, ReceiveAddress, admin hasharry.Address, symbol string, maxSupply,
 	preMint, height uint64) *Pledge {
 	return &Pledge{
@@ -668,7 +665,7 @@ func (p *Pledge)GetSymbol() string{
 
 func (p *Pledge) Bytes() []byte {
 	var bytes []byte
-	if p.Start > param.UIPBlock_3{
+	if p.Start > param.UIPBlock3 {
 		bytes, _ = rlp.EncodeToBytes(p.ToRlpV2())
 	}else{
 		bytes, _ = rlp.EncodeToBytes(p.ToRlp())
