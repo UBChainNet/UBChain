@@ -37,8 +37,6 @@ func NewExchangeState(runnerLibrary *library.RunnerLibrary, exAddress string) (*
 	}, nil
 }
 
-
-
 func (es *ExchangeState) Methods() map[string]*method.MethodInfo {
 	return method.ExMethods
 }

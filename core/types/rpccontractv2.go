@@ -107,7 +107,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 	case contractv2.TokenHub_:
 		th, _ := contract.Body.(*tokenhub.TokenHub)
 		thTrs := make(map[uint64]*TokenHubTransfer, 0)
-		for _, tr := range th.Transfers{
+		for _, tr := range th.Transfers {
 			thTrs[tr.Sequence] = &TokenHubTransfer{
 				Sequence: tr.Sequence,
 				From:     tr.From,
@@ -117,7 +117,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 			}
 		}
 		unTrs := make(map[uint64]*TokenHubTransfer, 0)
-		for _, tr := range th.Unconfirmed{
+		for _, tr := range th.Unconfirmed {
 			unTrs[tr.Sequence] = &TokenHubTransfer{
 				Sequence: tr.Sequence,
 				From:     tr.From,
@@ -140,21 +140,21 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 	return nil
 }
 
-type TokenHubTransfer struct{
-	Sequence uint64 `json:"sequence"`
-	From string `json:"from"`
-	To   string `json:"to"`
-	Amount float64 `json:"amount"`
-	Fees  float64`json:"fees"`
+type TokenHubTransfer struct {
+	Sequence uint64  `json:"sequence"`
+	From     string  `json:"from"`
+	To       string  `json:"to"`
+	Amount   float64 `json:"amount"`
+	Fees     float64 `json:"fees"`
 }
 
 type RpcTokenHub struct {
-	Address string `json:"address"`
-	Setter string `json:"setter"`
-	Admin string `json:"admin"`
-	FeeTo string `json:"feeTo"`
-	FeeRate  float64 `json:"feeRate"`
-	Transfers map[uint64]*TokenHubTransfer `json:"transfers"`
+	Address     string                       `json:"address"`
+	Setter      string                       `json:"setter"`
+	Admin       string                       `json:"admin"`
+	FeeTo       string                       `json:"feeTo"`
+	FeeRate     float64                      `json:"feeRate"`
+	Transfers   map[uint64]*TokenHubTransfer `json:"transfers"`
 	Unconfirmed map[uint64]*TokenHubTransfer `json:"unconfirmed"`
-	Sequence uint64
+	Sequence    uint64
 }

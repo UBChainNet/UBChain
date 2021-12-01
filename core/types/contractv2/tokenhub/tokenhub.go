@@ -15,60 +15,60 @@ const MaxTransferLength = 10000
 
 type AckType uint8
 
-const(
-	Send AckType = 1
-	Confirmed  = 2
-	Failed = 3
+const (
+	Send      AckType = 1
+	Confirmed         = 2
+	Failed            = 3
 )
 
 type Transfer struct {
 	Sequence uint64 `json:"sequence"`
-	From string `json:"from"`
-	To   string `json:"to"`
-	Amount uint64 `json:"amount"`
-	Fees  uint64 `json:"fees"`
+	From     string `json:"from"`
+	To       string `json:"to"`
+	Amount   uint64 `json:"amount"`
+	Fees     uint64 `json:"fees"`
 }
 
 type TokenHub struct {
-	Address hasharry.Address
-	Setter hasharry.Address
-	Admin hasharry.Address
-	FeeTo hasharry.Address
-	FeeRate  float64
-	Transfers map[uint64]*Transfer
+	Address     hasharry.Address
+	Setter      hasharry.Address
+	Admin       hasharry.Address
+	FeeTo       hasharry.Address
+	FeeRate     float64
+	Transfers   map[uint64]*Transfer
 	Unconfirmed map[uint64]*Transfer
-	Sequence uint64
+	Sequence    uint64
 }
 
-func NewTokenHub(address, setter, admin, feeTo hasharry.Address, feeRate float64)*TokenHub{
+func NewTokenHub(address, setter, admin, feeTo hasharry.Address, feeRate float64) *TokenHub {
 	return &TokenHub{
-		Address: address,
-		Setter:     setter,
-		Admin:        admin,
-		FeeTo:        feeTo,
-		FeeRate:      feeRate,
-		Transfers: make(map[uint64]*Transfer),
-		Unconfirmed:  make(map[uint64]*Transfer),
+		Address:     address,
+		Setter:      setter,
+		Admin:       admin,
+		FeeTo:       feeTo,
+		FeeRate:     feeRate,
+		Transfers:   make(map[uint64]*Transfer),
+		Unconfirmed: make(map[uint64]*Transfer),
 	}
 }
 
-func (t *TokenHub)SetSetter(from, setter hasharry.Address) error {
-	if !from.IsEqual(t.Setter){
+func (t *TokenHub) SetSetter(from, setter hasharry.Address) error {
+	if !from.IsEqual(t.Setter) {
 		return errors.New("forbidden")
 	}
 	t.Setter = setter
 	return nil
 }
 
-func (t *TokenHub)SetAdmin(from, admin hasharry.Address) error {
-	if !from.IsEqual(t.Setter){
+func (t *TokenHub) SetAdmin(from, admin hasharry.Address) error {
+	if !from.IsEqual(t.Setter) {
 		return errors.New("forbidden")
 	}
 	t.Setter = admin
 	return nil
 }
 
-func (t *TokenHub)SetFeeTo(from, feeTo hasharry.Address) error {
+func (t *TokenHub) SetFeeTo(from, feeTo hasharry.Address) error {
 	if !from.IsEqual(t.Setter) {
 		return errors.New("forbidden")
 	}
@@ -76,7 +76,7 @@ func (t *TokenHub)SetFeeTo(from, feeTo hasharry.Address) error {
 	return nil
 }
 
-func (t *TokenHub)SetFeeRate(from hasharry.Address, rate float64) error {
+func (t *TokenHub) SetFeeRate(from hasharry.Address, rate float64) error {
 	if !from.IsEqual(t.Setter) {
 		return errors.New("forbidden")
 	}
@@ -84,31 +84,31 @@ func (t *TokenHub)SetFeeRate(from hasharry.Address, rate float64) error {
 	return nil
 }
 
-func (t *TokenHub)Transfer(from hasharry.Address, to string, amount uint64) ([]*TransferEvent, error){
-	if !from.IsEqual(t.Admin){
+func (t *TokenHub) Transfer(from hasharry.Address, to string, amount uint64) ([]*TransferEvent, error) {
+	if !from.IsEqual(t.Admin) {
 		return nil, errors.New("forbidden")
 	}
-	if amount < MinTransferAmount{
+	if amount < MinTransferAmount {
 		return nil, fmt.Errorf("the minimum allowable transfer amount is %d", MinTransferAmount)
 	}
-	if !common.IsHexAddress(to){
+	if !common.IsHexAddress(to) {
 		return nil, errors.New("incorrect to address")
 	}
-	if len(t.Transfers) >= MaxTransferLength{
+	if len(t.Transfers) >= MaxTransferLength {
 		return nil, errors.New("too many transfers, please wait")
 	}
 	fees := uint64(float64(amount) * t.FeeRate)
-	if fees >= amount{
+	if fees >= amount {
 		return nil, errors.New("the transfer fee is insufficient")
 	}
 
 	t.Sequence++
 	t.Transfers[t.Sequence] = &Transfer{
 		Sequence: t.Sequence,
-		From:   from.String(),
-		To:     to,
-		Amount: amount - fees,
-		Fees:   fees,
+		From:     from.String(),
+		To:       to,
+		Amount:   amount - fees,
+		Fees:     fees,
 	}
 	var events []*TransferEvent
 	events = append(events, &TransferEvent{
@@ -120,29 +120,29 @@ func (t *TokenHub)Transfer(from hasharry.Address, to string, amount uint64) ([]*
 	return events, nil
 }
 
-func (t *TokenHub)AckTransfer(from hasharry.Address, ackData map[uint64]AckType)([]*TransferEvent, error) {
-	if !from.IsEqual(t.Admin){
+func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType) ([]*TransferEvent, error) {
+	if !from.IsEqual(t.Admin) {
 		return nil, errors.New("forbidden")
 	}
-	if len(ackData) == 0{
+	if len(ackData) == 0 {
 		return nil, errors.New("invalid ack data")
 	}
-	var events  = []*TransferEvent{}
-	for sequence, ack := range ackData{
+	var events = []*TransferEvent{}
+	for sequence, ack := range ackData {
 		switch ack {
 		case Send:
 			transfer, exist := t.Transfers[sequence]
-			if exist{
+			if exist {
 				delete(t.Transfers, sequence)
-			}else{
+			} else {
 				return nil, fmt.Errorf("ack transafer sequence %d does not exist", sequence)
 			}
 			t.Unconfirmed[sequence] = transfer
 		case Confirmed:
 			transfer, exist := t.Unconfirmed[sequence]
-			if exist{
+			if exist {
 				delete(t.Unconfirmed, sequence)
-			}else{
+			} else {
 				return nil, fmt.Errorf("ack unconfirmed sequence %d does not exist", sequence)
 			}
 			events = append(events, &TransferEvent{
@@ -153,13 +153,13 @@ func (t *TokenHub)AckTransfer(from hasharry.Address, ackData map[uint64]AckType)
 			})
 		case Failed:
 			transfer, exist := t.Transfers[sequence]
-			if exist{
+			if exist {
 				delete(t.Transfers, sequence)
-			}else{
+			} else {
 				transfer, exist = t.Unconfirmed[sequence]
-				if exist{
+				if exist {
 					delete(t.Unconfirmed, sequence)
-				}else{
+				} else {
 					return nil, fmt.Errorf("ack failed transfer sequence %d does not exist", sequence)
 				}
 			}
@@ -204,28 +204,31 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 	return rlpTh
 }
 
-func (t *TokenHub)Bytes() []byte {
+func (t *TokenHub) Bytes() []byte {
 	bytes, _ := rlp.EncodeToBytes(t.ToRlp())
 	return bytes
 }
 
-type TransferEvent struct {
-	From      hasharry.Address
-	To        hasharry.Address
-	Token     hasharry.Address
-	Amount    uint64
+func (t *TokenHub) GetSymbol() string {
+	return ""
 }
 
+type TransferEvent struct {
+	From   hasharry.Address
+	To     hasharry.Address
+	Token  hasharry.Address
+	Amount uint64
+}
 
 type RlpTokenHub struct {
-	Address string
-	Setter string
-	Admin string
-	FeeTo string
-	FeeRate  float64
-	Transfers []*Transfer
+	Address     string
+	Setter      string
+	Admin       string
+	FeeTo       string
+	FeeRate     float64
+	Transfers   []*Transfer
 	Unconfirmed []*Transfer
-	Sequence uint64
+	Sequence    uint64
 }
 
 func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {

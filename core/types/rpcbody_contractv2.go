@@ -91,20 +91,20 @@ type RpcExchangeRemoveLiquidity struct {
 }
 
 type RpcPledgeInit struct {
-	Exchange         string `json:"exchange"`
-	Receiver         string `json:"receiver"`
-	Admin            string `json:"admin"`
-	PreMint          uint64 `json:"premint"`
-	MaxSupply        uint64 `json:"maxsupply"`
+	Exchange  string `json:"exchange"`
+	Receiver  string `json:"receiver"`
+	Admin     string `json:"admin"`
+	PreMint   uint64 `json:"premint"`
+	MaxSupply uint64 `json:"maxsupply"`
 }
 
 type RpcPledgeStart struct {
-	BlockMintAmount    uint64 `json:"blockmintamount"`
+	BlockMintAmount  uint64 `json:"blockmintamount"`
 	PledgeMatureTime uint64 `json:"pledgematuretime"`
 }
 
 type RpcPledgeAddPool struct {
-	Pair string `json:"pair"`
+	Pair        string `json:"pair"`
 	BlockReward uint64 `json:"blockreward"`
 }
 
@@ -128,11 +128,10 @@ type RpcPledgeRewardRemove struct {
 type RpcPledgeUpdate struct {
 }
 
-
 type RpcTokenHubInit struct {
-	Setter string `json:"setter"`
-	Admin  string `json:"admin"`
-	FeeTo  string `json:"feeto"`
+	Setter  string  `json:"setter"`
+	Admin   string  `json:"admin"`
+	FeeTo   string  `json:"feeto"`
 	FeeRate float64 `json:"feerate"`
 }
 

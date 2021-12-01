@@ -41,7 +41,7 @@ const (
 	Token_Init = 300000
 
 	TokenHub_init = 400000
-	TokenHub_Ack =  400001
+	TokenHub_Ack  = 400001
 )
 
 type ContractV2 struct {

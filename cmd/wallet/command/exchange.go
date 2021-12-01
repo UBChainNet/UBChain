@@ -913,8 +913,6 @@ func parseCPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	}
 	preMint, _ := types.NewAmount(preMintf)
 
-
-
 	if len(args) > 7 {
 		nonce, err = strconv.ParseUint(args[7], 10, 64)
 		if err != nil {
@@ -1021,7 +1019,6 @@ func parseAPPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	}
 	return tx, nil
 }
-
 
 var RemovePledgePoolCmd = &cobra.Command{
 	Use:     "RemovePledgePool {from} {contract} {pair} {password} {nonce};remove pledge pair;",
@@ -1464,7 +1461,6 @@ func parseUPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	return tx, nil
 }
 
-
 var StartPledgeCmd = &cobra.Command{
 	Use:     "StartPledge {from} {contract} {block mint} {mature blocks} {password} {nonce};start pair pledge reward;",
 	Aliases: []string{"startpledge", "sp", "SP"},
@@ -1539,7 +1535,6 @@ func parseSPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	contract := args[1]
 	blockMintStr := args[2]
 	matureTimeStr := args[3]
-
 
 	blockMintStrf, err := strconv.ParseFloat(blockMintStr, 64)
 	if err != nil {

@@ -43,7 +43,6 @@ func (ts *TokenHubState) MethodExist(mth string) bool {
 	return exist
 }
 
-
 type TokenHubRunner struct {
 	thState      *TokenHubState
 	address      hasharry.Address
@@ -80,11 +79,10 @@ func NewTokenHubRunner(lib *library.RunnerLibrary, tx types.ITransaction, height
 	}, nil
 }
 
-
 func (t *TokenHubRunner) PreInitVerify() error {
 	th := t.thState.library.GetContractV2(t.address.String())
 	if th != nil {
-		if t.thState.body.Setter != t.tx.From(){
+		if t.thState.body.Setter != t.tx.From() {
 			return errors.New("forbidden")
 		}
 	}
@@ -105,33 +103,33 @@ func (t *TokenHubRunner) Init() {
 	}()
 
 	initBody := t.contractBody.Function.(*tokenhub_func.TokenHubInitBody)
-	if t.thState.header == nil{
+	if t.thState.header == nil {
 		t.thState.header = &contractv2.ContractV2{
 			Address:    t.contractBody.Contract,
 			CreateHash: t.tx.Hash(),
 			Type:       t.contractBody.Type,
-			Body:       tokenhub.NewTokenHub(
+			Body: tokenhub.NewTokenHub(
 				t.contractBody.Contract,
 				initBody.Setter,
 				initBody.Admin,
 				initBody.FeeTo,
 				initBody.FeeRate,
-				),
+			),
 		}
-	}else{
-		if err := t.thState.body.SetSetter(t.tx.From(), initBody.Setter); err != nil{
+	} else {
+		if err := t.thState.body.SetSetter(t.tx.From(), initBody.Setter); err != nil {
 			ERR = err
 			return
 		}
-		if err := t.thState.body.SetAdmin(t.tx.From(), initBody.Admin); err != nil{
+		if err := t.thState.body.SetAdmin(t.tx.From(), initBody.Admin); err != nil {
 			ERR = err
 			return
 		}
-		if err := t.thState.body.SetFeeTo(t.tx.From(), initBody.FeeTo); err != nil{
+		if err := t.thState.body.SetFeeTo(t.tx.From(), initBody.FeeTo); err != nil {
 			ERR = err
 			return
 		}
-		if err := t.thState.body.SetFeeRate(t.tx.From(), initBody.FeeRate); err != nil{
+		if err := t.thState.body.SetFeeRate(t.tx.From(), initBody.FeeRate); err != nil {
 			ERR = err
 			return
 		}
@@ -148,7 +146,7 @@ func (t *TokenHubRunner) PreAckVerify() error {
 	}
 	ackBody := t.contractBody.Function.(*tokenhub_func.TokenHubAckBody)
 	ackData := make(map[uint64]tokenhub.AckType)
-	for i, sequence := range ackBody.Sequences{
+	for i, sequence := range ackBody.Sequences {
 		ackData[sequence] = tokenhub.AckType(ackBody.AckTypes[i])
 	}
 	_, err := t.thState.body.AckTransfer(t.tx.From(), ackData)
@@ -170,15 +168,15 @@ func (t *TokenHubRunner) AckTransfer() {
 
 	ackBody := t.contractBody.Function.(*tokenhub_func.TokenHubAckBody)
 	ackData := make(map[uint64]tokenhub.AckType)
-	for i, sequence := range ackBody.Sequences{
+	for i, sequence := range ackBody.Sequences {
 		ackData[sequence] = tokenhub.AckType(ackBody.AckTypes[i])
 	}
 	transfers, err := t.thState.body.AckTransfer(t.tx.From(), ackData)
-	if err != nil{
+	if err != nil {
 		ERR = err
 		return
 	}
-	for _, transfer := range transfers{
+	for _, transfer := range transfers {
 		t.transferEvent(transfer.From, transfer.To, transfer.Token, transfer.Amount)
 	}
 	t.update()
@@ -188,7 +186,6 @@ func (t *TokenHubRunner) update() {
 	t.thState.header.Body = t.thState.body
 	t.thState.library.SetContractV2(t.thState.header)
 }
-
 
 func (t *TokenHubRunner) transferEvent(from, to, token hasharry.Address, amount uint64) {
 	t.events = append(t.events, &types.Event{

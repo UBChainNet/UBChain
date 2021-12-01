@@ -358,11 +358,11 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeInitBody{
-				Exchange:         hasharry.StringToAddress(init.Exchange),
-				Receiver:         hasharry.StringToAddress(init.Receiver),
-				Admin:            hasharry.StringToAddress(init.Admin),
-				PreMint:          init.PreMint,
-				MaxSupply:        init.MaxSupply,
+				Exchange:  hasharry.StringToAddress(init.Exchange),
+				Receiver:  hasharry.StringToAddress(init.Receiver),
+				Admin:     hasharry.StringToAddress(init.Admin),
+				PreMint:   init.PreMint,
+				MaxSupply: init.MaxSupply,
 			},
 		}, nil
 	case contractv2.Pledge_Start:
@@ -401,7 +401,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeAddPoolBody{
-				Pair: hasharry.StringToAddress(addPool.Pair),
+				Pair:        hasharry.StringToAddress(addPool.Pair),
 				BlockReward: addPool.BlockReward,
 			},
 		}, nil
@@ -492,7 +492,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
-			Function:     &tokenhub_func.TokenHubInitBody{
+			Function: &tokenhub_func.TokenHubInitBody{
 				Setter:  hasharry.StringToAddress(init.Setter),
 				Admin:   hasharry.StringToAddress(init.Admin),
 				FeeTo:   hasharry.StringToAddress(init.FeeTo),
@@ -513,7 +513,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
-			Function:     &tokenhub_func.TokenHubAckBody{
+			Function: &tokenhub_func.TokenHubAckBody{
 				Sequences: ack.Sequences,
 				AckTypes:  ack.AckTypes,
 			},
@@ -696,11 +696,11 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeInit{
-			Exchange:         funcBody.Exchange.String(),
-			Receiver:         funcBody.Receiver.String(),
-			Admin:            funcBody.Admin.String(),
-			PreMint:          funcBody.PreMint,
-			MaxSupply:        funcBody.MaxSupply,
+			Exchange:  funcBody.Exchange.String(),
+			Receiver:  funcBody.Receiver.String(),
+			Admin:     funcBody.Admin.String(),
+			PreMint:   funcBody.PreMint,
+			MaxSupply: funcBody.MaxSupply,
 		}
 	case contractv2.Pledge_Start:
 		funcBody, ok := body.Function.(*exchange_func.PledgeStartBody)
@@ -708,7 +708,7 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeStart{
-			BlockMintAmount:    funcBody.BlockMintAmount,
+			BlockMintAmount:  funcBody.BlockMintAmount,
 			PledgeMatureTime: funcBody.PledgeMatureTime,
 		}
 	case contractv2.Pledge_AddPool:
@@ -717,7 +717,7 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeAddPool{
-			Pair: funcBody.Pair.String(),
+			Pair:        funcBody.Pair.String(),
 			BlockReward: funcBody.BlockReward,
 		}
 	case contractv2.Pledge_RemovePool:

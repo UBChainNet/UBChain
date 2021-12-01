@@ -396,7 +396,7 @@ var PledgeMethods = map[string]*MethodInfo{
 		},
 	},
 	"GetPoolInfo": &MethodInfo{
-		Name:   "GetPoolInfo",
+		Name: "GetPoolInfo",
 		Params: []Value{
 			{
 				Name: "pair contract address",

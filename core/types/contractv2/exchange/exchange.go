@@ -55,7 +55,7 @@ func NewExchange(admin, feeTo hasharry.Address, symbol string) (*Exchange, error
 	}, nil
 }
 
-func (e *Exchange)GetSymbol() string{
+func (e *Exchange) GetSymbol() string {
 	return e.Symbol
 }
 

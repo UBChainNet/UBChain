@@ -328,7 +328,7 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 	if !p.addBody.TokenA.IsEqual(param.Token) {
 		noMainTokenCount++
 		if contract := p.pairState.library.GetContract(p.addBody.TokenA.String()); contract == nil {
-			if contractV2 := p.pairState.library.GetContractV2(p.addBody.TokenA.String());contractV2 == nil{
+			if contractV2 := p.pairState.library.GetContractV2(p.addBody.TokenA.String()); contractV2 == nil {
 				return fmt.Errorf("tokenA %s is not exist", p.addBody.TokenA.String())
 			}
 		}
@@ -337,7 +337,7 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 	if !p.addBody.TokenB.IsEqual(param.Token) {
 		noMainTokenCount++
 		if contract := p.pairState.library.GetContract(p.addBody.TokenB.String()); contract == nil {
-			if contractV2 := p.pairState.library.GetContractV2(p.addBody.TokenB.String());contractV2 == nil{
+			if contractV2 := p.pairState.library.GetContractV2(p.addBody.TokenB.String()); contractV2 == nil {
 				return fmt.Errorf("tokenB %s is not exist", p.addBody.TokenB.String())
 			}
 		}
@@ -401,7 +401,7 @@ func (p *PairRunner) PreRemoveLiquidityVerify(lastHeight uint64) error {
 	}
 	if !p.removeBody.TokenA.IsEqual(param.Token) {
 		if contract := p.pairState.library.GetContract(p.removeBody.TokenA.String()); contract == nil {
-			if contractV2 := p.pairState.library.GetContractV2(p.removeBody.TokenA.String());contractV2 == nil{
+			if contractV2 := p.pairState.library.GetContractV2(p.removeBody.TokenA.String()); contractV2 == nil {
 				return fmt.Errorf("tokenA %s is not exist", p.removeBody.TokenA.String())
 			}
 		}
@@ -409,7 +409,7 @@ func (p *PairRunner) PreRemoveLiquidityVerify(lastHeight uint64) error {
 	}
 	if !p.removeBody.TokenB.IsEqual(param.Token) {
 		if contract := p.pairState.library.GetContract(p.removeBody.TokenB.String()); contract == nil {
-			if contractV2 := p.pairState.library.GetContractV2(p.removeBody.TokenB.String());contractV2 == nil{
+			if contractV2 := p.pairState.library.GetContractV2(p.removeBody.TokenB.String()); contractV2 == nil {
 				return fmt.Errorf("tokenB %s is not exist", p.removeBody.TokenB.String())
 			}
 		}

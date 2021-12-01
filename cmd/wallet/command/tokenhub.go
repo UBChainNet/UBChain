@@ -16,7 +16,6 @@ import (
 func init() {
 	tokenHubCmds := []*cobra.Command{
 		TokenHubInitCmd,
-
 	}
 	RootCmd.AddCommand(tokenHubCmds...)
 	RootSubCmdGroups["tokenhub"] = tokenHubCmds
@@ -99,8 +98,8 @@ func parseTHIParams(args []string, nonce uint64) (*types.Transaction, error) {
 	admin := args[3]
 	feeTo := args[4]
 	feeRatef := args[5]
-	feeRate , err := strconv.ParseFloat(feeRatef, 64)
-	if err != nil{
+	feeRate, err := strconv.ParseFloat(feeRatef, 64)
+	if err != nil {
 		return nil, err
 	}
 
@@ -110,7 +109,7 @@ func parseTHIParams(args []string, nonce uint64) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	if contract == ""{
+	if contract == "" {
 		contract, _ = tokenhub_runner.TokenHubAddress(Net, from, nonce)
 	}
 	tx, err := transaction.NewTokenHubInit(from, contract, setter, admin, feeTo, feeRate, nonce, "")
@@ -119,7 +118,6 @@ func parseTHIParams(args []string, nonce uint64) (*types.Transaction, error) {
 	}
 	return tx, nil
 }
-
 
 var TokenHubAckCmd = &cobra.Command{
 	Use:     "TokenHubAck {from} {contract} {sequence:ackType|sequence:ackType} {password} {nonce}; tokenhub ack transfer;",
@@ -196,17 +194,17 @@ func parseTHAParams(args []string, nonce uint64) (*types.Transaction, error) {
 	list := strings.Split(args[1], "|")
 	sequences := make([]uint64, 0)
 	ackTypes := make([]uint8, 0)
-	for _, sequenceAndType := range list{
+	for _, sequenceAndType := range list {
 		strs := strings.Split(sequenceAndType, ":")
-		if len(strs) != 2{
+		if len(strs) != 2 {
 			return nil, fmt.Errorf("wrong sequence and ackType")
 		}
 		sequence, err := strconv.ParseUint(strs[0], 10, 64)
-		if err != nil{
+		if err != nil {
 			return nil, err
 		}
 		ackType, err := strconv.ParseUint(strs[1], 10, 64)
-		if err != nil{
+		if err != nil {
 			return nil, err
 		}
 		sequences = append(sequences, sequence)
