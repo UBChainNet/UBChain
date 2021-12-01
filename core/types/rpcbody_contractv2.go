@@ -129,13 +129,28 @@ type RpcPledgeUpdate struct {
 }
 
 type RpcTokenHubInit struct {
-	Setter  string  `json:"setter"`
-	Admin   string  `json:"admin"`
-	FeeTo   string  `json:"feeto"`
-	FeeRate float64 `json:"feerate"`
+	Setter  string `json:"setter"`
+	Admin   string `json:"admin"`
+	FeeTo   string `json:"feeto"`
+	FeeRate string `json:"feerate"`
 }
 
 type RpcTokenHubAck struct {
 	Sequences []uint64 `json:"sequences"`
 	AckTypes  []uint8  `json:"acktypes"`
+}
+
+type RpcTokenHubTransferOut struct {
+	To     string `json:"to"`
+	Amount uint64 `json:"amount"`
+}
+
+type RpcTokenHubTransferIn struct {
+	To        string `json:"to"`
+	Amount    uint64 `json:"amount"`
+	AcrossSeq uint64 `json:"acrossseq"`
+}
+
+type RpcTokenHubFinishAcrossBody struct {
+	AcrossSeqs []uint64 `json:"acrossseqs"`
 }

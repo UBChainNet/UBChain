@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func NewTokenHubInit(from, contract, setter, admin, feeTo string, feeRate float64, nonce uint64, note string) (*types.Transaction, error) {
+func NewTokenHubInit(from, contract, setter, admin, feeTo string, feeRate string, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -37,7 +37,7 @@ func NewTokenHubInit(from, contract, setter, admin, feeTo string, feeRate float6
 	return tx, nil
 }
 
-func NewTokenHubAck(from, contract string, sequences []uint64, ackTypes []uint8 , nonce uint64, note string) (*types.Transaction, error) {
+func NewTokenHubAck(from, contract string, sequences []uint64, ackTypes []uint8, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -56,6 +56,84 @@ func NewTokenHubAck(from, contract string, sequences []uint64, ackTypes []uint8 
 			Function: &tokenhub_func.TokenHubAckBody{
 				Sequences: sequences,
 				AckTypes:  ackTypes,
+			},
+		},
+	}
+	tx.SetHash()
+	return tx, nil
+}
+
+func NewTokenHubTransferOut(from, contract string, to string, amount, nonce uint64, note string) (*types.Transaction, error) {
+	tx := &types.Transaction{
+		TxHead: &types.TransactionHead{
+			TxType:     types.ContractV2_,
+			TxHash:     hasharry.Hash{},
+			From:       hasharry.StringToAddress(from),
+			Nonce:      nonce,
+			Time:       uint64(time.Now().Unix()),
+			Note:       note,
+			SignScript: &types.SignScript{},
+			Fees:       param.Fees,
+		},
+		TxBody: &types.TxContractV2Body{
+			Contract:     hasharry.StringToAddress(contract),
+			Type:         contractv2.TokenHub_,
+			FunctionType: contractv2.TokenHub_TransferOut,
+			Function: &tokenhub_func.TokenHubTransferOutBody{
+				To:     to,
+				Amount: amount,
+			},
+		},
+	}
+	tx.SetHash()
+	return tx, nil
+}
+
+func NewTokenHubTransferIn(from, contract string, to string, amount, acrossSeq, nonce uint64, note string) (*types.Transaction, error) {
+	tx := &types.Transaction{
+		TxHead: &types.TransactionHead{
+			TxType:     types.ContractV2_,
+			TxHash:     hasharry.Hash{},
+			From:       hasharry.StringToAddress(from),
+			Nonce:      nonce,
+			Time:       uint64(time.Now().Unix()),
+			Note:       note,
+			SignScript: &types.SignScript{},
+			Fees:       param.Fees,
+		},
+		TxBody: &types.TxContractV2Body{
+			Contract:     hasharry.StringToAddress(contract),
+			Type:         contractv2.TokenHub_,
+			FunctionType: contractv2.TokenHub_TransferIn,
+			Function: &tokenhub_func.TokenHubTransferInBody{
+				To:        hasharry.StringToAddress(to),
+				Amount:    amount,
+				AcrossSeq: acrossSeq,
+			},
+		},
+	}
+	tx.SetHash()
+	return tx, nil
+}
+
+func NewTokenHubFinishAcross(from, contract string, acrossSeqs []uint64, nonce uint64, note string) (*types.Transaction, error) {
+	tx := &types.Transaction{
+		TxHead: &types.TransactionHead{
+			TxType:     types.ContractV2_,
+			TxHash:     hasharry.Hash{},
+			From:       hasharry.StringToAddress(from),
+			Nonce:      nonce,
+			Time:       uint64(time.Now().Unix()),
+			Note:       note,
+			SignScript: &types.SignScript{},
+			Fees:       param.Fees,
+		},
+		TxBody: &types.TxContractV2Body{
+			Contract:     hasharry.StringToAddress(contract),
+			Type:         contractv2.TokenHub_,
+			FunctionType: contractv2.TokenHub_FinishAcross,
+			Function: &tokenhub_func.TokenHubFinishAcrossBody{
+				AcrossSeqs: acrossSeqs,
 			},
 		},
 	}

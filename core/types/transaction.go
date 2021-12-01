@@ -421,6 +421,18 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*tokenhub_func.TokenHubAckBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_TransferOut:
+			function, _ := body.Function.(*tokenhub_func.TokenHubTransferOutBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_TransferIn:
+			function, _ := body.Function.(*tokenhub_func.TokenHubTransferInBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_FinishAcross:
+			function, _ := body.Function.(*tokenhub_func.TokenHubFinishAcrossBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
 		}
 		rlpTx.TxBody, _ = rlp.EncodeToBytes(rlpC.TxBody)
 	default:

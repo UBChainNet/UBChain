@@ -12,6 +12,7 @@ import (
 	"github.com/UBChainNet/UBChain/core/types/contractv2/tokenhub"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/tokenhub_func"
 	"github.com/UBChainNet/UBChain/crypto/base58"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 )
 
@@ -80,10 +81,17 @@ func NewTokenHubRunner(lib *library.RunnerLibrary, tx types.ITransaction, height
 }
 
 func (t *TokenHubRunner) PreInitVerify() error {
-	th := t.thState.library.GetContractV2(t.address.String())
-	if th != nil {
+	if t.thState.body != nil{
 		if t.thState.body.Setter != t.tx.From() {
 			return errors.New("forbidden")
+		}
+	}else{
+		address, err := TokenHubAddress(param.Net, t.tx.From().String(), t.tx.GetNonce())
+		if err != nil{
+			return err
+		}
+		if address != t.address.String(){
+			return errors.New("invalid contract address")
 		}
 	}
 	return nil
@@ -140,8 +148,7 @@ func (t *TokenHubRunner) Init() {
 }
 
 func (t *TokenHubRunner) PreAckVerify() error {
-	th := t.thState.library.GetContractV2(t.address.String())
-	if th == nil {
+	if t.thState.body == nil{
 		return fmt.Errorf("tokenhub %s does not exist", t.address.String())
 	}
 	ackBody := t.contractBody.Function.(*tokenhub_func.TokenHubAckBody)
@@ -178,6 +185,129 @@ func (t *TokenHubRunner) AckTransfer() {
 	}
 	for _, transfer := range transfers {
 		t.transferEvent(transfer.From, transfer.To, transfer.Token, transfer.Amount)
+	}
+	if err = t.runEvents(); err != nil {
+		ERR = err
+		return
+	}
+	t.update()
+}
+
+func (t *TokenHubRunner) PreTransferOutVerify() error {
+	if t.thState.body == nil{
+		return fmt.Errorf("tokenhub %s does not exist", t.address.String())
+	}
+	trBody := t.contractBody.Function.(*tokenhub_func.TokenHubTransferOutBody)
+	balance := t.thState.library.GetBalance(t.tx.From(), param.Token)
+	if trBody.Amount > balance{
+		return fmt.Errorf("insufficient balance %s", t.tx.From().String())
+	}
+	return nil
+}
+
+func (t *TokenHubRunner) TransferOut() {
+	var ERR error
+	state := &types.ContractV2State{State: types.Contract_Success}
+	defer func() {
+		if ERR != nil {
+			state.State = types.Contract_Failed
+			state.Error = ERR.Error()
+		} else {
+			state.Event = t.events
+		}
+		t.thState.library.SetContractV2State(t.tx.Hash().String(), state)
+	}()
+	trBody := t.contractBody.Function.(*tokenhub_func.TokenHubTransferOutBody)
+	transfers, err := t.thState.body.TransferOut(t.tx.From(), trBody.To, trBody.Amount)
+	if err != nil {
+		ERR = err
+		return
+	}
+	for _, transfer := range transfers {
+		t.transferEvent(transfer.From, transfer.To, transfer.Token, transfer.Amount)
+	}
+	if err = t.runEvents(); err != nil {
+		ERR = err
+		return
+	}
+	t.update()
+}
+
+func (t *TokenHubRunner) PreTransferInVerify() error {
+	if t.thState.body == nil{
+		return fmt.Errorf("tokenhub %s does not exist", t.address.String())
+	}
+	if t.tx.From() != t.thState.body.Admin{
+		return errors.New("forbidden")
+	}
+	trBody := t.contractBody.Function.(*tokenhub_func.TokenHubTransferInBody)
+	balance := t.thState.library.GetBalance(t.thState.body.Address, param.Token)
+	if balance < t.thState.body.UnFinishAmount{
+		return fmt.Errorf("insufficient balance %s", t.thState.body.Address.String())
+	}
+	if trBody.Amount > balance - t.thState.body.UnFinishAmount{
+		return fmt.Errorf("insufficient balance %s", t.thState.body.Address.String())
+	}
+	return nil
+}
+
+func (t *TokenHubRunner) TransferIn() {
+	var ERR error
+	state := &types.ContractV2State{State: types.Contract_Success}
+	defer func() {
+		if ERR != nil {
+			state.State = types.Contract_Failed
+			state.Error = ERR.Error()
+		} else {
+			state.Event = t.events
+		}
+		t.thState.library.SetContractV2State(t.tx.Hash().String(), state)
+	}()
+
+	trBody := t.contractBody.Function.(*tokenhub_func.TokenHubTransferInBody)
+	transfers, err := t.thState.body.TransferIn(t.tx.From(), trBody.To, trBody.Amount, trBody.AcrossSeq, t.tx.Hash().String())
+	if err != nil {
+		ERR = err
+		return
+	}
+	for _, transfer := range transfers {
+		t.transferEvent(transfer.From, transfer.To, transfer.Token, transfer.Amount)
+	}
+	if err = t.runEvents(); err != nil {
+		ERR = err
+		return
+	}
+	t.update()
+}
+
+func (t *TokenHubRunner) PreFinishAcrossVerify() error {
+	if t.thState.body == nil{
+		return fmt.Errorf("tokenhub %s does not exist", t.address.String())
+	}
+	if t.tx.From() != t.thState.body.Admin{
+		return errors.New("forbidden")
+	}
+	return nil
+}
+
+func (t *TokenHubRunner) FinishAcross() {
+	var ERR error
+	state := &types.ContractV2State{State: types.Contract_Success}
+	defer func() {
+		if ERR != nil {
+			state.State = types.Contract_Failed
+			state.Error = ERR.Error()
+		} else {
+			state.Event = t.events
+		}
+		t.thState.library.SetContractV2State(t.tx.Hash().String(), state)
+	}()
+
+	trBody := t.contractBody.Function.(*tokenhub_func.TokenHubFinishAcrossBody)
+	err := t.thState.body.AcrossFinished(t.tx.From(), trBody.AcrossSeqs)
+	if err != nil {
+		ERR = err
+		return
 	}
 	t.update()
 }

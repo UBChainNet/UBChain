@@ -8,6 +8,7 @@ import (
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/ethereum/go-ethereum/common"
 	"sort"
+	"strconv"
 )
 
 const MinTransferAmount = 100000000
@@ -30,25 +31,30 @@ type Transfer struct {
 }
 
 type TokenHub struct {
-	Address     hasharry.Address
-	Setter      hasharry.Address
-	Admin       hasharry.Address
-	FeeTo       hasharry.Address
-	FeeRate     float64
-	Transfers   map[uint64]*Transfer
-	Unconfirmed map[uint64]*Transfer
-	Sequence    uint64
+	Address         hasharry.Address
+	Setter          hasharry.Address
+	Admin           hasharry.Address
+	FeeTo           hasharry.Address
+	FeeRate         string
+	TransferOuts    map[uint64]*Transfer
+	UnconfirmedOuts map[uint64]*Transfer
+	AcrossSeqs      map[uint64]string
+	Sequence        uint64
+	OutAmount       uint64
+	InAmount        uint64
+	UnFinishAmount  uint64
 }
 
-func NewTokenHub(address, setter, admin, feeTo hasharry.Address, feeRate float64) *TokenHub {
+func NewTokenHub(address, setter, admin, feeTo hasharry.Address, feeRate string) *TokenHub {
 	return &TokenHub{
-		Address:     address,
-		Setter:      setter,
-		Admin:       admin,
-		FeeTo:       feeTo,
-		FeeRate:     feeRate,
-		Transfers:   make(map[uint64]*Transfer),
-		Unconfirmed: make(map[uint64]*Transfer),
+		Address:         address,
+		Setter:          setter,
+		Admin:           admin,
+		FeeTo:           feeTo,
+		FeeRate:         feeRate,
+		TransferOuts:    make(map[uint64]*Transfer),
+		UnconfirmedOuts: make(map[uint64]*Transfer),
+		AcrossSeqs:      make(map[uint64]string),
 	}
 }
 
@@ -76,7 +82,7 @@ func (t *TokenHub) SetFeeTo(from, feeTo hasharry.Address) error {
 	return nil
 }
 
-func (t *TokenHub) SetFeeRate(from hasharry.Address, rate float64) error {
+func (t *TokenHub) SetFeeRate(from hasharry.Address, rate string) error {
 	if !from.IsEqual(t.Setter) {
 		return errors.New("forbidden")
 	}
@@ -84,26 +90,61 @@ func (t *TokenHub) SetFeeRate(from hasharry.Address, rate float64) error {
 	return nil
 }
 
-func (t *TokenHub) Transfer(from hasharry.Address, to string, amount uint64) ([]*TransferEvent, error) {
-	if !from.IsEqual(t.Admin) {
+func (t *TokenHub) TransferIn(from hasharry.Address, to hasharry.Address, amount, acrossSeq uint64, msgHash string) ([]*TransferEvent, error) {
+	if !t.Admin.IsEqual(from) {
 		return nil, errors.New("forbidden")
 	}
-	if amount < MinTransferAmount {
-		return nil, fmt.Errorf("the minimum allowable transfer amount is %d", MinTransferAmount)
+	feeRate, _ := strconv.ParseFloat(t.FeeRate, 64)
+	fees := uint64(float64(amount) * feeRate)
+	if fees >= amount {
+		return nil, errors.New("the transfer fee is insufficient")
 	}
+
+	var events []*TransferEvent
+	events = append(events, &TransferEvent{
+		From:   t.Address,
+		To:     to,
+		Token:  param.Token,
+		Amount: amount - fees,
+	})
+	if fees != 0 {
+		events = append(events, &TransferEvent{
+			From:   t.Address,
+			To:     t.FeeTo,
+			Token:  param.Token,
+			Amount: fees,
+		})
+	}
+	t.AcrossSeqs[acrossSeq] = msgHash
+	t.InAmount += amount
+	return events, nil
+}
+
+func (t *TokenHub) AcrossFinished(from hasharry.Address, acrossSeq []uint64) error {
+	if !t.Admin.IsEqual(from) {
+		return errors.New("forbidden")
+	}
+	for _, seq := range acrossSeq {
+		delete(t.AcrossSeqs, seq)
+	}
+	return nil
+}
+
+func (t *TokenHub) TransferOut(from hasharry.Address, to string, amount uint64) ([]*TransferEvent, error) {
 	if !common.IsHexAddress(to) {
 		return nil, errors.New("incorrect to address")
 	}
-	if len(t.Transfers) >= MaxTransferLength {
+	if len(t.TransferOuts) >= MaxTransferLength {
 		return nil, errors.New("too many transfers, please wait")
 	}
-	fees := uint64(float64(amount) * t.FeeRate)
+	feeRate, _ := strconv.ParseFloat(t.FeeRate, 64)
+	fees := uint64(float64(amount) * feeRate)
 	if fees >= amount {
 		return nil, errors.New("the transfer fee is insufficient")
 	}
 
 	t.Sequence++
-	t.Transfers[t.Sequence] = &Transfer{
+	t.TransferOuts[t.Sequence] = &Transfer{
 		Sequence: t.Sequence,
 		From:     from.String(),
 		To:       to,
@@ -117,6 +158,8 @@ func (t *TokenHub) Transfer(from hasharry.Address, to string, amount uint64) ([]
 		Token:  param.Token,
 		Amount: amount,
 	})
+	t.OutAmount += amount - fees
+	t.UnFinishAmount += amount
 	return events, nil
 }
 
@@ -131,17 +174,17 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 	for sequence, ack := range ackData {
 		switch ack {
 		case Send:
-			transfer, exist := t.Transfers[sequence]
+			transfer, exist := t.TransferOuts[sequence]
 			if exist {
-				delete(t.Transfers, sequence)
+				delete(t.TransferOuts, sequence)
 			} else {
 				return nil, fmt.Errorf("ack transafer sequence %d does not exist", sequence)
 			}
-			t.Unconfirmed[sequence] = transfer
+			t.UnconfirmedOuts[sequence] = transfer
 		case Confirmed:
-			transfer, exist := t.Unconfirmed[sequence]
+			transfer, exist := t.UnconfirmedOuts[sequence]
 			if exist {
-				delete(t.Unconfirmed, sequence)
+				delete(t.UnconfirmedOuts, sequence)
 			} else {
 				return nil, fmt.Errorf("ack unconfirmed sequence %d does not exist", sequence)
 			}
@@ -151,14 +194,19 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 				Token:  param.Token,
 				Amount: transfer.Fees,
 			})
-		case Failed:
-			transfer, exist := t.Transfers[sequence]
-			if exist {
-				delete(t.Transfers, sequence)
+			if t.UnFinishAmount < transfer.Amount+transfer.Fees {
+				return nil, fmt.Errorf("insufficient UnFinishAmount")
 			} else {
-				transfer, exist = t.Unconfirmed[sequence]
+				t.UnFinishAmount -= transfer.Amount + transfer.Fees
+			}
+		case Failed:
+			transfer, exist := t.TransferOuts[sequence]
+			if exist {
+				delete(t.TransferOuts, sequence)
+			} else {
+				transfer, exist = t.UnconfirmedOuts[sequence]
 				if exist {
-					delete(t.Unconfirmed, sequence)
+					delete(t.UnconfirmedOuts, sequence)
 				} else {
 					return nil, fmt.Errorf("ack failed transfer sequence %d does not exist", sequence)
 				}
@@ -169,6 +217,11 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 				Token:  param.Token,
 				Amount: transfer.Amount + transfer.Fees,
 			})
+			if t.UnFinishAmount < transfer.Amount+transfer.Fees {
+				return nil, fmt.Errorf("insufficient UnFinishAmount")
+			} else {
+				t.UnFinishAmount -= transfer.Amount + transfer.Fees
+			}
 		default:
 			return nil, fmt.Errorf("invalid ack type %d", ack)
 		}
@@ -178,28 +231,41 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 
 func (t *TokenHub) ToRlp() *RlpTokenHub {
 	rlpTh := &RlpTokenHub{
-		Address:     t.Address.String(),
-		Setter:      t.Setter.String(),
-		Admin:       t.Admin.String(),
-		FeeTo:       t.FeeTo.String(),
-		FeeRate:     t.FeeRate,
-		Transfers:   make([]*Transfer, 0),
-		Unconfirmed: make([]*Transfer, 0),
-		Sequence:    0,
+		Address:        t.Address.String(),
+		Setter:         t.Setter.String(),
+		Admin:          t.Admin.String(),
+		FeeTo:          t.FeeTo.String(),
+		FeeRate:        t.FeeRate,
+		Transfers:      make([]*Transfer, 0),
+		Unconfirmed:    make([]*Transfer, 0),
+		AcrossSeqs:     make([]*Across, 0),
+		Sequence:       t.Sequence,
+		InAmount:       t.InAmount,
+		OutAmount:      t.OutAmount,
+		UnFinishAmount: t.UnFinishAmount,
 	}
-	for _, transfer := range t.Transfers {
+	for _, transfer := range t.TransferOuts {
 		rlpTh.Transfers = append(rlpTh.Transfers, transfer)
 	}
-	for _, transfer := range t.Unconfirmed {
+	for _, transfer := range t.UnconfirmedOuts {
 		rlpTh.Unconfirmed = append(rlpTh.Unconfirmed, transfer)
 	}
-
+	for seq, hash := range t.AcrossSeqs {
+		rlpTh.AcrossSeqs = append(rlpTh.AcrossSeqs, &Across{
+			Seq:  seq,
+			Hash: hash,
+		})
+	}
 	sort.Slice(rlpTh.Transfers, func(i, j int) bool {
 		return rlpTh.Transfers[i].Sequence < rlpTh.Transfers[j].Sequence
 	})
 
 	sort.Slice(rlpTh.Unconfirmed, func(i, j int) bool {
 		return rlpTh.Unconfirmed[i].Sequence < rlpTh.Unconfirmed[j].Sequence
+	})
+
+	sort.Slice(rlpTh.AcrossSeqs, func(i, j int) bool {
+		return rlpTh.AcrossSeqs[i].Seq < rlpTh.AcrossSeqs[j].Seq
 	})
 	return rlpTh
 }
@@ -220,36 +286,52 @@ type TransferEvent struct {
 	Amount uint64
 }
 
+type Across struct {
+	Seq  uint64
+	Hash string
+}
+
 type RlpTokenHub struct {
-	Address     string
-	Setter      string
-	Admin       string
-	FeeTo       string
-	FeeRate     float64
-	Transfers   []*Transfer
-	Unconfirmed []*Transfer
-	Sequence    uint64
+	Address        string
+	Setter         string
+	Admin          string
+	FeeTo          string
+	FeeRate        string
+	Transfers      []*Transfer
+	Unconfirmed    []*Transfer
+	AcrossSeqs     []*Across
+	Sequence       uint64
+	InAmount       uint64
+	OutAmount      uint64
+	UnFinishAmount uint64
 }
 
 func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
 	var rlpTh *RlpTokenHub
 	rlp.DecodeBytes(bytes, &rlpTh)
 	th := &TokenHub{
-		Address:     hasharry.StringToAddress(rlpTh.Address),
-		Setter:      hasharry.StringToAddress(rlpTh.Setter),
-		Admin:       hasharry.StringToAddress(rlpTh.Admin),
-		FeeTo:       hasharry.StringToAddress(rlpTh.FeeTo),
-		FeeRate:     rlpTh.FeeRate,
-		Transfers:   make(map[uint64]*Transfer),
-		Unconfirmed: make(map[uint64]*Transfer),
-		Sequence:    rlpTh.Sequence,
+		Address:         hasharry.StringToAddress(rlpTh.Address),
+		Setter:          hasharry.StringToAddress(rlpTh.Setter),
+		Admin:           hasharry.StringToAddress(rlpTh.Admin),
+		FeeTo:           hasharry.StringToAddress(rlpTh.FeeTo),
+		FeeRate:         rlpTh.FeeRate,
+		TransferOuts:    make(map[uint64]*Transfer),
+		UnconfirmedOuts: make(map[uint64]*Transfer),
+		AcrossSeqs:      make(map[uint64]string),
+		Sequence:        rlpTh.Sequence,
+		InAmount:        rlpTh.InAmount,
+		OutAmount:       rlpTh.OutAmount,
+		UnFinishAmount:  rlpTh.UnFinishAmount,
 	}
 
 	for _, transfer := range rlpTh.Transfers {
-		th.Transfers[transfer.Sequence] = transfer
+		th.TransferOuts[transfer.Sequence] = transfer
 	}
 	for _, transfer := range rlpTh.Unconfirmed {
-		th.Unconfirmed[transfer.Sequence] = transfer
+		th.UnconfirmedOuts[transfer.Sequence] = transfer
+	}
+	for _, across := range rlpTh.AcrossSeqs {
+		th.AcrossSeqs[across.Seq] = across.Hash
 	}
 	return th, nil
 }

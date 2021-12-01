@@ -92,6 +92,12 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 			return tokenHub.PreInitVerify()
 		case contractv2.TokenHub_Ack:
 			return tokenHub.PreAckVerify()
+		case contractv2.TokenHub_TransferOut:
+			return tokenHub.PreTransferOutVerify()
+		case contractv2.TokenHub_TransferIn:
+			return tokenHub.PreTransferInVerify()
+		case contractv2.TokenHub_FinishAcross:
+			return tokenHub.PreFinishAcrossVerify()
 		}
 	}
 	return nil
@@ -159,6 +165,12 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 			tokenHub.Init()
 		case contractv2.TokenHub_Ack:
 			tokenHub.AckTransfer()
+		case contractv2.TokenHub_TransferOut:
+			tokenHub.TransferOut()
+		case contractv2.TokenHub_TransferIn:
+			tokenHub.TransferIn()
+		case contractv2.TokenHub_FinishAcross:
+			tokenHub.FinishAcross()
 		}
 	}
 	return nil

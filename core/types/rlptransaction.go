@@ -116,6 +116,18 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			var create *tokenhub_func.TokenHubAckBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
+		case contractv2.TokenHub_TransferOut:
+			var create *tokenhub_func.TokenHubTransferOutBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.TokenHub_TransferIn:
+			var create *tokenhub_func.TokenHubTransferInBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.TokenHub_FinishAcross:
+			var create *tokenhub_func.TokenHubFinishAcrossBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
 		}
 		rlp.DecodeBytes(rt.TxBody, &ct)
 		return &Transaction{

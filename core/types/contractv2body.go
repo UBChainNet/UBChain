@@ -110,6 +110,12 @@ func (c *TxContractV2Body) checkType() error {
 			return nil
 		case contractv2.TokenHub_Ack:
 			return nil
+		case contractv2.TokenHub_TransferOut:
+			return nil
+		case contractv2.TokenHub_TransferIn:
+			return nil
+		case contractv2.TokenHub_FinishAcross:
+			return nil
 		}
 		return errors.New("invalid contract function type")
 	}
