@@ -136,6 +136,14 @@ func (rs *Server) GetAccount(_ context.Context, req *Address) (*Response, error)
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
+func (rs *Server) GetPendingNonce(_ context.Context, req *Address) (*Response, error) {
+	nonce, err := rs.api.GetPendingNonce(req.Address)
+	if err != nil {
+		return NewResponse(rpctypes.RpcErrMarshal, nil, fmt.Sprintf("%s address not exsit", req.Address)), nil
+	}
+	return NewResponse(rpctypes.RpcSuccess, []byte(nonce), ""), nil
+}
+
 func (rs *Server) GetTransaction(ctx context.Context, req *Hash) (*Response, error) {
 	tx, err := rs.api.GetTransaction(req.Hash)
 	if err != nil {

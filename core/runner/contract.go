@@ -177,7 +177,7 @@ type openContract interface {
 	MethodExist(method string) bool
 }
 
-func (c *ContractRunner) ReadMethod(address, method string, params []string) (interface{}, error) {
+func (c *ContractRunner) ReadMethod(height uint64, address, method string, params []string) (interface{}, error) {
 	var open openContract
 	var err error
 	contract := c.library.GetContractV2(address)
@@ -196,7 +196,7 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 			return nil, err
 		}
 	case contractv2.Pledge_:
-		open, err = exchange_runner.NewPledgeState(c.library, address)
+		open, err = exchange_runner.NewPledgeState(c.library, address, height)
 		if err != nil {
 			return nil, err
 		}

@@ -92,7 +92,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 		pledge, _ := contract.Body.(*exchange.Pledge)
 		return &RpcPledge{
 			PreMint:          pledge.PreMint,
-			DayMintAmount:    pledge.DayMintAmount,
+			DayMintAmount:    pledge.BlockMintAmount,
 			Receiver:         pledge.Receiver.String(),
 			TotalSupply:      pledge.TotalSupply,
 			MaxSupply:        pledge.MaxSupply,

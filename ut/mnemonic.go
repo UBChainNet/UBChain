@@ -9,7 +9,7 @@ import (
 )
 
 func Entropy() (string, error) {
-	s, err := seed.GenerateSeed(seed.DefaultSeedBytes)
+	s, err := seed.GenerateSeed(seed.MinSeedBytes)
 	if err != nil {
 		return "", err
 	}
@@ -25,11 +25,11 @@ func Mnemonic(entropyStr string) (string, error) {
 }
 
 func MnemonicToEc(mnemonic string) (*secp256k1.PrivateKey, error) {
-	seed, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
+	bytes, err := bip39.NewSeedWithErrorChecking(mnemonic, "")
 	if err != nil {
 		return nil, err
 	}
-	masterKey, err := bip32.NewMasterKey(seed)
+	masterKey, err := bip32.NewMasterKey(bytes)
 	if err != nil {
 		return nil, err
 	}

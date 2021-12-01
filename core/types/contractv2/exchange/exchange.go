@@ -6,7 +6,6 @@ import (
 	"github.com/UBChainNet/UBChain/common/encode/rlp"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/common/utils"
-	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 	"math"
 	"strings"
@@ -54,6 +53,10 @@ func NewExchange(admin, feeTo hasharry.Address, symbol string) (*Exchange, error
 		Pair:     make(map[hasharry.Address]map[hasharry.Address]hasharry.Address),
 		AllPairs: make([]PairAddress, 0),
 	}, nil
+}
+
+func (e *Exchange)GetSymbol() string{
+	return e.Symbol
 }
 
 func (e *Exchange) SetFeeTo(address hasharry.Address, sender hasharry.Address) error {
@@ -208,7 +211,7 @@ func (e *Exchange) ExchangeRouter(tokenA, tokenB string) [][]string {
 }
 
 func (e *Exchange) LegalPair(tokenA, tokenB string) (bool, error) {
-	mainToken := param.Token.String()
+	/*mainToken := param.Token.String()
 	if tokenA == mainToken {
 		return true, nil
 	}
@@ -221,7 +224,7 @@ func (e *Exchange) LegalPair(tokenA, tokenB string) (bool, error) {
 		if paths == nil || len(paths[0]) > maxPairTokenLen {
 			return false, fmt.Errorf("the path of %s->%s must be smaller than %d", tokenA, mainToken, maxPairTokenLen)
 		}
-	}
+	}*/
 	return true, nil
 }
 

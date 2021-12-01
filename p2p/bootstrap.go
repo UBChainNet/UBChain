@@ -2,6 +2,7 @@ package p2p
 
 import (
 	log "github.com/UBChainNet/UBChain/log/log15"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/libp2p/go-libp2p-core/peer"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/multiformats/go-multiaddr"
@@ -10,22 +11,11 @@ import (
 
 // Default boot node list
 var DefaultBootstrapPeers []multiaddr.Multiaddr
-
 // Custom boot node list
 var CustomBootstrapPeers []multiaddr.Multiaddr
 
 func init() {
-	for _, s := range []string{
-		/*"/ip4/103.15.132.180/tcp/11389/ipfs/16Uiu2HAmL2w4iB1i6PiRP8mBLbYdApkpWVktrUup22Fjm33usXSh",
-		"/ip4/47.74.248.20/tcp/11360/ipfs/16Uiu2HAmHoiQRyTMbPvMrxueu1uF9wnTYZ6q3MEaPPwJMXrW1oQf",
-		"/ip4/123.207.153.137/tcp/11369/ipfs/16Uiu2HAmKeXr5HNsEu2xaLyPPyHuxSeNQUHXCVgWCjieVGWddwWo",*/
-		//"/ip4/47.57.100.253/tcp/2211/ipfs/16Uiu2HAkwQ1tmB5WrVgT83nD5KYZKanugXNVDM51vaTJw8TtxLa6",
-		//"/ip4/8.210.1.245/tcp/2211/ipfs/16Uiu2HAm51UkR3V2V2zJt6GHnLjyjze7UxHYfGBDKZwKCCHdJ7c4",
-		// UBCZPxLoUPGyYy3Y1Boeyyvk4LKy6n1NDT2n
-		//"/ip4/8.210.23.69/tcp/2211/ipfs/16Uiu2HAky7wHeSacNDy9sooSktQ2hjSULJEfqzrU47k8nnr1JR5v",
-		// UBCfdwfoJZqJFBsW87HXaayvgyY2uQ4JkaTF
-		"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
-	} {
+	for _, s := range param.Boots {
 		ma, err := multiaddr.NewMultiaddr(s)
 		if err != nil {
 			panic(err)

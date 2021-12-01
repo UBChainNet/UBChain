@@ -110,7 +110,7 @@ func (term *Term) kickOutValidator(preTerm uint64) error {
 		if err != nil {
 			cnt = 0
 		}
-		if cnt < param.TermInterval/param.BlockInterval/param.MaxWinnerSize/3 {
+		if cnt < param.TermInterval / param.BlockInterval / uint64(param.MaxWinnerSize)/3 {
 			needKickOutWinners = append(needKickOutWinners, &types.Candidate{Signer: winner.Signer, PeerId: "", Weight: cnt})
 		}
 	}

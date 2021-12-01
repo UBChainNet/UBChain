@@ -25,18 +25,19 @@ var (
 	EaterAddress = hasharry.StringToAddress("UBCCoinEaterAddressDontSend000000000")
 )
 
-const (
+var (
 	// Block interval period
 	BlockInterval = uint64(15)
 	// Re-election interval
-	TermInterval = 60 * 60 * 24 * 365 * 100
+	TermInterval uint64 = 60 * 60 * 24 * 365 * 100
 	// Maximum number of super nodes
 	MaxWinnerSize = 9
 	// The minimum number of nodes required to confirm the transaction
 	SafeSize = MaxWinnerSize*2/3 + 1
 	// The minimum threshold at which a block is valid
-	ConsensusSize                 = MaxWinnerSize*2/3 + 1
-	SkipCurrentWinnerWaitTimeBase = BlockInterval * MaxWinnerSize * 1
+	ConsensusSize  = MaxWinnerSize*2/3 + 1
+
+	SkipCurrentWinnerWaitTimeBase  = int(BlockInterval) * (MaxWinnerSize) * 1
 )
 
 const (
@@ -77,6 +78,12 @@ const (
 	CoinHeight = 565000
 
 	MaximumReceiver = 1000
+)
+
+var(
+	UIPBlock1 uint64 = 633800
+	UIPBlock2 uint64 = 750000
+	UIPBlock3 uint64 = 754760
 )
 
 var (
@@ -166,6 +173,6 @@ var InitialCandidates = []CandidatesInfo{
 	},
 }
 
-
-
-
+var Boots  = []string{
+	"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
+}

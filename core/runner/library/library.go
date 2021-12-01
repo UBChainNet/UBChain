@@ -27,7 +27,11 @@ func (r *RunnerLibrary) ContractSymbol(token hasharry.Address) (string, error) {
 	}
 	token0Record := r.cState.GetContract(token.String())
 	if token0Record == nil {
-		return "", fmt.Errorf("%s is not exist", token.String())
+		if token0V2token0Record := r.cState.GetContractV2(token.String());token0V2token0Record == nil{
+			return "", fmt.Errorf("%s is not exist", token.String())
+		}else{
+			return token0V2token0Record.Body.GetSymbol(), nil
+		}
 	}
 	return token0Record.CoinAbbr, nil
 }

@@ -99,13 +99,13 @@ type RpcPledgeInit struct {
 }
 
 type RpcPledgeStart struct {
-	DayMintAmount    uint64 `json:"daymintamount"`
+	BlockMintAmount    uint64 `json:"blockmintamount"`
 	PledgeMatureTime uint64 `json:"pledgematuretime"`
-	DayRewardAmount  uint64 `json:"dayrewardamount"`
 }
 
 type RpcPledgeAddPool struct {
 	Pair string `json:"pair"`
+	BlockReward uint64 `json:"blockreward"`
 }
 
 type RpcPledgeRemovePool struct {

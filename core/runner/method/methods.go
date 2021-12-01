@@ -375,6 +375,41 @@ var PledgeMethods = map[string]*MethodInfo{
 			},
 		},
 	},
+	"GetPledgeYields": &MethodInfo{
+		Name:   "GetPledgeYields",
+		Params: []Value{},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPoolInfos": &MethodInfo{
+		Name:   "GetPoolInfos",
+		Params: []Value{},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
+	"GetPoolInfo": &MethodInfo{
+		Name:   "GetPoolInfo",
+		Params: []Value{
+			{
+				Name: "pair contract address",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "value",
+				Type: "json",
+			},
+		},
+	},
 }
 
 var TokenHubMethods = map[string]*MethodInfo{
