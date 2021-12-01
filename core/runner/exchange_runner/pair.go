@@ -7,6 +7,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/common/math"
 	"github.com/UBChainNet/UBChain/core/runner/library"
+	"github.com/UBChainNet/UBChain/core/runner/method"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	exchange2 "github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
@@ -61,12 +62,12 @@ func NewPairStateWithExchange(runnerLibrary *library.RunnerLibrary, pairAddress 
 	}, nil
 }
 
-func (ps *PairState) Methods() map[string]*MethodInfo {
-	return pairMethods
+func (ps *PairState) Methods() map[string]*method.MethodInfo {
+	return method.PairMethods
 }
 
-func (ps *PairState) MethodExist(method string) bool {
-	_, exist := pairMethods[method]
+func (ps *PairState) MethodExist(mth string) bool {
+	_, exist := method.PairMethods[mth]
 	return exist
 }
 

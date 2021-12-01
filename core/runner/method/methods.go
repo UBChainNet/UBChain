@@ -1,6 +1,17 @@
-package exchange_runner
+package method
 
-var exMethods = map[string]*MethodInfo{
+type Value struct {
+	Name string `json:"name"`
+	Type string `json:"type"`
+}
+
+type MethodInfo struct {
+	Name    string  `json:"name"`
+	Params  []Value `json:"params"`
+	Returns []Value `json:"returns"`
+}
+
+var ExMethods = map[string]*MethodInfo{
 	"Methods": &MethodInfo{
 		Name:   "Methods",
 		Params: nil,
@@ -182,7 +193,7 @@ var exMethods = map[string]*MethodInfo{
 	},
 }
 
-var pairMethods = map[string]*MethodInfo{
+var PairMethods = map[string]*MethodInfo{
 	"Methods": &MethodInfo{
 		Name:   "Methods",
 		Params: nil,
@@ -260,7 +271,7 @@ var pairMethods = map[string]*MethodInfo{
 	},
 }
 
-var pledgeMethods = map[string]*MethodInfo{
+var PledgeMethods = map[string]*MethodInfo{
 	"Methods": &MethodInfo{
 		Name:   "Methods",
 		Params: nil,
@@ -361,6 +372,34 @@ var pledgeMethods = map[string]*MethodInfo{
 			{
 				Name: "value",
 				Type: "json",
+			},
+		},
+	},
+}
+
+var TokenHubMethods = map[string]*MethodInfo{
+	"Methods": &MethodInfo{
+		Name:   "Methods",
+		Params: nil,
+		Returns: []Value{
+			{
+				Name: "Open methods",
+				Type: "json",
+			},
+		},
+	},
+	"MethodExist": &MethodInfo{
+		Name: "MethodExist",
+		Params: []Value{
+			{
+				Name: "method",
+				Type: "string",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "exist",
+				Type: "bool",
 			},
 		},
 	},

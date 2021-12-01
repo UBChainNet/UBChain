@@ -8,6 +8,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/tokenhub_func"
 )
 
 type IRpcTransactionBody interface {
@@ -471,12 +472,51 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Function:     &exchange_func.PledgeRewardRemoveBody{},
 		}, nil
 	case contractv2.Pledge_Update:
-
 		return &TxContractV2Body{
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function:     &exchange_func.PledgeUpdateBody{},
+		}, nil
+	case contractv2.TokenHub_init:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		init := &RpcTokenHubInit{}
+		err = json.Unmarshal(bytes, init)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function:     &tokenhub_func.TokenHubInitBody{
+				Setter:  hasharry.StringToAddress(init.Setter),
+				Admin:   hasharry.StringToAddress(init.Admin),
+				FeeTo:   hasharry.StringToAddress(init.FeeTo),
+				FeeRate: init.FeeRate,
+			},
+		}, nil
+	case contractv2.TokenHub_Ack:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		ack := &RpcTokenHubAck{}
+		err = json.Unmarshal(bytes, ack)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function:     &tokenhub_func.TokenHubAckBody{
+				Sequences: ack.Sequences,
+				AckTypes:  ack.AckTypes,
+			},
 		}, nil
 	}
 	return nil, errors.New("wrong transaction body")
@@ -710,6 +750,26 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 		function = &RpcPledgeRewardRemove{}
 	case contractv2.Pledge_Update:
 		function = &RpcPledgeUpdate{}
+	case contractv2.TokenHub_init:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubInitBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubInit{
+			Setter:  funcBody.Setter.String(),
+			Admin:   funcBody.Admin.String(),
+			FeeTo:   funcBody.FeeTo.String(),
+			FeeRate: funcBody.FeeRate,
+		}
+	case contractv2.TokenHub_Ack:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubAckBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubAck{
+			Sequences: funcBody.Sequences,
+			AckTypes:  funcBody.AckTypes,
+		}
 	}
 	return function, nil
 }

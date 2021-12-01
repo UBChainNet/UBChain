@@ -104,6 +104,13 @@ func (c *TxContractV2Body) checkType() error {
 		case contractv2.Pledge_Update:
 			return nil
 		}
+	case contractv2.TokenHub_:
+		switch c.FunctionType {
+		case contractv2.TokenHub_init:
+			return nil
+		case contractv2.TokenHub_Ack:
+			return nil
+		}
 		return errors.New("invalid contract function type")
 	}
 	return errors.New("invalid contract type")

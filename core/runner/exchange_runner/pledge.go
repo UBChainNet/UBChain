@@ -6,6 +6,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/codec"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/runner/library"
+	"github.com/UBChainNet/UBChain/core/runner/method"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	exchange2 "github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
@@ -35,12 +36,12 @@ func NewPledgeState(runnerLibrary *library.RunnerLibrary, pdAddress string) (*Pl
 	}, nil
 }
 
-func (ps *PledgeState) Methods() map[string]*MethodInfo {
-	return pledgeMethods
+func (ps *PledgeState) Methods() map[string]*method.MethodInfo {
+	return method.PledgeMethods
 }
 
-func (ps *PledgeState) MethodExist(method string) bool {
-	_, exist := pledgeMethods[method]
+func (ps *PledgeState) MethodExist(mth string) bool {
+	_, exist := method.PledgeMethods[mth]
 	return exist
 }
 

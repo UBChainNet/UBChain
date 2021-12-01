@@ -127,3 +127,16 @@ type RpcPledgeRewardRemove struct {
 
 type RpcPledgeUpdate struct {
 }
+
+
+type RpcTokenHubInit struct {
+	Setter string `json:"setter"`
+	Admin  string `json:"admin"`
+	FeeTo  string `json:"feeto"`
+	FeeRate float64 `json:"feerate"`
+}
+
+type RpcTokenHubAck struct {
+	Sequences []uint64 `json:"sequences"`
+	AckTypes  []uint8  `json:"acktypes"`
+}

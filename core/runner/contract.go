@@ -5,6 +5,8 @@ import (
 	"github.com/UBChainNet/UBChain/core/interface"
 	"github.com/UBChainNet/UBChain/core/runner/exchange_runner"
 	"github.com/UBChainNet/UBChain/core/runner/library"
+	"github.com/UBChainNet/UBChain/core/runner/method"
+	"github.com/UBChainNet/UBChain/core/runner/tokenhub_runner"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"reflect"
@@ -80,6 +82,17 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 		case contractv2.Pledge_Update:
 			return pledge.PreUpdatePledgeVerify()
 		}
+	case contractv2.TokenHub_:
+		tokenHub, err := tokenhub_runner.NewTokenHubRunner(c.library, tx, lastHeight)
+		if err != nil {
+			return err
+		}
+		switch body.FunctionType {
+		case contractv2.TokenHub_init:
+			return tokenHub.PreInitVerify()
+		case contractv2.TokenHub_Ack:
+			return tokenHub.PreAckVerify()
+		}
 	}
 	return nil
 }
@@ -136,7 +149,17 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 		case contractv2.Pledge_Update:
 			pledgeRunner.UpdatePledge()
 		}
-
+	case contractv2.TokenHub_:
+		tokenHub, err := tokenhub_runner.NewTokenHubRunner(c.library, tx, blockHeight)
+		if err != nil {
+			return err
+		}
+		switch body.FunctionType {
+		case contractv2.TokenHub_init:
+			tokenHub.Init()
+		case contractv2.TokenHub_Ack:
+			tokenHub.AckTransfer()
+		}
 	}
 	return nil
 }
@@ -150,7 +173,7 @@ type Pair struct {
 }
 
 type openContract interface {
-	Methods() map[string]*exchange_runner.MethodInfo
+	Methods() map[string]*method.MethodInfo
 	MethodExist(method string) bool
 }
 

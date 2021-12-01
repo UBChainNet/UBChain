@@ -5,6 +5,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/tokenhub_func"
 )
 
 type RlpTransaction struct {
@@ -105,6 +106,14 @@ func (rt *RlpTransaction) TranslateToTransaction() *Transaction {
 			ct.Function = create
 		case contractv2.Pledge_Update:
 			var create *exchange_func.PledgeUpdateBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.TokenHub_init:
+			var create *tokenhub_func.TokenHubInitBody
+			rlp.DecodeBytes(rlpCt.Function, &create)
+			ct.Function = create
+		case contractv2.TokenHub_Ack:
+			var create *tokenhub_func.TokenHubAckBody
 			rlp.DecodeBytes(rlpCt.Function, &create)
 			ct.Function = create
 		}

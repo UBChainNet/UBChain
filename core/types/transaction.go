@@ -7,6 +7,7 @@ import (
 	hash2 "github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/tokenhub_func"
 	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
 	"github.com/UBChainNet/UBChain/crypto/hash"
 	"github.com/UBChainNet/UBChain/param"
@@ -412,7 +413,14 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.PledgeUpdateBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
-
+		case contractv2.TokenHub_init:
+			function, _ := body.Function.(*tokenhub_func.TokenHubInitBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_Ack:
+			function, _ := body.Function.(*tokenhub_func.TokenHubAckBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
 		}
 		rlpTx.TxBody, _ = rlp.EncodeToBytes(rlpC.TxBody)
 	default:

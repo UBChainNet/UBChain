@@ -16,6 +16,7 @@ const (
 	Pair_                  = 1
 	Pledge_                = 2
 	Token_                 = 3
+	TokenHub_              = 4
 )
 
 const (
@@ -38,6 +39,9 @@ const (
 	Pledge_Update       = 200007
 
 	Token_Init = 300000
+
+	TokenHub_init = 400000
+	TokenHub_Ack =  400001
 )
 
 type ContractV2 struct {

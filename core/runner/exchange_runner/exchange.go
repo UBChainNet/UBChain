@@ -6,6 +6,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/codec"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/runner/library"
+	"github.com/UBChainNet/UBChain/core/runner/method"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
@@ -36,23 +37,14 @@ func NewExchangeState(runnerLibrary *library.RunnerLibrary, exAddress string) (*
 	}, nil
 }
 
-type Value struct {
-	Name string `json:"name"`
-	Type string `json:"type"`
+
+
+func (es *ExchangeState) Methods() map[string]*method.MethodInfo {
+	return method.ExMethods
 }
 
-type MethodInfo struct {
-	Name    string  `json:"name"`
-	Params  []Value `json:"params"`
-	Returns []Value `json:"returns"`
-}
-
-func (es *ExchangeState) Methods() map[string]*MethodInfo {
-	return exMethods
-}
-
-func (es *ExchangeState) MethodExist(method string) bool {
-	_, exist := exMethods[method]
+func (es *ExchangeState) MethodExist(mth string) bool {
+	_, exist := method.ExMethods[mth]
 	return exist
 }
 

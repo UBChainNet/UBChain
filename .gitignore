@@ -2,6 +2,7 @@
 .idea/workspace.xml
 cmd/wallet/keystore
 cmd/wallet/wallet
+cmd/wallet/test
 UBChain
 build
 cmd/tools/tools
