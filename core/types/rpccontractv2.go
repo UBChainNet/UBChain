@@ -116,16 +116,6 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 				Fees:     Amount(tr.Fees).ToCoin(),
 			}
 		}
-		unTrs := make(map[uint64]*TokenHubTransfer, 0)
-		for _, tr := range th.UnconfirmedOuts {
-			unTrs[tr.Sequence] = &TokenHubTransfer{
-				Sequence: tr.Sequence,
-				From:     tr.From,
-				To:       tr.To,
-				Amount:   Amount(tr.Amount).ToCoin(),
-				Fees:     Amount(tr.Fees).ToCoin(),
-			}
-		}
 
 		return &RpcTokenHub{
 			Address:        th.Address.String(),
@@ -134,12 +124,10 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 			FeeTo:          th.FeeTo.String(),
 			FeeRate:        th.FeeRate,
 			Transfers:      thTrs,
-			Unconfirmed:    unTrs,
 			AcrossSeqs:     th.AcrossSeqs,
 			Sequence:       th.Sequence,
 			InAmount:       Amount(th.InAmount).ToCoin(),
 			OutAmount:      Amount(th.OutAmount).ToCoin(),
-			UnFinishAmount: Amount(th.UnFinishAmount).ToCoin(),
 		}
 	}
 	return nil
