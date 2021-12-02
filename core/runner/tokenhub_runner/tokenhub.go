@@ -242,10 +242,7 @@ func (t *TokenHubRunner) PreTransferInVerify() error {
 	}
 	trBody := t.contractBody.Function.(*tokenhub_func.TokenHubTransferInBody)
 	balance := t.thState.library.GetBalance(t.thState.body.Address, param.Token)
-	if balance < t.thState.body.UnFinishAmount{
-		return fmt.Errorf("insufficient balance %s", t.thState.body.Address.String())
-	}
-	if trBody.Amount > balance - t.thState.body.UnFinishAmount{
+	if trBody.Amount > balance{
 		return fmt.Errorf("insufficient balance %s", t.thState.body.Address.String())
 	}
 	return nil
