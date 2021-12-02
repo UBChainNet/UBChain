@@ -17,7 +17,8 @@ const MaxTransferLength = 10000
 type AckType uint8
 
 const (
-	Confirmed   AckType = 1
+	Send      AckType = 1
+	Confirmed         = 2
 )
 
 type Transfer struct {
@@ -35,6 +36,7 @@ type TokenHub struct {
 	FeeTo           hasharry.Address
 	FeeRate         string
 	TransferOuts    map[uint64]*Transfer
+	UnconfirmedOuts map[uint64]*Transfer
 	AcrossSeqs      map[uint64]string
 	Sequence        uint64
 	OutAmount       uint64
@@ -49,6 +51,7 @@ func NewTokenHub(address, setter, admin, feeTo hasharry.Address, feeRate string)
 		FeeTo:           feeTo,
 		FeeRate:         feeRate,
 		TransferOuts:    make(map[uint64]*Transfer),
+		UnconfirmedOuts: make(map[uint64]*Transfer),
 		AcrossSeqs:      make(map[uint64]string),
 	}
 }
@@ -170,10 +173,18 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 	var events = []*TransferEvent{}
 	for sequence, ack := range ackData {
 		switch ack {
-		case Confirmed:
+		case Send:
 			transfer, exist := t.TransferOuts[sequence]
 			if exist {
 				delete(t.TransferOuts, sequence)
+			} else {
+				return nil, fmt.Errorf("ack transafer sequence %d does not exist", sequence)
+			}
+			t.UnconfirmedOuts[sequence] = transfer
+		case Confirmed:
+			transfer, exist := t.UnconfirmedOuts[sequence]
+			if exist {
+				delete(t.UnconfirmedOuts, sequence)
 			} else {
 				return nil, fmt.Errorf("ack unconfirmed sequence %d does not exist", sequence)
 			}
@@ -198,6 +209,7 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 		FeeTo:          t.FeeTo.String(),
 		FeeRate:        t.FeeRate,
 		Transfers:      make([]*Transfer, 0),
+		Unconfirmed:    make([]*Transfer, 0),
 		AcrossSeqs:     make([]*Across, 0),
 		Sequence:       t.Sequence,
 		InAmount:       t.InAmount,
@@ -205,6 +217,9 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 	}
 	for _, transfer := range t.TransferOuts {
 		rlpTh.Transfers = append(rlpTh.Transfers, transfer)
+	}
+	for _, transfer := range t.UnconfirmedOuts {
+		rlpTh.Unconfirmed = append(rlpTh.Unconfirmed, transfer)
 	}
 	for seq, hash := range t.AcrossSeqs {
 		rlpTh.AcrossSeqs = append(rlpTh.AcrossSeqs, &Across{
@@ -214,6 +229,10 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 	}
 	sort.Slice(rlpTh.Transfers, func(i, j int) bool {
 		return rlpTh.Transfers[i].Sequence < rlpTh.Transfers[j].Sequence
+	})
+
+	sort.Slice(rlpTh.Unconfirmed, func(i, j int) bool {
+		return rlpTh.Unconfirmed[i].Sequence < rlpTh.Unconfirmed[j].Sequence
 	})
 
 	sort.Slice(rlpTh.AcrossSeqs, func(i, j int) bool {
@@ -250,10 +269,12 @@ type RlpTokenHub struct {
 	FeeTo          string
 	FeeRate        string
 	Transfers      []*Transfer
+	Unconfirmed    []*Transfer
 	AcrossSeqs     []*Across
 	Sequence       uint64
 	InAmount       uint64
 	OutAmount      uint64
+	UnFinishAmount uint64
 }
 
 func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
@@ -266,6 +287,7 @@ func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
 		FeeTo:           hasharry.StringToAddress(rlpTh.FeeTo),
 		FeeRate:         rlpTh.FeeRate,
 		TransferOuts:    make(map[uint64]*Transfer),
+		UnconfirmedOuts: make(map[uint64]*Transfer),
 		AcrossSeqs:      make(map[uint64]string),
 		Sequence:        rlpTh.Sequence,
 		InAmount:        rlpTh.InAmount,
@@ -274,6 +296,9 @@ func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
 
 	for _, transfer := range rlpTh.Transfers {
 		th.TransferOuts[transfer.Sequence] = transfer
+	}
+	for _, transfer := range rlpTh.Unconfirmed {
+		th.UnconfirmedOuts[transfer.Sequence] = transfer
 	}
 	for _, across := range rlpTh.AcrossSeqs {
 		th.AcrossSeqs[across.Seq] = across.Hash
