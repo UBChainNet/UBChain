@@ -245,6 +245,10 @@ func (t *TokenHubRunner) PreTransferInVerify() error {
 	if trBody.Amount > balance{
 		return fmt.Errorf("insufficient balance %s", t.thState.body.Address.String())
 	}
+	_, exist := t.thState.body.AcrossSeqs[trBody.AcrossSeq]
+	if exist{
+		return fmt.Errorf("%d across seq has send", trBody.AcrossSeq)
+	}
 	return nil
 }
 
