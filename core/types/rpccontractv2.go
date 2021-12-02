@@ -114,6 +114,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 				To:       tr.To,
 				Amount:   Amount(tr.Amount).ToCoin(),
 				Fees:     Amount(tr.Fees).ToCoin(),
+				Hash: 	  tr.Hash,
 			}
 		}
 
@@ -139,6 +140,7 @@ type TokenHubTransfer struct {
 	To       string  `json:"to"`
 	Amount   float64 `json:"amount"`
 	Fees     float64 `json:"fees"`
+	Hash     string  `json:"hash"`
 }
 
 type RpcTokenHub struct {
