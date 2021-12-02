@@ -516,6 +516,7 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Function: &tokenhub_func.TokenHubAckBody{
 				Sequences: ack.Sequences,
 				AckTypes:  ack.AckTypes,
+				Hashes:    ack.Hashes,
 			},
 		}, nil
 	case contractv2.TokenHub_TransferOut:
@@ -826,6 +827,7 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 		function = &RpcTokenHubAck{
 			Sequences: funcBody.Sequences,
 			AckTypes:  funcBody.AckTypes,
+			Hashes:    funcBody.Hashes,
 		}
 	case contractv2.TokenHub_TransferOut:
 		funcBody, ok := body.Function.(*tokenhub_func.TokenHubTransferOutBody)

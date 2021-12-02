@@ -37,7 +37,7 @@ func NewTokenHubInit(from, contract, setter, admin, feeTo string, feeRate string
 	return tx, nil
 }
 
-func NewTokenHubAck(from, contract string, sequences []uint64, ackTypes []uint8, nonce uint64, note string) (*types.Transaction, error) {
+func NewTokenHubAck(from, contract string, sequences []uint64, ackTypes []uint8, hashes []string, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -56,6 +56,7 @@ func NewTokenHubAck(from, contract string, sequences []uint64, ackTypes []uint8,
 			Function: &tokenhub_func.TokenHubAckBody{
 				Sequences: sequences,
 				AckTypes:  ackTypes,
+				Hashes: hashes,
 			},
 		},
 	}

@@ -19,6 +19,7 @@ type AckType uint8
 const (
 	Send      AckType = 1
 	Confirmed         = 2
+	Failed            = 3
 )
 
 type Transfer struct {
@@ -27,6 +28,7 @@ type Transfer struct {
 	To       string `json:"to"`
 	Amount   uint64 `json:"amount"`
 	Fees     uint64 `json:"fees"`
+	Hash     string `json:"hash"`
 }
 
 type TokenHub struct {
@@ -163,7 +165,7 @@ func (t *TokenHub) TransferOut(from hasharry.Address, to string, amount uint64) 
 	return events, nil
 }
 
-func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType) ([]*TransferEvent, error) {
+func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType, ackHash map[uint64]string) ([]*TransferEvent, error) {
 	if !from.IsEqual(t.Admin) {
 		return nil, errors.New("forbidden")
 	}
@@ -180,6 +182,7 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 			} else {
 				return nil, fmt.Errorf("ack transafer sequence %d does not exist", sequence)
 			}
+			transfer.Hash = ackHash[sequence]
 			t.UnconfirmedOuts[sequence] = transfer
 		case Confirmed:
 			transfer, exist := t.UnconfirmedOuts[sequence]
@@ -194,6 +197,12 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 				Token:  param.Token,
 				Amount: transfer.Fees,
 			})
+		case Failed:
+			transfer, exist := t.UnconfirmedOuts[sequence]
+			if exist{
+				transfer.Hash = ""
+				t.TransferOuts[sequence] = transfer
+			}
 		default:
 			return nil, fmt.Errorf("invalid ack type %d", ack)
 		}

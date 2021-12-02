@@ -152,11 +152,13 @@ func (t *TokenHubRunner) PreAckVerify() error {
 		return fmt.Errorf("tokenhub %s does not exist", t.address.String())
 	}
 	ackBody := t.contractBody.Function.(*tokenhub_func.TokenHubAckBody)
-	ackData := make(map[uint64]tokenhub.AckType)
+	ackType := make(map[uint64]tokenhub.AckType)
+	ackHash := make(map[uint64]string)
 	for i, sequence := range ackBody.Sequences {
-		ackData[sequence] = tokenhub.AckType(ackBody.AckTypes[i])
+		ackType[sequence] = tokenhub.AckType(ackBody.AckTypes[i])
+		ackHash[sequence] = ackBody.Hashes[i]
 	}
-	_, err := t.thState.body.AckTransfer(t.tx.From(), ackData)
+	_, err := t.thState.body.AckTransfer(t.tx.From(), ackType, ackHash)
 	return err
 }
 
@@ -175,10 +177,12 @@ func (t *TokenHubRunner) AckTransfer() {
 
 	ackBody := t.contractBody.Function.(*tokenhub_func.TokenHubAckBody)
 	ackData := make(map[uint64]tokenhub.AckType)
+	ackHash := make(map[uint64]string)
 	for i, sequence := range ackBody.Sequences {
 		ackData[sequence] = tokenhub.AckType(ackBody.AckTypes[i])
+		ackHash[sequence] = ackBody.Hashes[i]
 	}
-	transfers, err := t.thState.body.AckTransfer(t.tx.From(), ackData)
+	transfers, err := t.thState.body.AckTransfer(t.tx.From(), ackData, ackHash)
 	if err != nil {
 		ERR = err
 		return

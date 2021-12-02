@@ -138,6 +138,7 @@ type RpcTokenHubInit struct {
 type RpcTokenHubAck struct {
 	Sequences []uint64 `json:"sequences"`
 	AckTypes  []uint8  `json:"acktypes"`
+	Hashes    []string `json:"hashes"`
 }
 
 type RpcTokenHubTransferOut struct {

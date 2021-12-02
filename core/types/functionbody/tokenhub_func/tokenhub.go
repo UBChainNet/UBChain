@@ -82,14 +82,23 @@ func (t *TokenHubFinishAcrossBody) Verify() error {
 type TokenHubAckBody struct {
 	Sequences []uint64
 	AckTypes  []uint8
+	Hashes 	  []string
 }
 
 func (t *TokenHubAckBody) Verify() error {
 	if len(t.Sequences) != len(t.AckTypes) {
 		return errors.New("invalid ack data")
 	}
+	if len(t.Sequences) != len(t.Hashes) {
+		return errors.New("invalid ack data")
+	}
 	if len(t.Sequences) == 0 {
 		return errors.New("invalid ack data")
+	}
+	for _, hash := range t.Hashes{
+		if len(hash) > 100{
+			return errors.New("invalid ack hash")
+		}
 	}
 	return nil
 }
