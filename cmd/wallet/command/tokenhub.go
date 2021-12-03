@@ -120,13 +120,13 @@ func parseTHIParams(args []string, nonce uint64) (*types.Transaction, error) {
 }
 
 var TokenHubAckCmd = &cobra.Command{
-	Use:     "TokenHubAck {from} {contract} {sequence:ackType|sequence:ackType} {password} {nonce}; tokenhub ack transfer;",
+	Use:     "TokenHubAck {from} {contract} {sequence:ackType:hash|sequence:ackType:hash} {password} {nonce}; tokenhub ack transfer;",
 	Aliases: []string{"TokenHubAck", "tokenhuback", "tha", "THA"},
-	Short:   "TokenHubAck {from} {contract} {sequence:ackType|sequence:ackType} {password} {nonce}; tokenhub ack transfer;",
+	Short:   "TokenHubAck {from} {contract} {sequence:ackType:hash|sequence:ackType:hash} {password} {nonce}; tokenhub ack transfer;",
 	Example: `
-	TokenHubAck 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE "1:3|2:2|3:1" 123456
+	TokenHubAck 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE "1:3:0x78427897dd3aa5116953b00ffa3445a273fec75b3864fd2e73766ea59a757bbf" 123456
 		OR
-	TokenHubAck 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE "1:3|2:2|3:1" 123456 1
+	TokenHubAck 3ajDJUnMYDyzXLwefRfNp7yLcdmg3ULb9ndQ 3ajNkh7yVYkETL9JKvGx3aL2YVNrqksjCUUE "1:3:0x78427897dd3aa5116953b00ffa3445a273fec75b3864fd2e73766ea59a757bbf" 123456 1
 	`,
 	Args: cobra.MinimumNArgs(3),
 	Run:  TokenHubAck,
@@ -194,9 +194,10 @@ func parseTHAParams(args []string, nonce uint64) (*types.Transaction, error) {
 	list := strings.Split(args[2], "|")
 	sequences := make([]uint64, 0)
 	ackTypes := make([]uint8, 0)
+	hashes := make([]string, 0)
 	for _, sequenceAndType := range list {
 		strs := strings.Split(sequenceAndType, ":")
-		if len(strs) != 2 {
+		if len(strs) != 3 {
 			return nil, fmt.Errorf("wrong sequence and ackType")
 		}
 		sequence, err := strconv.ParseUint(strs[0], 10, 64)
@@ -209,6 +210,7 @@ func parseTHAParams(args []string, nonce uint64) (*types.Transaction, error) {
 		}
 		sequences = append(sequences, sequence)
 		ackTypes = append(ackTypes, uint8(ackType))
+		hashes = append(hashes, strs[2])
 	}
 	if len(args) > 4 {
 		nonce, err = strconv.ParseUint(args[4], 10, 64)
@@ -216,7 +218,7 @@ func parseTHAParams(args []string, nonce uint64) (*types.Transaction, error) {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	tx, err := transaction.NewTokenHubAck(from, contract, sequences, ackTypes, nonce, "")
+	tx, err := transaction.NewTokenHubAck(from, contract, sequences, ackTypes, hashes, nonce, "")
 	if err != nil {
 		return nil, err
 	}

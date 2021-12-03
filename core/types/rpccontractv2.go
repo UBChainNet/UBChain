@@ -114,21 +114,33 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 				To:       tr.To,
 				Amount:   Amount(tr.Amount).ToCoin(),
 				Fees:     Amount(tr.Fees).ToCoin(),
+			}
+		}
+		unTrs := make(map[uint64]*TokenHubTransfer, 0)
+		for _, tr := range th.UnconfirmedOuts {
+			unTrs[tr.Sequence] = &TokenHubTransfer{
+				Sequence: tr.Sequence,
+				From:     tr.From,
+				To:       tr.To,
+				Amount:   Amount(tr.Amount).ToCoin(),
+				Fees:     Amount(tr.Fees).ToCoin(),
 				Hash: 	  tr.Hash,
 			}
 		}
 
+
 		return &RpcTokenHub{
-			Address:        th.Address.String(),
-			Setter:         th.Setter.String(),
-			Admin:          th.Admin.String(),
-			FeeTo:          th.FeeTo.String(),
-			FeeRate:        th.FeeRate,
-			Transfers:      thTrs,
-			AcrossSeqs:     th.AcrossSeqs,
-			Sequence:       th.Sequence,
-			InAmount:       Amount(th.InAmount).ToCoin(),
-			OutAmount:      Amount(th.OutAmount).ToCoin(),
+			Address:     th.Address.String(),
+			Setter:      th.Setter.String(),
+			Admin:       th.Admin.String(),
+			FeeTo:       th.FeeTo.String(),
+			FeeRate:     th.FeeRate,
+			Transfers:   thTrs,
+			Unconfirmed: unTrs,
+			AcrossSeqs:  th.AcrossSeqs,
+			Sequence:    th.Sequence,
+			InAmount: Amount(th.InAmount).ToCoin(),
+			OutAmount:Amount(th.OutAmount).ToCoin(),
 		}
 	}
 	return nil
@@ -153,7 +165,6 @@ type RpcTokenHub struct {
 	Unconfirmed    map[uint64]*TokenHubTransfer `json:"unconfirmed"`
 	AcrossSeqs     map[uint64]string            `json:"acrossSeqs"`
 	Sequence       uint64                       `json:"sequence"`
-	InAmount       float64                      `json:"inAmount"`
-	OutAmount      float64                      `json:"outAmount"`
-	UnFinishAmount float64                      `json:"unFinishAmount"`
+	InAmount       float64                       `json:"inAmount"`
+	OutAmount      float64                       `json:"outAmount"`
 }

@@ -18,8 +18,9 @@ type AckType uint8
 
 const (
 	Send      AckType = 1
-	Confirmed         = 2
-	Failed            = 3
+	Confirmed AckType = 2
+	Failed    AckType = 3
+	Error  	  AckType = 4
 )
 
 type Transfer struct {
