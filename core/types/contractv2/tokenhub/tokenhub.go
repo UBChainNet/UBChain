@@ -211,7 +211,12 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 			if exist {
 				delete(t.UnconfirmedOuts, sequence)
 			} else {
-				return nil, fmt.Errorf("ack unconfirmed sequence %d does not exist", sequence)
+				transfer, exist = t.TransferOuts[sequence]
+				if exist {
+					delete(t.TransferOuts, sequence)
+				}else{
+					return nil, fmt.Errorf("ack unconfirmed sequence %d does not exist", sequence)
+				}
 			}
 			events = append(events, &TransferEvent{
 				From:   t.Address,

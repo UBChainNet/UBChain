@@ -114,6 +114,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 				To:       tr.To,
 				Amount:   Amount(tr.Amount).ToCoin(),
 				Fees:     Amount(tr.Fees).ToCoin(),
+				Hash: 	  tr.Hash,
 			}
 		}
 		unTrs := make(map[uint64]*TokenHubTransfer, 0)
