@@ -41,6 +41,8 @@ type TokenHub struct {
 	TransferOuts    map[uint64]*Transfer
 	UnconfirmedOuts map[uint64]*Transfer
 	AcrossSeqs      map[uint64]string
+	FinishSeq       map[uint64]bool
+	ContinueSeq     uint64
 	Sequence        uint64
 	OutAmount       uint64
 	InAmount        uint64
@@ -56,6 +58,7 @@ func NewTokenHub(address, setter, admin, feeTo hasharry.Address, feeRate string)
 		TransferOuts:    make(map[uint64]*Transfer),
 		UnconfirmedOuts: make(map[uint64]*Transfer),
 		AcrossSeqs:      make(map[uint64]string),
+		FinishSeq:       make(map[uint64]bool),
 	}
 }
 
@@ -129,7 +132,25 @@ func (t *TokenHub) AcrossFinished(from hasharry.Address, acrossSeq []uint64) err
 		return errors.New("forbidden")
 	}
 	for _, seq := range acrossSeq {
+		t.FinishSeq[seq] = true
 		delete(t.AcrossSeqs, seq)
+	}
+	tmp := make([]uint64, 0)
+	for seq := range t.FinishSeq{
+		tmp = append(tmp, seq)
+	}
+	sort.Slice(tmp, func(i, j int) bool {
+		return tmp[i] < tmp[j]
+	})
+	for _, seq := range tmp{
+		if t.ContinueSeq >= seq{
+			delete(t.FinishSeq, seq)
+		}else if t.ContinueSeq +1 == seq{
+			t.ContinueSeq++
+			delete(t.FinishSeq, seq)
+		}else{
+			break
+		}
 	}
 	return nil
 }
@@ -221,6 +242,8 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 		Transfers:      make([]*Transfer, 0),
 		Unconfirmed:    make([]*Transfer, 0),
 		AcrossSeqs:     make([]*Across, 0),
+		FinishSeq:      make([]uint64, 0),
+		ContinueSeq:    t.ContinueSeq,
 		Sequence:       t.Sequence,
 		InAmount:       t.InAmount,
 		OutAmount:      t.OutAmount,
@@ -237,6 +260,10 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 			Hash: hash,
 		})
 	}
+	for seq, _ := range t.FinishSeq {
+		rlpTh.FinishSeq = append(rlpTh.FinishSeq, seq)
+	}
+
 	sort.Slice(rlpTh.Transfers, func(i, j int) bool {
 		return rlpTh.Transfers[i].Sequence < rlpTh.Transfers[j].Sequence
 	})
@@ -247,6 +274,10 @@ func (t *TokenHub) ToRlp() *RlpTokenHub {
 
 	sort.Slice(rlpTh.AcrossSeqs, func(i, j int) bool {
 		return rlpTh.AcrossSeqs[i].Seq < rlpTh.AcrossSeqs[j].Seq
+	})
+
+	sort.Slice(rlpTh.FinishSeq, func(i, j int) bool {
+		return rlpTh.FinishSeq[i] < rlpTh.FinishSeq[j]
 	})
 	return rlpTh
 }
@@ -281,10 +312,11 @@ type RlpTokenHub struct {
 	Transfers      []*Transfer
 	Unconfirmed    []*Transfer
 	AcrossSeqs     []*Across
+	FinishSeq      []uint64
+	ContinueSeq    uint64
 	Sequence       uint64
 	InAmount       uint64
 	OutAmount      uint64
-	UnFinishAmount uint64
 }
 
 func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
@@ -299,6 +331,8 @@ func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
 		TransferOuts:    make(map[uint64]*Transfer),
 		UnconfirmedOuts: make(map[uint64]*Transfer),
 		AcrossSeqs:      make(map[uint64]string),
+		FinishSeq:       make(map[uint64]bool),
+		ContinueSeq:     rlpTh.ContinueSeq,
 		Sequence:        rlpTh.Sequence,
 		InAmount:        rlpTh.InAmount,
 		OutAmount:       rlpTh.OutAmount,
@@ -312,6 +346,9 @@ func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
 	}
 	for _, across := range rlpTh.AcrossSeqs {
 		th.AcrossSeqs[across.Seq] = across.Hash
+	}
+	for _, seq := range rlpTh.FinishSeq {
+		th.FinishSeq[seq] = true
 	}
 	return th, nil
 }
