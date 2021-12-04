@@ -12,7 +12,6 @@ import (
 	"github.com/UBChainNet/UBChain/crypto/hash"
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
-	"strconv"
 )
 
 const (
@@ -291,10 +290,6 @@ func (t *Transaction) copy() *Transaction {
 		TxHead: header,
 		TxBody: t.TxBody,
 	}
-}
-
-func (t *Transaction) NonceKey() string {
-	return t.TxHead.From.String() + "_" + strconv.FormatUint(t.TxHead.Nonce, 10)
 }
 
 func (t *Transaction) Hash() hash2.Hash {

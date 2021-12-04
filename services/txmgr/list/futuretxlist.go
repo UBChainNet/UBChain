@@ -7,13 +7,13 @@ import (
 
 type FutureTxList struct {
 	Txs        map[string]types.ITransaction
-	nonceKeMap map[string]string
+	nonceKeMap map[string]map[uint64]string
 }
 
 func NewFutureTxList() *FutureTxList {
 	return &FutureTxList{
 		Txs:        make(map[string]types.ITransaction),
-		nonceKeMap: make(map[string]string),
+		nonceKeMap: make(map[string]map[uint64]string),
 	}
 }
 
@@ -21,21 +21,34 @@ func (f *FutureTxList) Put(tx types.ITransaction) error {
 	if f.IsExist(tx.Hash().String()) {
 		return fmt.Errorf("transation hash %s exsit", tx.Hash())
 	}
-	if oldTxHash := f.GetNonceKeyHash(tx.NonceKey()); oldTxHash != "" {
+	if oldTxHash := f.GetNonceKeyHash(tx.From().String(), tx.GetNonce()); oldTxHash != "" {
 		oldTx := f.Txs[oldTxHash]
 		if oldTx.GetFees() > tx.GetFees() {
-			return fmt.Errorf("transation nonce %d exist, the fees must biger than before %d", tx.GetNonce, oldTx.GetFees())
+			return fmt.Errorf("transation nonce %d exist, the fees must biger than before %d", tx.GetNonce(), oldTx.GetFees())
 		}
 		f.Remove(oldTx)
 	}
 	f.Txs[tx.Hash().String()] = tx
-	f.nonceKeMap[tx.NonceKey()] = tx.Hash().String()
+	nonceMap, exist := f.nonceKeMap[tx.From().String()]
+	if exist{
+		nonceMap[tx.GetNonce()] = tx.Hash().String()
+	}else{
+		f.nonceKeMap[tx.From().String()] = map[uint64]string{
+			tx.GetNonce() : tx.Hash().String(),
+		}
+	}
 	return nil
 }
 
 func (f *FutureTxList) Remove(tx types.ITransaction) {
 	delete(f.Txs, tx.Hash().String())
-	delete(f.nonceKeMap, tx.NonceKey())
+	nonceMap, exist := f.nonceKeMap[tx.From().String()]
+	if exist{
+		delete(nonceMap, tx.GetNonce())
+		if len(nonceMap) == 0{
+			delete(f.nonceKeMap, tx.From().String())
+		}
+	}
 }
 
 func (f *FutureTxList) IsExist(txHash string) bool {
@@ -48,8 +61,26 @@ func (f *FutureTxList) GetTransaction(txHash string) (types.ITransaction, bool) 
 	return tx, ok
 }
 
-func (f *FutureTxList) GetNonceKeyHash(nonceKey string) string {
-	return f.nonceKeMap[nonceKey]
+func (f *FutureTxList) GetNonceKeyHash(from string, nonce uint64) string {
+	nonceTx, exist := f.nonceKeMap[from]
+	if exist{
+		return nonceTx[nonce]
+	}
+	return ""
+}
+
+func (f *FutureTxList) GetAddressMaxNonce(from string) uint64 {
+	nonceTx, exist := f.nonceKeMap[from]
+	if exist{
+		var max uint64
+		for nonce, _ := range nonceTx{
+			if nonce > max{
+				max = nonce
+			}
+		}
+		return max
+	}
+	return 0
 }
 
 func (f *FutureTxList) Len() int {

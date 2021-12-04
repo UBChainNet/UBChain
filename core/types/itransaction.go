@@ -13,7 +13,6 @@ type ITransaction interface {
 	EncodeToBytes() ([]byte, error)
 	SignTx(key *secp256k1.PrivateKey) error
 	SetHash() error
-	NonceKey() string
 	TranslateToRlpTransaction() *RlpTransaction
 
 	Hash() hasharry.Hash

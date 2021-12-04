@@ -76,6 +76,10 @@ func (t *TxList)GetPendingNonce(address hasharry.Address) uint64 {
 
 	tx :=  t.preparedTxs.GetByAddress(address.String())
 	if tx != nil{
+		nonce := t.futureTxs.GetAddressMaxNonce(address.String())
+		if nonce != 0{
+			return nonce
+		}
 		return tx.GetNonce()
 	}
 	return 0
