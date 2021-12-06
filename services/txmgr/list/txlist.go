@@ -177,8 +177,8 @@ func (t *TxList) GetTransaction(hash string) (types.ITransaction, error) {
 }
 
 func (t *TxList) UpdateTxsList() {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
 
 	t.preparedTxs.RemoveExecuted(t.state)
 
