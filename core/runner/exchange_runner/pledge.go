@@ -12,6 +12,7 @@ import (
 	exchange2 "github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
 	"github.com/UBChainNet/UBChain/crypto/base58"
+	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
 	"sort"
 	"strings"
@@ -52,17 +53,22 @@ type PledgePool struct {
 	YieldRate   float64 `json:"yieldRate"`
 	TotalPledge float64 `json:"totalPledge"`
 	TotalReward float64 `json:"totalReward"`
+	DayReward   float64 `json:"dayReward"`
 }
+
+const daySeconds = 60 * 60 * 24
 
 func (ps *PledgeState) GetPoolInfos() []*PledgePool {
 	var pledgePools []*PledgePool
 	infos := ps.body.GetPoolInfos()
 	for _, info := range infos {
+		reward := types.Amount(info.TotalReward).ToCoin()
 		pledgePools = append(pledgePools, &PledgePool{
 			Address:     info.Address,
 			YieldRate:   info.YieldRate,
 			TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
-			TotalReward: types.Amount(info.TotalReward).ToCoin(),
+			TotalReward: reward,
+			DayReward:   reward * float64(daySeconds/param.BlockInterval),
 		})
 	}
 	sort.Slice(pledgePools, func(i, j int) bool {
@@ -73,11 +79,13 @@ func (ps *PledgeState) GetPoolInfos() []*PledgePool {
 
 func (ps *PledgeState) GetPoolInfo(pair string) *PledgePool {
 	info := ps.body.GetPoolInfo(hasharry.StringToAddress(pair))
+	reward := types.Amount(info.TotalReward).ToCoin()
 	return &PledgePool{
 		Address:     info.Address,
 		YieldRate:   info.YieldRate,
 		TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
-		TotalReward: types.Amount(info.TotalReward).ToCoin(),
+		TotalReward: reward,
+		DayReward:   reward * float64(daySeconds/param.BlockInterval),
 	}
 }
 
@@ -102,21 +110,26 @@ func (ps *PledgeState) GetPledgeYields() []*PledgeYield {
 }
 
 type PledgeReward struct {
-	Token  string  `json:"token"`
-	Symbol string  `json:"symbol"`
-	Amount float64 `json:"amount"`
-	Pair   string  `json:"pair"`
+	Token       string  `json:"token"`
+	Symbol      string  `json:"symbol"`
+	Amount      float64 `json:"amount"`
+	BlockReward float64 `json:"blockReward"`
+	BlockTime   uint64  `json:"blockTime"`
+	Pair        string  `json:"pair"`
 }
 
 func (ps *PledgeState) GetPledgeReward(address string, pair string) *PledgeReward {
 	_ = ps.updatePledge(ps.chainHeight)
 
 	reward := ps.body.GetPledgeReward(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
+	blockReward := ps.body.BlockReward(hasharry.StringToAddress(address), hasharry.StringToAddress(pair))
 	return &PledgeReward{
-		Token:  ps.body.RewardToken.String(),
-		Symbol: ps.body.RewardSymbol,
-		Amount: types.Amount(reward).ToCoin(),
-		Pair:   pair,
+		Token:       ps.body.RewardToken.String(),
+		Symbol:      ps.body.RewardSymbol,
+		Amount:      types.Amount(reward).ToCoin(),
+		BlockReward: types.Amount(blockReward).ToCoin(),
+		BlockTime:   param.BlockInterval,
+		Pair:        pair,
 	}
 }
 
@@ -127,11 +140,14 @@ func (ps *PledgeState) GetPledgeRewards(address string) []*PledgeReward {
 	rewardMap := ps.body.GetPledgeRewards(hasharry.StringToAddress(address))
 	if rewardMap != nil {
 		for pair, reward := range rewardMap {
+			blockReward := ps.body.BlockReward(hasharry.StringToAddress(address), pair)
 			rewards = append(rewards, &PledgeReward{
-				Token:  ps.body.RewardToken.String(),
-				Symbol: ps.body.RewardSymbol,
-				Amount: types.Amount(reward).ToCoin(),
-				Pair:   pair.String(),
+				Token:       ps.body.RewardToken.String(),
+				Symbol:      ps.body.RewardSymbol,
+				Amount:      types.Amount(reward).ToCoin(),
+				BlockReward: types.Amount(blockReward).ToCoin(),
+				BlockTime:   param.BlockInterval,
+				Pair:        pair.String(),
 			})
 		}
 	}

@@ -114,7 +114,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 				To:       tr.To,
 				Amount:   Amount(tr.Amount).ToCoin(),
 				Fees:     Amount(tr.Fees).ToCoin(),
-				Hash: 	  tr.Hash,
+				Hash:     tr.Hash,
 			}
 		}
 		unTrs := make(map[uint64]*TokenHubTransfer, 0)
@@ -125,10 +125,9 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 				To:       tr.To,
 				Amount:   Amount(tr.Amount).ToCoin(),
 				Fees:     Amount(tr.Fees).ToCoin(),
-				Hash: 	  tr.Hash,
+				Hash:     tr.Hash,
 			}
 		}
-
 
 		return &RpcTokenHub{
 			Address:     th.Address.String(),
@@ -142,8 +141,8 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 			FinishSeq:   th.FinishSeq,
 			Sequence:    th.Sequence,
 			ContinueSeq: th.ContinueSeq,
-			InAmount: Amount(th.InAmount).ToCoin(),
-			OutAmount:Amount(th.OutAmount).ToCoin(),
+			InAmount:    Amount(th.InAmount).ToCoin(),
+			OutAmount:   Amount(th.OutAmount).ToCoin(),
 		}
 	}
 	return nil
@@ -159,17 +158,17 @@ type TokenHubTransfer struct {
 }
 
 type RpcTokenHub struct {
-	Address        string                       `json:"address"`
-	Setter         string                       `json:"setter"`
-	Admin          string                       `json:"admin"`
-	FeeTo          string                       `json:"feeTo"`
-	FeeRate        string                       `json:"feeRate"`
-	Transfers      map[uint64]*TokenHubTransfer `json:"transfers"`
-	Unconfirmed    map[uint64]*TokenHubTransfer `json:"unconfirmed"`
-	AcrossSeqs     map[uint64]string            `json:"acrossSeqs"`
-	FinishSeq      map[uint64]bool              `json:"finishSeq"`
-	ContinueSeq    uint64 						 `json:"continueSeq"`
-	Sequence       uint64                       `json:"sequence"`
-	InAmount       float64                       `json:"inAmount"`
-	OutAmount      float64                       `json:"outAmount"`
+	Address     string                       `json:"address"`
+	Setter      string                       `json:"setter"`
+	Admin       string                       `json:"admin"`
+	FeeTo       string                       `json:"feeTo"`
+	FeeRate     string                       `json:"feeRate"`
+	Transfers   map[uint64]*TokenHubTransfer `json:"transfers"`
+	Unconfirmed map[uint64]*TokenHubTransfer `json:"unconfirmed"`
+	AcrossSeqs  map[uint64]string            `json:"acrossSeqs"`
+	FinishSeq   map[uint64]bool              `json:"finishSeq"`
+	ContinueSeq uint64                       `json:"continueSeq"`
+	Sequence    uint64                       `json:"sequence"`
+	InAmount    float64                      `json:"inAmount"`
+	OutAmount   float64                      `json:"outAmount"`
 }

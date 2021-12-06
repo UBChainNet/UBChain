@@ -347,6 +347,24 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 	return actualMint
 }
 
+func (p *Pledge) BlockReward(address, pair hasharry.Address) uint64 {
+	pairTotalReward := p.PairPoolWithCount[pair]
+	if pairTotalReward == 0 {
+		return pairTotalReward
+	}
+	addrPledge, exist := p.MaturePairAccount[pair]
+	if !exist {
+		return 0
+	}
+	totalLp := p.PledgePair[pair]
+	if totalLp == 0 {
+		return 0
+	}
+	pledge := addrPledge[address]
+	reward := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(pledge)), big.NewInt(int64(pairTotalReward))), big.NewInt(int64(totalLp))).Uint64()
+	return reward
+}
+
 func (p *Pledge) GetPledgeReward(address, pair hasharry.Address) uint64 {
 	pairReward, exist := p.AccountReward[address]
 	if !exist {
