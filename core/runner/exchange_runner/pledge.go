@@ -50,7 +50,7 @@ func (ps *PledgeState) MethodExist(mth string) bool {
 
 type PledgePool struct {
 	Address     string  `json:"address"`
-	YieldRate   float64 `json:"yieldRate"`
+	YieldRate   string  `json:"yieldRate"`
 	TotalPledge float64 `json:"totalPledge"`
 	TotalReward float64 `json:"totalReward"`
 	DayReward   float64 `json:"dayReward"`
@@ -65,7 +65,7 @@ func (ps *PledgeState) GetPoolInfos() []*PledgePool {
 		reward := types.Amount(info.TotalReward).ToCoin()
 		pledgePools = append(pledgePools, &PledgePool{
 			Address:     info.Address,
-			YieldRate:   info.YieldRate,
+			YieldRate:   fmt.Sprintf("%.8f", info.YieldRate),
 			TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
 			TotalReward: reward,
 			DayReward:   reward * float64(daySeconds/param.BlockInterval),
@@ -82,7 +82,7 @@ func (ps *PledgeState) GetPoolInfo(pair string) *PledgePool {
 	reward := types.Amount(info.TotalReward).ToCoin()
 	return &PledgePool{
 		Address:     info.Address,
-		YieldRate:   info.YieldRate,
+		YieldRate:   fmt.Sprintf("%.8f", info.YieldRate),
 		TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
 		TotalReward: reward,
 		DayReward:   reward * float64(daySeconds/param.BlockInterval),

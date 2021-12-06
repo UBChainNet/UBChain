@@ -11,11 +11,11 @@ import (
 const minPledge = 10000
 
 type PledgeInitBody struct {
-	Exchange         hasharry.Address
-	Receiver         hasharry.Address
-	Admin            hasharry.Address
-	PreMint          uint64
-	MaxSupply        uint64
+	Exchange  hasharry.Address
+	Receiver  hasharry.Address
+	Admin     hasharry.Address
+	PreMint   uint64
+	MaxSupply uint64
 }
 
 func (p *PledgeInitBody) Verify() error {
@@ -48,7 +48,7 @@ func (p *PledgeStartBody) Verify() error {
 }
 
 type PledgeAddPoolBody struct {
-	Pair hasharry.Address
+	Pair        hasharry.Address
 	BlockReward uint64
 }
 
