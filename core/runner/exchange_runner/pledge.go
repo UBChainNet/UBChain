@@ -14,6 +14,7 @@ import (
 	"github.com/UBChainNet/UBChain/crypto/base58"
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
+	"math"
 	"sort"
 	"strings"
 )
@@ -63,12 +64,13 @@ func (ps *PledgeState) GetPoolInfos() []*PledgePool {
 	infos := ps.body.GetPoolInfos()
 	for _, info := range infos {
 		reward := types.Amount(info.TotalReward).ToCoin()
+		dayReward := reward * float64(daySeconds/param.BlockInterval)
 		pledgePools = append(pledgePools, &PledgePool{
 			Address:     info.Address,
 			YieldRate:   fmt.Sprintf("%.8f", info.YieldRate),
 			TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
 			TotalReward: reward,
-			DayReward:   reward * float64(daySeconds/param.BlockInterval),
+			DayReward:   math.Ceil(dayReward),
 		})
 	}
 	sort.Slice(pledgePools, func(i, j int) bool {
@@ -80,12 +82,13 @@ func (ps *PledgeState) GetPoolInfos() []*PledgePool {
 func (ps *PledgeState) GetPoolInfo(pair string) *PledgePool {
 	info := ps.body.GetPoolInfo(hasharry.StringToAddress(pair))
 	reward := types.Amount(info.TotalReward).ToCoin()
+	dayReward := reward * float64(daySeconds/param.BlockInterval)
 	return &PledgePool{
 		Address:     info.Address,
 		YieldRate:   fmt.Sprintf("%.8f", info.YieldRate),
 		TotalPledge: types.Amount(info.TotalPledge).ToCoin(),
 		TotalReward: reward,
-		DayReward:   reward * float64(daySeconds/param.BlockInterval),
+		DayReward:   math.Ceil(dayReward),
 	}
 }
 
