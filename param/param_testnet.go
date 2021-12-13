@@ -27,7 +27,7 @@ const (
 	UIPBlock1Test = 0
 	UIPBlock2Test = 0
 	UIPBlock3Test = 0
-	UIPBlock4Test = 239000
+	UIPBlock4Test = 238594
 )
 
 var MappingCoinTest = []MappingInfo{
