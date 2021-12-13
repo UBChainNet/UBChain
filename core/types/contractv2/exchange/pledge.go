@@ -310,14 +310,14 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 						for addr, lp := range addrMature {
 							totalLp := p.PledgePair[pairAddr]
 							if totalLp != 0 {
-								reward := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(lp)), big.NewInt(int64(pairTotalReward))), big.NewInt(int64(totalLp))).Uint64()
-								p.TotalSupply += reward
+								amount := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(lp)), big.NewInt(int64(pairTotalReward))), big.NewInt(int64(totalLp))).Uint64()
+								p.TotalSupply += amount
 								pairReward, exist := p.AccountReward[addr]
 								if exist {
-									pairReward[pairAddr] = pairReward[pairAddr] + reward
+									pairReward[pairAddr] = pairReward[pairAddr] + amount
 								} else {
 									p.AccountReward[addr] = map[hasharry.Address]uint64{
-										pairAddr: reward,
+										pairAddr: amount,
 									}
 								}
 
@@ -325,11 +325,11 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 								records := p.RewardRecord[key]
 								if records != nil && len(records) != 0 {
 									lastRecord := records[len(records)-1]
-									if lastRecord.Start < height && reward != lastRecord.Amount {
+									if lastRecord.Start < height && amount != lastRecord.Amount {
 										p.RewardRecord[key] = append(records, &Record{
 											Key:    key,
 											Start:  height,
-											Amount: reward,
+											Amount: amount,
 										})
 									}
 								} else {
@@ -337,7 +337,7 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 										&Record{
 											Key:    key,
 											Start:  height,
-											Amount: reward,
+											Amount: amount,
 										},
 									}
 								}
@@ -358,8 +358,8 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 					for addr, lp := range addrMature {
 						totalLp := p.PledgePair[pairAddr]
 						if totalLp != 0 {
-							reward := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(lp)), big.NewInt(int64(pairTotalReward))), big.NewInt(int64(totalLp))).Uint64()
-							reward = reward * blocks
+							amount := big.NewInt(0).Div(big.NewInt(0).Mul(big.NewInt(int64(lp)), big.NewInt(int64(pairTotalReward))), big.NewInt(int64(totalLp))).Uint64()
+							reward := amount * blocks
 							p.TotalSupply += reward
 							pairReward, exist := p.AccountReward[addr]
 							if exist {
@@ -374,10 +374,10 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 							records := p.RewardRecord[key]
 							if records != nil && len(records) != 0 {
 								lastRecord := records[len(records)-1]
-								if lastRecord.Start <= p.LastHeight && reward != lastRecord.Amount {
+								if lastRecord.Start <= p.LastHeight && amount != lastRecord.Amount {
 									p.RewardRecord[key] = append(records, &Record{
 										Start:  p.LastHeight + 1,
-										Amount: reward,
+										Amount: amount,
 										Key:    key,
 									})
 								}
@@ -385,7 +385,7 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 								p.RewardRecord[key] = []*Record{
 									&Record{
 										Start:  p.LastHeight + 1,
-										Amount: reward,
+										Amount: amount,
 										Key:    key,
 									},
 								}
