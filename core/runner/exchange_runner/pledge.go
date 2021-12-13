@@ -49,6 +49,19 @@ func (ps *PledgeState) MethodExist(mth string) bool {
 	return exist
 }
 
+func (ps *PledgeState) GetAccountRewards() map[string]map[string]float64 {
+	rs := make(map[string]map[string]float64)
+	for address, poolReward := range ps.body.AccountReward {
+		pr := make(map[string]float64, 0)
+		for pool, reward := range poolReward {
+			pr[pool.String()] = types.Amount(reward).ToCoin()
+		}
+
+		rs[address.String()] = pr
+	}
+	return rs
+}
+
 type PledgePool struct {
 	Address     string  `json:"address"`
 	YieldRate   string  `json:"yieldRate"`
