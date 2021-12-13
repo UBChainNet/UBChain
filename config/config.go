@@ -131,6 +131,8 @@ func LoadConfig() (*Config, error) {
 		param.UIPBlock2 = param.UIPBlock2Test
 		param.UIPBlock3 = param.UIPBlock3Test
 		param.UIPBlock4 = param.UIPBlock4Test
+		param.UIPBlock5 = param.UIPBlock5Test
+		param.Blacklist = param.BlacklistTest
 	}
 
 	// p2p same network label, the label is different and cannot communicate

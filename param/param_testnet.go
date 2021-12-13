@@ -28,6 +28,7 @@ const (
 	UIPBlock2Test = 0
 	UIPBlock3Test = 0
 	UIPBlock4Test = 238594
+	UIPBlock5Test = 238594
 )
 
 var MappingCoinTest = []MappingInfo{
@@ -61,4 +62,8 @@ var InitialCandidatesTest = []CandidatesInfo{
 var BootsTest = []string{
 	// ubcd5FTPtJiRWgmSYNDFzKEKqXoPxdqNJ5tF
 	"/ip4/180.188.198.214/tcp/2211/ipfs/16Uiu2HAm39NFZjFVoauqtgDTPrDptPBCMADQ5pd6Ynyb9JmLX9my",
+}
+
+var BlacklistTest = map[string]bool{
+	"ubcZgN3fWvkyFabBX6HSff8Zrkmofuioksyy": true,
 }

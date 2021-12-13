@@ -210,6 +210,10 @@ func (t *Transaction) verifyTxFrom() error {
 	if !ut.CheckUBCAddress(param.Net, t.From().String()) {
 		return ErrAddress
 	}
+	_, exist := param.Blacklist[t.TxHead.From.String()]
+	if exist {
+		return ErrAddress
+	}
 	return nil
 }
 

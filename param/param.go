@@ -85,6 +85,7 @@ var (
 	UIPBlock2 uint64 = 750000
 	UIPBlock3 uint64 = 754760
 	UIPBlock4 uint64 = 754760
+	UIPBlock5 uint64 = 754760
 )
 
 var (
@@ -176,4 +177,8 @@ var InitialCandidates = []CandidatesInfo{
 
 var Boots = []string{
 	"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
+}
+
+var Blacklist = map[string]bool{
+	"UBCZJZ6todHWJnic4uy9XXyDFQjQ3Gbn11hS": true,
 }
