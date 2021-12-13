@@ -57,6 +57,17 @@ type Pledge struct {
 	//PoolReward map[uint64]map[hasharry.Address]uint64
 	// 每个账户每个pair池子奖励的币量
 	AccountReward map[hasharry.Address]map[hasharry.Address]uint64
+	RewardRecord  map[string][]*Record
+}
+
+type Record struct {
+	Start  uint64
+	Amount uint64
+	Key    string
+}
+
+func recordKey(address, pair hasharry.Address) string {
+	return fmt.Sprintf("%s%s", address.String(), pair.String())
 }
 
 func NewPledge(exchange, ReceiveAddress, admin hasharry.Address, symbol string, maxSupply,
@@ -80,6 +91,7 @@ func NewPledge(exchange, ReceiveAddress, admin hasharry.Address, symbol string, 
 		PledgePair:         map[hasharry.Address]uint64{},
 		MaturePairAccount:  map[hasharry.Address]map[hasharry.Address]uint64{},
 		DeletedPairAccount: map[hasharry.Address]map[hasharry.Address]uint64{},
+		RewardRecord:       map[string][]*Record{},
 	}
 }
 
@@ -281,7 +293,7 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 	}
 
 	if allPoolReward+allBlockMint+p.TotalSupply > p.MaxSupply {
-		for i := p.LastHeight + 1; i <= current; i++ {
+		for height := p.LastHeight + 1; height <= current; height++ {
 			if p.TotalSupply >= p.MaxSupply {
 				return 0
 			}
@@ -306,6 +318,27 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 								} else {
 									p.AccountReward[addr] = map[hasharry.Address]uint64{
 										pairAddr: reward,
+									}
+								}
+
+								key := recordKey(addr, pairAddr)
+								records := p.RewardRecord[key]
+								if records != nil && len(records) != 0 {
+									lastRecord := records[len(records)-1]
+									if lastRecord.Start < height && reward != lastRecord.Amount {
+										p.RewardRecord[key] = append(records, &Record{
+											Key:    key,
+											Start:  height,
+											Amount: reward,
+										})
+									}
+								} else {
+									p.RewardRecord[key] = []*Record{
+										&Record{
+											Key:    key,
+											Start:  height,
+											Amount: reward,
+										},
 									}
 								}
 							}
@@ -334,6 +367,27 @@ func (p *Pledge) UpdateMint(current uint64) uint64 {
 							} else {
 								p.AccountReward[addr] = map[hasharry.Address]uint64{
 									pairAddr: reward,
+								}
+							}
+
+							key := recordKey(addr, pairAddr)
+							records := p.RewardRecord[key]
+							if records != nil && len(records) != 0 {
+								lastRecord := records[len(records)-1]
+								if lastRecord.Start <= p.LastHeight && reward != lastRecord.Amount {
+									p.RewardRecord[key] = append(records, &Record{
+										Start:  p.LastHeight + 1,
+										Amount: reward,
+										Key:    key,
+									})
+								}
+							} else {
+								p.RewardRecord[key] = []*Record{
+									&Record{
+										Start:  p.LastHeight + 1,
+										Amount: reward,
+										Key:    key,
+									},
 								}
 							}
 						}
@@ -452,6 +506,66 @@ func (p *Pledge) GetPledgeYields() map[hasharry.Address]float64 {
 		}
 	}
 	return yields
+}
+
+func (p *Pledge) GetRewardRecords(address, pool hasharry.Address, height uint64, page, size uint64) []*Record {
+	if size == 0 {
+		return nil
+	}
+	records := p.RewardRecord[recordKey(address, pool)]
+	return GetRecordEveryHeight(records, height, page, size)
+}
+
+func GetRecordEveryHeight(records []*Record, height uint64, page, size uint64) []*Record {
+	rs := make([]*Record, 0)
+	if records != nil && len(records) != 0 {
+		var start, end, heightStart, heightEnd uint64
+		if page >= 1 {
+			start = (page - 1) * size
+		} else {
+			start = page * size
+		}
+		end = start + size
+		if height < start {
+			return nil
+		} else {
+			heightStart = height - start
+		}
+		if height < end {
+			heightEnd = 0
+		} else {
+			heightEnd = height - end
+		}
+		for i := len(records) - 1; i >= 0; i-- {
+			record := records[i]
+			if record.Start < heightEnd {
+				for h := heightStart; h >= heightEnd; h-- {
+					rs = append(rs, &Record{
+						Start:  h,
+						Amount: record.Amount,
+					})
+				}
+				break
+			} else {
+				if heightStart >= record.Start {
+					for h := heightStart; h >= record.Start; h-- {
+						rs = append(rs, &Record{
+							Start:  h,
+							Amount: record.Amount,
+						})
+					}
+					heightStart = record.Start - 1
+				}
+			}
+		}
+		if uint64(len(rs)) >= size {
+			return rs[:size]
+		} else {
+			return rs
+		}
+
+	}
+	return nil
 }
 
 func (p *Pledge) ToRlp() *RlpPledge {
@@ -664,13 +778,136 @@ func (p *Pledge) ToRlpV2() *RlpPledgeV2 {
 	return rlpPledge
 }
 
+func (p *Pledge) ToRlpV3() *RlpPledgeV3 {
+	rlpPledge := &RlpPledgeV3{
+		PreMint:          p.PreMint,
+		DayMintAmount:    p.BlockMintAmount,
+		Receiver:         p.Receiver,
+		TotalSupply:      p.TotalSupply,
+		MaxSupply:        p.MaxSupply,
+		PledgeMatureTime: p.PledgeMatureTime,
+		DayRewardAmount:  p.DayRewardAmount,
+		Start:            p.Start,
+		RewardToken:      p.RewardToken,
+		RewardSymbol:     p.RewardSymbol,
+		Admin:            p.Admin,
+		LastHeight:       p.LastHeight,
+	}
+
+	rlpPledge.PairPoolWithCount = make([]PairPool, 0)
+	for pair, reward := range p.PairPoolWithCount {
+		rlpPledge.PairPoolWithCount = append(rlpPledge.PairPoolWithCount, PairPool{
+			Pair:   pair,
+			Reward: reward,
+		})
+	}
+	sort.Slice(rlpPledge.PairPoolWithCount, func(i, j int) bool {
+		return strings.Compare(rlpPledge.PairPoolWithCount[i].Pair.String(), rlpPledge.PairPoolWithCount[j].Pair.String()) < 0
+	})
+
+	rlpPledge.AccountLastPledge = make([]PledgeHeight, 0)
+	for pair, height := range p.AccountLastPledge {
+		rlpPledge.AccountLastPledge = append(rlpPledge.AccountLastPledge, PledgeHeight{
+			Pair:   pair,
+			Height: height,
+		})
+	}
+	sort.Slice(rlpPledge.AccountLastPledge, func(i, j int) bool {
+		return strings.Compare(rlpPledge.AccountLastPledge[i].Pair.String(), rlpPledge.AccountLastPledge[j].Pair.String()) < 0
+	})
+
+	rlpPledge.PledgePair = make([]PledgePair, 0)
+	for pair, total := range p.PledgePair {
+		rlpPledge.PledgePair = append(rlpPledge.PledgePair, PledgePair{
+			Pair:   pair,
+			Amount: total,
+		})
+	}
+	sort.Slice(rlpPledge.PledgePair, func(i, j int) bool {
+		return strings.Compare(rlpPledge.PledgePair[i].Pair.String(), rlpPledge.PledgePair[j].Pair.String()) < 0
+	})
+
+	rlpPledge.MaturePairAccount = make([]AccountPledge, 0)
+	for pair, addrValue := range p.MaturePairAccount {
+		for addr, value := range addrValue {
+			rlpPledge.MaturePairAccount = append(rlpPledge.MaturePairAccount, AccountPledge{
+				Address: addr,
+				Pair:    pair,
+				Amount:  value,
+			})
+
+		}
+	}
+	sort.Slice(rlpPledge.MaturePairAccount, func(i, j int) bool {
+		pairCp := strings.Compare(rlpPledge.MaturePairAccount[i].Pair.String(), rlpPledge.MaturePairAccount[j].Pair.String())
+		if pairCp == 0 {
+			return strings.Compare(rlpPledge.MaturePairAccount[i].Address.String(), rlpPledge.MaturePairAccount[j].Address.String()) < 0
+		} else {
+			return pairCp < 0
+		}
+	})
+
+	rlpPledge.DeletedPairAccount = make([]AccountPledge, 0)
+	for pair, addrValue := range p.DeletedPairAccount {
+		for addr, value := range addrValue {
+			rlpPledge.DeletedPairAccount = append(rlpPledge.DeletedPairAccount, AccountPledge{
+				Address: addr,
+				Pair:    pair,
+				Amount:  value,
+			})
+
+		}
+	}
+	sort.Slice(rlpPledge.DeletedPairAccount, func(i, j int) bool {
+		pairCp := strings.Compare(rlpPledge.DeletedPairAccount[i].Pair.String(), rlpPledge.DeletedPairAccount[j].Pair.String())
+		if pairCp == 0 {
+			return strings.Compare(rlpPledge.DeletedPairAccount[i].Address.String(), rlpPledge.DeletedPairAccount[j].Address.String()) < 0
+		} else {
+			return pairCp < 0
+		}
+	})
+
+	rlpPledge.AccountReward = make([]AccountReward, 0)
+	for addr, pairReward := range p.AccountReward {
+		for pair, reward := range pairReward {
+			rlpPledge.AccountReward = append(rlpPledge.AccountReward, AccountReward{
+				Address: addr,
+				Pair:    pair,
+				Reward:  reward,
+			})
+
+		}
+	}
+	sort.Slice(rlpPledge.AccountReward, func(i, j int) bool {
+		addrCp := strings.Compare(rlpPledge.AccountReward[i].Address.String(), rlpPledge.AccountReward[j].Address.String())
+		if addrCp == 0 {
+			return strings.Compare(rlpPledge.AccountReward[i].Pair.String(), rlpPledge.AccountReward[j].Pair.String()) < 0
+		} else {
+			return addrCp < 0
+		}
+	})
+
+	rlpPledge.RewardRecord = make([]*Record, 0)
+	for _, records := range p.RewardRecord {
+		for _, record := range records {
+			rlpPledge.RewardRecord = append(rlpPledge.RewardRecord, record)
+		}
+	}
+	sort.Slice(rlpPledge.RewardRecord, func(i, j int) bool {
+		return rlpPledge.RewardRecord[i].Start < rlpPledge.RewardRecord[j].Start
+	})
+	return rlpPledge
+}
+
 func (p *Pledge) GetSymbol() string {
 	return ""
 }
 
 func (p *Pledge) Bytes() []byte {
 	var bytes []byte
-	if p.Start > param.UIPBlock3 {
+	if p.Start > param.UIPBlock4 {
+		bytes, _ = rlp.EncodeToBytes(p.ToRlpV3())
+	} else if p.Start > param.UIPBlock3 {
 		bytes, _ = rlp.EncodeToBytes(p.ToRlpV2())
 	} else {
 		bytes, _ = rlp.EncodeToBytes(p.ToRlp())
@@ -811,11 +1048,60 @@ type RlpPledgeV2 struct {
 	MintAmount    uint64
 }
 
+type RlpPledgeV3 struct {
+	// 预铸币
+	PreMint uint64
+	// 一次性铸币量
+	DayMintAmount uint64
+	// 铸币接收地址
+	Receiver hasharry.Address
+	// 总铸币量
+	TotalSupply uint64
+	// 最大供应量
+	MaxSupply uint64
+	// 质押成熟时间
+	PledgeMatureTime uint64
+	// 每天质押奖励
+	DayRewardAmount uint64
+	// 开始高度
+	Start uint64
+	// 奖励token
+	RewardToken hasharry.Address
+	// 奖励token symbol
+	RewardSymbol string
+	// 管理员
+	Admin hasharry.Address
+	// 最后高度
+	LastHeight uint64
+	// 弃用
+	PairPool []hasharry.Address
+	// 弃用
+	UnripePledge []UnripePledge
+	// 弃用
+	MaturePair []PledgePair
+	PoolReward []PoolReward
+
+	// pair 池的奖励数量
+	PairPoolWithCount []PairPool
+	// 每个pair总质押量
+	PledgePair []PledgePair
+	// 最后一次质押高度
+	AccountLastPledge []PledgeHeight
+	// 已经成熟的pair某个地址质押量
+	MaturePairAccount []AccountPledge
+	// 被删除的pair的某个地址的质押量，可取回
+	DeletedPairAccount []AccountPledge
+	// 每个账户每个pair池子奖励的币量
+	AccountReward []AccountReward
+	RewardRecord  []*Record
+	MintAmount    uint64
+}
+
 func DecodeToPledge(bytes []byte) (*Pledge, error) {
-	var rlpPd *RlpPledgeV2
+	var rlpPd *RlpPledgeV3
 	err := rlp.DecodeBytes(bytes, &rlpPd)
 	if err != nil {
-		return DecodeV1ToPledge(bytes)
+		return DecodeV2ToPledge(bytes)
 	}
 	pd := &Pledge{
 		PreMint:            rlpPd.PreMint,
@@ -836,6 +1122,7 @@ func DecodeToPledge(bytes []byte) (*Pledge, error) {
 		MaturePairAccount:  map[hasharry.Address]map[hasharry.Address]uint64{},
 		DeletedPairAccount: map[hasharry.Address]map[hasharry.Address]uint64{},
 		AccountReward:      map[hasharry.Address]map[hasharry.Address]uint64{},
+		RewardRecord:       map[string][]*Record{},
 	}
 
 	for _, pairPool := range rlpPd.PairPoolWithCount {
@@ -883,6 +1170,114 @@ func DecodeToPledge(bytes []byte) (*Pledge, error) {
 		}
 	}
 
+	if rlpPd.RewardRecord != nil {
+		for _, record := range rlpPd.RewardRecord {
+			records, exist := pd.RewardRecord[record.Key]
+			if exist {
+				pd.RewardRecord[record.Key] = append(records, record)
+			} else {
+				pd.RewardRecord[record.Key] = []*Record{record}
+			}
+		}
+	}
+
+	for _, accountReward := range rlpPd.AccountReward {
+		pairReward, exist := pd.AccountReward[accountReward.Address]
+		if exist {
+			pairReward[accountReward.Pair] = accountReward.Reward
+		} else {
+			pd.AccountReward[accountReward.Address] = map[hasharry.Address]uint64{
+				accountReward.Pair: accountReward.Reward,
+			}
+		}
+	}
+	return pd, err
+
+}
+
+func DecodeV2ToPledge(bytes []byte) (*Pledge, error) {
+	var rlpPd *RlpPledgeV2
+	err := rlp.DecodeBytes(bytes, &rlpPd)
+	if err != nil {
+		return DecodeV1ToPledge(bytes)
+	}
+	pd := &Pledge{
+		PreMint:            rlpPd.PreMint,
+		BlockMintAmount:    rlpPd.DayMintAmount,
+		Receiver:           rlpPd.Receiver,
+		TotalSupply:        rlpPd.TotalSupply,
+		MaxSupply:          rlpPd.MaxSupply,
+		PledgeMatureTime:   rlpPd.PledgeMatureTime,
+		DayRewardAmount:    rlpPd.DayRewardAmount,
+		Start:              rlpPd.Start,
+		RewardToken:        rlpPd.RewardToken,
+		RewardSymbol:       rlpPd.RewardSymbol,
+		Admin:              rlpPd.Admin,
+		LastHeight:         rlpPd.LastHeight,
+		PairPoolWithCount:  map[hasharry.Address]uint64{},
+		PledgePair:         map[hasharry.Address]uint64{},
+		AccountLastPledge:  map[hasharry.Address]uint64{},
+		MaturePairAccount:  map[hasharry.Address]map[hasharry.Address]uint64{},
+		DeletedPairAccount: map[hasharry.Address]map[hasharry.Address]uint64{},
+		AccountReward:      map[hasharry.Address]map[hasharry.Address]uint64{},
+		RewardRecord:       map[string][]*Record{},
+	}
+
+	for _, pairPool := range rlpPd.PairPoolWithCount {
+		pd.PairPoolWithCount[pairPool.Pair] = pairPool.Reward
+	}
+
+	for _, pledgePair := range rlpPd.PledgePair {
+		pd.PledgePair[pledgePair.Pair] = pledgePair.Amount
+	}
+
+	for _, pledgeHeight := range rlpPd.AccountLastPledge {
+		pd.AccountLastPledge[pledgeHeight.Pair] = pledgeHeight.Height
+	}
+
+	for _, maturePledge := range rlpPd.MaturePairAccount {
+		addrPledge, exist := pd.MaturePairAccount[maturePledge.Pair]
+		if exist {
+			addrPledge[maturePledge.Address] = maturePledge.Amount
+		} else {
+			pd.MaturePairAccount[maturePledge.Pair] = map[hasharry.Address]uint64{
+				maturePledge.Address: maturePledge.Amount,
+			}
+		}
+	}
+
+	for _, deletedPledge := range rlpPd.DeletedPairAccount {
+		addrPledge, exist := pd.DeletedPairAccount[deletedPledge.Pair]
+		if exist {
+			addrPledge[deletedPledge.Address] = deletedPledge.Amount
+		} else {
+			pd.DeletedPairAccount[deletedPledge.Pair] = map[hasharry.Address]uint64{
+				deletedPledge.Address: deletedPledge.Amount,
+			}
+		}
+	}
+
+	for _, accountReward := range rlpPd.AccountReward {
+		pairReward, exist := pd.AccountReward[accountReward.Address]
+		if exist {
+			pairReward[accountReward.Pair] = accountReward.Reward
+		} else {
+			pd.AccountReward[accountReward.Address] = map[hasharry.Address]uint64{
+				accountReward.Pair: accountReward.Reward,
+			}
+		}
+	}
+
+	for _, accountReward := range rlpPd.AccountReward {
+		pairReward, exist := pd.AccountReward[accountReward.Address]
+		if exist {
+			pairReward[accountReward.Pair] = accountReward.Reward
+		} else {
+			pd.AccountReward[accountReward.Address] = map[hasharry.Address]uint64{
+				accountReward.Pair: accountReward.Reward,
+			}
+		}
+	}
 	return pd, err
 
 }

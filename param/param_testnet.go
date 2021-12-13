@@ -4,7 +4,6 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 )
 
-
 var (
 	FeeAddressTest   = hasharry.StringToAddress("ubcbaQvSw9oerHyJUWah4GhSkdUPAmqg4qpx")
 	EaterAddressTest = hasharry.StringToAddress("ubcCoinEaterAddressDontSend000000000")
@@ -18,18 +17,18 @@ const (
 	// Maximum number of super nodes
 	MaxWinnerSizeTest = 3
 	// The minimum number of nodes required to confirm the transaction
-	SafeSizeTest = MaxWinnerSizeTest *2/3 + 1
+	SafeSizeTest = MaxWinnerSizeTest*2/3 + 1
 	// The minimum threshold at which a block is valid
-	ConsensusSizeTest  = MaxWinnerSizeTest *2/3 + 1
-	SkipCurrentWinnerWaitTimeBaseTest  = int(BlockIntervalTest) * (MaxWinnerSizeTest) * 1
+	ConsensusSizeTest                 = MaxWinnerSizeTest*2/3 + 1
+	SkipCurrentWinnerWaitTimeBaseTest = int(BlockIntervalTest) * (MaxWinnerSizeTest) * 1
 )
 
-const(
+const (
 	UIPBlock1Test = 0
 	UIPBlock2Test = 0
 	UIPBlock3Test = 0
+	UIPBlock4Test = 239000
 )
-
 
 var MappingCoinTest = []MappingInfo{
 	{
@@ -38,7 +37,6 @@ var MappingCoinTest = []MappingInfo{
 		Amount:  5000 * 1e4 * 1e8,
 	},
 }
-
 
 // initialCandidates the first super node of the block generation cycle.
 // The first half is the address of the block, the second half is the id of the block node
@@ -60,7 +58,7 @@ var InitialCandidatesTest = []CandidatesInfo{
 	},
 }
 
-var BootsTest  = []string{
+var BootsTest = []string{
 	// ubcd5FTPtJiRWgmSYNDFzKEKqXoPxdqNJ5tF
 	"/ip4/180.188.198.214/tcp/2211/ipfs/16Uiu2HAm39NFZjFVoauqtgDTPrDptPBCMADQ5pd6Ynyb9JmLX9my",
 }

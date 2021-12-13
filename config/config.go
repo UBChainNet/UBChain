@@ -122,7 +122,7 @@ func LoadConfig() (*Config, error) {
 		param.TermInterval = param.TermIntervalTest
 		param.MaxWinnerSize = param.MaxWinnerSizeTest
 		param.SafeSize = param.SafeSizeTest
-		param.ConsensusSize  = param.ConsensusSizeTest
+		param.ConsensusSize = param.ConsensusSizeTest
 		param.SkipCurrentWinnerWaitTimeBase = param.SkipCurrentWinnerWaitTimeBaseTest
 		param.MappingCoin = param.MappingCoinTest
 		param.InitialCandidates = param.InitialCandidatesTest
@@ -130,6 +130,7 @@ func LoadConfig() (*Config, error) {
 		param.UIPBlock1 = param.UIPBlock1Test
 		param.UIPBlock2 = param.UIPBlock2Test
 		param.UIPBlock3 = param.UIPBlock3Test
+		param.UIPBlock4 = param.UIPBlock4Test
 	}
 
 	// p2p same network label, the label is different and cannot communicate

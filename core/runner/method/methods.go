@@ -297,9 +297,26 @@ var PledgeMethods = map[string]*MethodInfo{
 			},
 		},
 	},
-	"GetAccountRewards": &MethodInfo{
-		Name:   "GetAccountRewards",
-		Params: []Value{},
+	"GetRewardRecords": &MethodInfo{
+		Name: "GetRewardRecords",
+		Params: []Value{
+			{
+				Name: "address",
+				Type: "string",
+			},
+			{
+				Name: "pool",
+				Type: "string",
+			},
+			{
+				Name: "page",
+				Type: "string",
+			},
+			{
+				Name: "size",
+				Type: "string",
+			},
+		},
 		Returns: []Value{
 			{
 				Name: "value",

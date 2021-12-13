@@ -49,15 +49,20 @@ func (ps *PledgeState) MethodExist(mth string) bool {
 	return exist
 }
 
-func (ps *PledgeState) GetAccountRewards() map[string]map[string]float64 {
-	rs := make(map[string]map[string]float64)
-	for address, poolReward := range ps.body.AccountReward {
-		pr := make(map[string]float64, 0)
-		for pool, reward := range poolReward {
-			pr[pool.String()] = types.Amount(reward).ToCoin()
-		}
+type AccountReward struct {
+	Height uint64  `json:"height"`
+	Reward float64 `json:"reward"`
+}
 
-		rs[address.String()] = pr
+func (ps *PledgeState) GetRewardRecords(address, pool string, page, size uint32) []*AccountReward {
+	_ = ps.updatePledge(ps.chainHeight)
+	rs := make([]*AccountReward, 0)
+	records := ps.body.GetRewardRecords(hasharry.StringToAddress(address), hasharry.StringToAddress(pool), ps.chainHeight, uint64(page), uint64(size))
+	for _, record := range records {
+		rs = append(rs, &AccountReward{
+			Height: record.Start,
+			Reward: types.Amount(record.Amount).ToCoin(),
+		})
 	}
 	return rs
 }

@@ -35,9 +35,9 @@ var (
 	// The minimum number of nodes required to confirm the transaction
 	SafeSize = MaxWinnerSize*2/3 + 1
 	// The minimum threshold at which a block is valid
-	ConsensusSize  = MaxWinnerSize*2/3 + 1
+	ConsensusSize = MaxWinnerSize*2/3 + 1
 
-	SkipCurrentWinnerWaitTimeBase  = int(BlockInterval) * (MaxWinnerSize) * 1
+	SkipCurrentWinnerWaitTimeBase = int(BlockInterval) * (MaxWinnerSize) * 1
 )
 
 const (
@@ -80,17 +80,18 @@ const (
 	MaximumReceiver = 1000
 )
 
-var(
+var (
 	UIPBlock1 uint64 = 633800
 	UIPBlock2 uint64 = 750000
 	UIPBlock3 uint64 = 754760
+	UIPBlock4 uint64 = 754760
 )
 
 var (
-	MainPubKeyHashAddrID  = [3]byte{0x03, 0x77, 0x7d} //UBC 3, 82, 32
-	TestPubKeyHashAddrID  = [3]byte{0x06, 0xb5, 0xab} //ubc
-	MainPubKeyHashTokenID = [3]byte{0x03, 0x77, 0xa2} //UBT 3, 82, 55
-	TestPubKeyHashTokenID = [3]byte{0x06, 0xb5, 0xd2} //ubt
+	MainPubKeyHashAddrID     = [3]byte{0x03, 0x77, 0x7d} //UBC 3, 82, 32
+	TestPubKeyHashAddrID     = [3]byte{0x06, 0xb5, 0xab} //ubc
+	MainPubKeyHashTokenID    = [3]byte{0x03, 0x77, 0xa2} //UBT 3, 82, 55
+	TestPubKeyHashTokenID    = [3]byte{0x06, 0xb5, 0xd2} //ubt
 	MainPubKeyHashContractID = [3]byte{0x03, 0x77, 0xab} //UBX 3, 82, 55
 	TestPubKeyHashContractID = [3]byte{0x06, 0xb5, 0xdc} //ubx
 )
@@ -109,7 +110,6 @@ var MappingCoin = []MappingInfo{
 	},
 }
 
-
 type CandidatesInfo struct {
 	Address string
 	Reward  string
@@ -118,11 +118,12 @@ type CandidatesInfo struct {
 
 var MinerReward = map[string]string{}
 
-func InitMinerReward(){
-	for _, candidate := range InitialCandidates{
+func InitMinerReward() {
+	for _, candidate := range InitialCandidates {
 		MinerReward[candidate.Address] = candidate.Reward
 	}
 }
+
 // initialCandidates the first super node of the block generation cycle.
 // The first half is the address of the block, the second half is the id of the block node
 var InitialCandidates = []CandidatesInfo{
@@ -173,6 +174,6 @@ var InitialCandidates = []CandidatesInfo{
 	},
 }
 
-var Boots  = []string{
+var Boots = []string{
 	"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
 }
