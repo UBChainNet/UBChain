@@ -54,8 +54,8 @@ func (t *Transaction) Size() uint64 {
 	return uint64(len(bytes))
 }
 
-func (t *Transaction) VerifyTx() error {
-	if err := t.verifyHead(); err != nil {
+func (t *Transaction) VerifyTx(height uint64) error {
+	if err := t.verifyHead(height); err != nil {
 		return err
 	}
 
@@ -65,7 +65,7 @@ func (t *Transaction) VerifyTx() error {
 	return nil
 }
 
-func (t *Transaction) verifyHead() error {
+func (t *Transaction) verifyHead(height uint64) error {
 	if t.TxHead == nil {
 		return ErrTxHead
 	}
@@ -78,7 +78,7 @@ func (t *Transaction) verifyHead() error {
 		return err
 	}
 
-	if err := t.verifyTxFrom(); err != nil {
+	if err := t.verifyTxFrom(height); err != nil {
 		return err
 	}
 
@@ -206,13 +206,15 @@ func (t *Transaction) verifyAmount() error {
 	return nil
 }
 
-func (t *Transaction) verifyTxFrom() error {
+func (t *Transaction) verifyTxFrom(height uint64) error {
 	if !ut.CheckUBCAddress(param.Net, t.From().String()) {
 		return ErrAddress
 	}
-	_, exist := param.Blacklist[t.TxHead.From.String()]
-	if exist {
-		return ErrAddress
+	if height >= param.UIPBlock5 {
+		_, exist := param.Blacklist[t.TxHead.From.String()]
+		if exist {
+			return ErrAddress
+		}
 	}
 	return nil
 }

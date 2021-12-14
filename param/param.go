@@ -84,8 +84,8 @@ var (
 	UIPBlock1 uint64 = 633800
 	UIPBlock2 uint64 = 750000
 	UIPBlock3 uint64 = 754760
-	UIPBlock4 uint64 = 754760
-	UIPBlock5 uint64 = 754760
+	UIPBlock4 uint64 = 800000
+	UIPBlock5 uint64 = 909880
 )
 
 var (
@@ -181,4 +181,31 @@ var Boots = []string{
 
 var Blacklist = map[string]bool{
 	"UBCZJZ6todHWJnic4uy9XXyDFQjQ3Gbn11hS": true,
+	"UBCcP29DPc1iqx3TUZayAzy3vqjisAJSJfCy": true,
+	"UBCgGNXifB5DQK3mUkXPLythjoZhjXGzzMrr": true,
+	"UBCYExSWR8UFFjyjbCWiyeWbqn6GVg7aR6Xc": true,
+	"UBChd5hANMB51iqRNhyGP5o2at2sc6aQ5HrS": true,
+	"UBCKksYT7RcG8yaAXY3UQQySUG1Pf4UXu3yv": true,
+	"UBCSM34oj5BeRzn4DL6CTPS58ceSPoRBV2ND": true,
+	"UBCZBoibMBzh33fQMwrG4rdEUfq2NTEHBBkK": true,
+	"UBCRMdYfLg9xk83r86BCsgLQSzT752xhtQy6": true,
+	"UBCUoNkmpMQCbZwCqmLNnCTM36CPRF4nx3yT": true,
+	"UBCY1S6PgWhqDUzSYVxgDyAhdSoVmu2eXXUa": true,
+	"UBCaqNQJKPe2xUvhWE6VBStdEWNcY1Rp6MpX": true,
+	"UBCdhzjAyQudTGRkzyWVtTjv46kXUUiauVn9": true,
+	"UBCfwZU3x2Cn3rw562JFTcVcfot6nyoyfjuj": true,
+	"UBChpWMZrttYijztFw4W334xVn9WCHa85yWv": true,
+	"UBCanRLEsqQQn3hz7wNDsoAVXfvKLQrbeusB": true,
+	"UBCXAYVDSLzg7Gp9o167hUhmRUH26wY45grJ": true,
+	"UBCW47BX8cqXoCo1vFc5d1ANoBKNzN2XY4ui": true,
+	"UBCf1TUdC8viDJe4mu266GLwiE42QHpayurT": true,
+	"UBCf6tpoThzWiD7VANMT185M2HrNzRc26sCR": true,
+	"UBChMKyKS5AQd3fekRCV97E5pwsEvbYT7pa7": true,
+	"UBCNPHVr1L2fmajJr5CFmNS58TazDfVRc1Sq": true,
+	"UBCRCyvtjB7At9teBzsqzNLzkSh38AfJe5Lu": true,
+	"UBCLeC8DtziS7LTPCLVWg2k8RY8YstTTDeYk": true,
+	"UBCa22saA5WGwiCLnqa7Am2DMxZ3iopA6UCA": true,
+	"UBCdVNJnWQ4jtUCqp7mvvqTfi6HnwphERjSH": true,
+	"UBCN8SfiJ7NCBGSMA1kHXMPxrXRrpW2CxeiG": true,
+	"UBCShG6sRquo9RrQ2pmKvEh3oAmCeyx7unwb": true,
 }

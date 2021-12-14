@@ -447,7 +447,7 @@ func (blc *BlockChain) verifyBlock(block *types.Block) error {
 }
 
 func (blc *BlockChain) verifyTx(tx types.ITransaction, blockHeight uint64) error {
-	if err := tx.VerifyTx(); err != nil {
+	if err := tx.VerifyTx(blc.currentHeight); err != nil {
 		return err
 	}
 

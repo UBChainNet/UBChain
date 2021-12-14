@@ -8,7 +8,7 @@ import (
 type ITransaction interface {
 	Size() uint64
 	IsCoinBase() bool
-	VerifyTx() error
+	VerifyTx(height uint64) error
 	VerifyCoinBaseTx(height, sumFees uint64, miner string) error
 	EncodeToBytes() ([]byte, error)
 	SignTx(key *secp256k1.PrivateKey) error
