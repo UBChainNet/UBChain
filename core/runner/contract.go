@@ -5,6 +5,8 @@ import (
 	"github.com/UBChainNet/UBChain/core/interface"
 	"github.com/UBChainNet/UBChain/core/runner/exchange_runner"
 	"github.com/UBChainNet/UBChain/core/runner/library"
+	"github.com/UBChainNet/UBChain/core/runner/method"
+	"github.com/UBChainNet/UBChain/core/runner/tokenhub_runner"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"reflect"
@@ -80,6 +82,23 @@ func (c *ContractRunner) Verify(tx types.ITransaction, lastHeight uint64) error 
 		case contractv2.Pledge_Update:
 			return pledge.PreUpdatePledgeVerify()
 		}
+	case contractv2.TokenHub_:
+		tokenHub, err := tokenhub_runner.NewTokenHubRunner(c.library, tx, lastHeight)
+		if err != nil {
+			return err
+		}
+		switch body.FunctionType {
+		case contractv2.TokenHub_init:
+			return tokenHub.PreInitVerify()
+		case contractv2.TokenHub_Ack:
+			return tokenHub.PreAckVerify()
+		case contractv2.TokenHub_TransferOut:
+			return tokenHub.PreTransferOutVerify()
+		case contractv2.TokenHub_TransferIn:
+			return tokenHub.PreTransferInVerify()
+		case contractv2.TokenHub_FinishAcross:
+			return tokenHub.PreFinishAcrossVerify()
+		}
 	}
 	return nil
 }
@@ -136,7 +155,23 @@ func (c *ContractRunner) RunContract(tx types.ITransaction, blockHeight uint64, 
 		case contractv2.Pledge_Update:
 			pledgeRunner.UpdatePledge()
 		}
-
+	case contractv2.TokenHub_:
+		tokenHub, err := tokenhub_runner.NewTokenHubRunner(c.library, tx, blockHeight)
+		if err != nil {
+			return err
+		}
+		switch body.FunctionType {
+		case contractv2.TokenHub_init:
+			tokenHub.Init()
+		case contractv2.TokenHub_Ack:
+			tokenHub.AckTransfer()
+		case contractv2.TokenHub_TransferOut:
+			tokenHub.TransferOut()
+		case contractv2.TokenHub_TransferIn:
+			tokenHub.TransferIn()
+		case contractv2.TokenHub_FinishAcross:
+			tokenHub.FinishAcross()
+		}
 	}
 	return nil
 }
@@ -150,11 +185,11 @@ type Pair struct {
 }
 
 type openContract interface {
-	Methods() map[string]*exchange_runner.MethodInfo
+	Methods() map[string]*method.MethodInfo
 	MethodExist(method string) bool
 }
 
-func (c *ContractRunner) ReadMethod(address, method string, params []string) (interface{}, error) {
+func (c *ContractRunner) ReadMethod(height uint64, address, method string, params []string) (interface{}, error) {
 	var open openContract
 	var err error
 	contract := c.library.GetContractV2(address)
@@ -173,7 +208,7 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 			return nil, err
 		}
 	case contractv2.Pledge_:
-		open, err = exchange_runner.NewPledgeState(c.library, address)
+		open, err = exchange_runner.NewPledgeState(c.library, address, height)
 		if err != nil {
 			return nil, err
 		}
@@ -197,14 +232,74 @@ func (c *ContractRunner) ReadMethod(address, method string, params []string) (in
 	for i := 1; i < tMethod.Type.NumIn(); i++ {
 		paramT := tMethod.Type.In(i)
 		switch paramT.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-			reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		case reflect.Int8:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 8)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = int8(iParam)
+		case reflect.Uint8:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 8)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = uint8(iParam)
+		case reflect.Int16:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 16)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = int16(iParam)
+		case reflect.Uint16:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 16)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = uint16(iParam)
+		case reflect.Int32:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 32)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = int32(iParam)
+		case reflect.Uint32:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 32)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = uint32(iParam)
+		case reflect.Int:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 32)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = int(iParam)
+		case reflect.Uint:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 32)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = uint(iParam)
+		case reflect.Int64:
+			iParam, err := strconv.ParseUint(params[i-1], 10, 64)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = int64(iParam)
+
+		case reflect.Uint64:
 			iParam, err := strconv.ParseUint(params[i-1], 10, 64)
 			if err != nil {
 				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
 			}
 			interParams[i-1] = iParam
-		case reflect.Float32, reflect.Float64:
+		case reflect.Float32:
+			fParam, err := strconv.ParseFloat(params[i-1], 32)
+			if err != nil {
+				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())
+			}
+			interParams[i-1] = fParam
+		case reflect.Float64:
 			fParam, err := strconv.ParseFloat(params[i-1], 64)
 			if err != nil {
 				return nil, fmt.Errorf("parameter %d %s", i-1, err.Error())

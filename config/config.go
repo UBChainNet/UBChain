@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/BurntSushi/toml"
-	"github.com/jessevdk/go-flags"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/common/keystore"
 	"github.com/UBChainNet/UBChain/common/utils"
@@ -14,6 +13,7 @@ import (
 	common "github.com/UBChainNet/UBChain/log"
 	"github.com/UBChainNet/UBChain/log/log15"
 	"github.com/UBChainNet/UBChain/param"
+	"github.com/jessevdk/go-flags"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -116,6 +116,23 @@ func LoadConfig() (*Config, error) {
 
 	if cfg.TestNet {
 		param.Net = param.TestNet
+		param.FeeAddress = param.FeeAddressTest
+		param.EaterAddress = param.EaterAddressTest
+		param.BlockInterval = param.BlockIntervalTest
+		param.TermInterval = param.TermIntervalTest
+		param.MaxWinnerSize = param.MaxWinnerSizeTest
+		param.SafeSize = param.SafeSizeTest
+		param.ConsensusSize = param.ConsensusSizeTest
+		param.SkipCurrentWinnerWaitTimeBase = param.SkipCurrentWinnerWaitTimeBaseTest
+		param.MappingCoin = param.MappingCoinTest
+		param.InitialCandidates = param.InitialCandidatesTest
+		param.Boots = param.BootsTest
+		param.UIPBlock1 = param.UIPBlock1Test
+		param.UIPBlock2 = param.UIPBlock2Test
+		param.UIPBlock3 = param.UIPBlock3Test
+		param.UIPBlock4 = param.UIPBlock4Test
+		param.UIPBlock5 = param.UIPBlock5Test
+		param.Blacklist = param.BlacklistTest
 	}
 
 	// p2p same network label, the label is different and cannot communicate

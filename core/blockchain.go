@@ -447,7 +447,7 @@ func (blc *BlockChain) verifyBlock(block *types.Block) error {
 }
 
 func (blc *BlockChain) verifyTx(tx types.ITransaction, blockHeight uint64) error {
-	if err := tx.VerifyTx(); err != nil {
+	if err := tx.VerifyTx(blc.currentHeight); err != nil {
 		return err
 	}
 
@@ -585,7 +585,7 @@ func (blc *BlockChain) FallBackTo(height uint64) error {
 func (blc *BlockChain) FallBack() {
 	err := blc.FallBackTo(blc.GetConfirmedHeight())
 	if err != nil {
-		blc.FallBackTo(blc.GetConfirmedHeight() - param.MaxWinnerSize)
+		blc.FallBackTo(blc.GetConfirmedHeight() - uint64(param.MaxWinnerSize))
 	}
 }
 

@@ -160,7 +160,7 @@ func (tp *TxPool) AddTransaction(tx types.ITransaction, isPeer bool) error {
 		return errors.New("the transaction already exists")
 	}
 
-	if err := tp.verifyTx(tx); err != nil {
+	if err := tp.verifyTx(tx, tp.lastHeightFunc()); err != nil {
 		return err
 	}
 
@@ -185,7 +185,7 @@ func (tp *TxPool) Gets(count int, maxSize uint64) types.Transactions {
 	failed := types.Transactions{}
 	var txBytes uint64
 	for _, tx := range txs {
-		if err := tp.verifyTx(tx); err != nil {
+		if err := tp.verifyTx(tx, tp.lastHeightFunc()); err != nil {
 			failed = append(failed, tx)
 		} else {
 			bytes, _ := tx.EncodeToBytes()
@@ -207,8 +207,13 @@ func (tp *TxPool) GetAll() (types.Transactions, types.Transactions) {
 	return prepareTxs, futureTxs
 }
 
-func (tp *TxPool) Get() types.ITransaction {
-	panic("implement me")
+func (tp *TxPool) GetPendingNonce(address hasharry.Address) uint64 {
+	nonce := tp.txs.GetPendingNonce(address)
+	if nonce == 0 {
+		nonce, _ = tp.accountState.GetAccountNonce(address)
+		return nonce
+	}
+	return nonce
 }
 
 // Delete transaction
@@ -231,8 +236,9 @@ func (tp *TxPool) GetTransaction(hash hasharry.Hash) (types.ITransaction, error)
 }
 
 // Verify the transaction is legal
-func (tp *TxPool) verifyTx(tx types.ITransaction) error {
-	if err := tx.VerifyTx(); err != nil {
+func (tp *TxPool) verifyTx(tx types.ITransaction, height uint64) error {
+	lastHeight := tp.lastHeightFunc()
+	if err := tx.VerifyTx(lastHeight); err != nil {
 		return err
 	}
 
@@ -248,7 +254,7 @@ func (tp *TxPool) verifyTx(tx types.ITransaction) error {
 		return err
 	}
 
-	if err := tp.runner.Verify(tx, tp.lastHeightFunc()); err != nil {
+	if err := tp.runner.Verify(tx, lastHeight); err != nil {
 		return err
 	}
 

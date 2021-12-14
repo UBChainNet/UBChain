@@ -7,6 +7,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/common/math"
 	"github.com/UBChainNet/UBChain/core/runner/library"
+	"github.com/UBChainNet/UBChain/core/runner/method"
 	"github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	exchange2 "github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
@@ -61,12 +62,12 @@ func NewPairStateWithExchange(runnerLibrary *library.RunnerLibrary, pairAddress 
 	}, nil
 }
 
-func (ps *PairState) Methods() map[string]*MethodInfo {
-	return pairMethods
+func (ps *PairState) Methods() map[string]*method.MethodInfo {
+	return method.PairMethods
 }
 
-func (ps *PairState) MethodExist(method string) bool {
-	_, exist := pairMethods[method]
+func (ps *PairState) MethodExist(mth string) bool {
+	_, exist := method.PairMethods[mth]
 	return exist
 }
 
@@ -327,14 +328,18 @@ func (p *PairRunner) PreAddLiquidityVerify() error {
 	if !p.addBody.TokenA.IsEqual(param.Token) {
 		noMainTokenCount++
 		if contract := p.pairState.library.GetContract(p.addBody.TokenA.String()); contract == nil {
-			return fmt.Errorf("tokenA %s is not exist", p.addBody.TokenA.String())
+			if contractV2 := p.pairState.library.GetContractV2(p.addBody.TokenA.String()); contractV2 == nil {
+				return fmt.Errorf("tokenA %s is not exist", p.addBody.TokenA.String())
+			}
 		}
 	}
 
 	if !p.addBody.TokenB.IsEqual(param.Token) {
 		noMainTokenCount++
 		if contract := p.pairState.library.GetContract(p.addBody.TokenB.String()); contract == nil {
-			return fmt.Errorf("tokenB %s is not exist", p.addBody.TokenB.String())
+			if contractV2 := p.pairState.library.GetContractV2(p.addBody.TokenB.String()); contractV2 == nil {
+				return fmt.Errorf("tokenB %s is not exist", p.addBody.TokenB.String())
+			}
 		}
 	}
 
@@ -396,12 +401,17 @@ func (p *PairRunner) PreRemoveLiquidityVerify(lastHeight uint64) error {
 	}
 	if !p.removeBody.TokenA.IsEqual(param.Token) {
 		if contract := p.pairState.library.GetContract(p.removeBody.TokenA.String()); contract == nil {
-			return fmt.Errorf("tokenA %s is not exist", p.removeBody.TokenA.String())
+			if contractV2 := p.pairState.library.GetContractV2(p.removeBody.TokenA.String()); contractV2 == nil {
+				return fmt.Errorf("tokenA %s is not exist", p.removeBody.TokenA.String())
+			}
 		}
+
 	}
 	if !p.removeBody.TokenB.IsEqual(param.Token) {
 		if contract := p.pairState.library.GetContract(p.removeBody.TokenB.String()); contract == nil {
-			return fmt.Errorf("tokenB %s is not exist", p.removeBody.TokenB.String())
+			if contractV2 := p.pairState.library.GetContractV2(p.removeBody.TokenB.String()); contractV2 == nil {
+				return fmt.Errorf("tokenB %s is not exist", p.removeBody.TokenB.String())
+			}
 		}
 	}
 
@@ -490,7 +500,7 @@ func (p *PairRunner) AddLiquidity() {
 	}
 	// blocktime 错误处理
 	blockTime := p.height
-	if p.height >= 750000{
+	if p.height >= param.UIPBlock2 {
 		blockTime = p.blockTime
 	}
 	if p.addBody.TokenA.IsEqual(p.pairState.pairBody.Token0) {
@@ -596,7 +606,7 @@ func (p *PairRunner) RemoveLiquidity() {
 
 	// blocktime 错误处理
 	blockTime := p.height
-	if p.height >= 750000{
+	if p.height >= param.UIPBlock2 {
 		blockTime = p.blockTime
 	}
 

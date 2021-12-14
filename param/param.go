@@ -25,18 +25,19 @@ var (
 	EaterAddress = hasharry.StringToAddress("UBCCoinEaterAddressDontSend000000000")
 )
 
-const (
+var (
 	// Block interval period
 	BlockInterval = uint64(15)
 	// Re-election interval
-	TermInterval = 60 * 60 * 24 * 365 * 100
+	TermInterval uint64 = 60 * 60 * 24 * 365 * 100
 	// Maximum number of super nodes
 	MaxWinnerSize = 9
 	// The minimum number of nodes required to confirm the transaction
 	SafeSize = MaxWinnerSize*2/3 + 1
 	// The minimum threshold at which a block is valid
-	ConsensusSize                 = MaxWinnerSize*2/3 + 1
-	SkipCurrentWinnerWaitTimeBase = BlockInterval * MaxWinnerSize * 1
+	ConsensusSize = MaxWinnerSize*2/3 + 1
+
+	SkipCurrentWinnerWaitTimeBase = int(BlockInterval) * (MaxWinnerSize) * 1
 )
 
 const (
@@ -80,10 +81,18 @@ const (
 )
 
 var (
-	MainPubKeyHashAddrID  = [3]byte{0x03, 0x77, 0x7d} //UBC 3, 82, 32
-	TestPubKeyHashAddrID  = [3]byte{0x06, 0xb5, 0xab} //ubc
-	MainPubKeyHashTokenID = [3]byte{0x03, 0x77, 0xa2} //UBT 3, 82, 55
-	TestPubKeyHashTokenID = [3]byte{0x06, 0xb5, 0xd2} //ubt
+	UIPBlock1 uint64 = 633800
+	UIPBlock2 uint64 = 750000
+	UIPBlock3 uint64 = 754760
+	UIPBlock4 uint64 = 800000
+	UIPBlock5 uint64 = 909880
+)
+
+var (
+	MainPubKeyHashAddrID     = [3]byte{0x03, 0x77, 0x7d} //UBC 3, 82, 32
+	TestPubKeyHashAddrID     = [3]byte{0x06, 0xb5, 0xab} //ubc
+	MainPubKeyHashTokenID    = [3]byte{0x03, 0x77, 0xa2} //UBT 3, 82, 55
+	TestPubKeyHashTokenID    = [3]byte{0x06, 0xb5, 0xd2} //ubt
 	MainPubKeyHashContractID = [3]byte{0x03, 0x77, 0xab} //UBX 3, 82, 55
 	TestPubKeyHashContractID = [3]byte{0x06, 0xb5, 0xdc} //ubx
 )
@@ -102,7 +111,6 @@ var MappingCoin = []MappingInfo{
 	},
 }
 
-
 type CandidatesInfo struct {
 	Address string
 	Reward  string
@@ -111,11 +119,12 @@ type CandidatesInfo struct {
 
 var MinerReward = map[string]string{}
 
-func InitMinerReward(){
-	for _, candidate := range InitialCandidates{
+func InitMinerReward() {
+	for _, candidate := range InitialCandidates {
 		MinerReward[candidate.Address] = candidate.Reward
 	}
 }
+
 // initialCandidates the first super node of the block generation cycle.
 // The first half is the address of the block, the second half is the id of the block node
 var InitialCandidates = []CandidatesInfo{
@@ -166,6 +175,37 @@ var InitialCandidates = []CandidatesInfo{
 	},
 }
 
+var Boots = []string{
+	"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
+}
 
-
-
+var Blacklist = map[string]bool{
+	"UBCZJZ6todHWJnic4uy9XXyDFQjQ3Gbn11hS": true,
+	"UBCcP29DPc1iqx3TUZayAzy3vqjisAJSJfCy": true,
+	"UBCgGNXifB5DQK3mUkXPLythjoZhjXGzzMrr": true,
+	"UBCYExSWR8UFFjyjbCWiyeWbqn6GVg7aR6Xc": true,
+	"UBChd5hANMB51iqRNhyGP5o2at2sc6aQ5HrS": true,
+	"UBCKksYT7RcG8yaAXY3UQQySUG1Pf4UXu3yv": true,
+	"UBCSM34oj5BeRzn4DL6CTPS58ceSPoRBV2ND": true,
+	"UBCZBoibMBzh33fQMwrG4rdEUfq2NTEHBBkK": true,
+	"UBCRMdYfLg9xk83r86BCsgLQSzT752xhtQy6": true,
+	"UBCUoNkmpMQCbZwCqmLNnCTM36CPRF4nx3yT": true,
+	"UBCY1S6PgWhqDUzSYVxgDyAhdSoVmu2eXXUa": true,
+	"UBCaqNQJKPe2xUvhWE6VBStdEWNcY1Rp6MpX": true,
+	"UBCdhzjAyQudTGRkzyWVtTjv46kXUUiauVn9": true,
+	"UBCfwZU3x2Cn3rw562JFTcVcfot6nyoyfjuj": true,
+	"UBChpWMZrttYijztFw4W334xVn9WCHa85yWv": true,
+	"UBCanRLEsqQQn3hz7wNDsoAVXfvKLQrbeusB": true,
+	"UBCXAYVDSLzg7Gp9o167hUhmRUH26wY45grJ": true,
+	"UBCW47BX8cqXoCo1vFc5d1ANoBKNzN2XY4ui": true,
+	"UBCf1TUdC8viDJe4mu266GLwiE42QHpayurT": true,
+	"UBCf6tpoThzWiD7VANMT185M2HrNzRc26sCR": true,
+	"UBChMKyKS5AQd3fekRCV97E5pwsEvbYT7pa7": true,
+	"UBCNPHVr1L2fmajJr5CFmNS58TazDfVRc1Sq": true,
+	"UBCRCyvtjB7At9teBzsqzNLzkSh38AfJe5Lu": true,
+	"UBCLeC8DtziS7LTPCLVWg2k8RY8YstTTDeYk": true,
+	"UBCa22saA5WGwiCLnqa7Am2DMxZ3iopA6UCA": true,
+	"UBCdVNJnWQ4jtUCqp7mvvqTfi6HnwphERjSH": true,
+	"UBCN8SfiJ7NCBGSMA1kHXMPxrXRrpW2CxeiG": true,
+	"UBCShG6sRquo9RrQ2pmKvEh3oAmCeyx7unwb": true,
+}

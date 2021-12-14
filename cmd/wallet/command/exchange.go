@@ -913,8 +913,6 @@ func parseCPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	}
 	preMint, _ := types.NewAmount(preMintf)
 
-
-
 	if len(args) > 7 {
 		nonce, err = strconv.ParseUint(args[7], 10, 64)
 		if err != nil {
@@ -930,23 +928,23 @@ func parseCPParams(args []string, nonce uint64) (*types.Transaction, error) {
 }
 
 var AddPledgePoolCmd = &cobra.Command{
-	Use:     "AddPledgePool {from} {contract} {pair} {password} {nonce};pledge pair;",
+	Use:     "AddPledgePool {from} {contract} {pair} {block reward} {password} {nonce};pledge pair;",
 	Aliases: []string{"addpledgepool", "app", "APP"},
-	Short:   "AddPledgePool {from} {contract} {pair} {password} {nonce};pledge pair;",
+	Short:   "AddPledgePool {from} {contract} {pair} {block reward} {password} {nonce};pledge pair;",
 	Example: `
-	AddPledgePool UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 123456
+	AddPledgePool UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 100 123456
 		OR
-	AddPledgePool UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 123456 1
+	AddPledgePool UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a UWTfBGxDMZX19vjnacXVkP51min9EjhYq43W 100 123456 1
 	`,
-	Args: cobra.MinimumNArgs(3),
+	Args: cobra.MinimumNArgs(4),
 	Run:  AddPledgePool,
 }
 
 func AddPledgePool(cmd *cobra.Command, args []string) {
 	var passwd []byte
 	var err error
-	if len(args) > 3 {
-		passwd = []byte(args[3])
+	if len(args) > 4 {
+		passwd = []byte(args[4])
 	} else {
 		fmt.Println("please input password：")
 		passwd, err = readPassWd()
@@ -1002,20 +1000,25 @@ func parseAPPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	from := args[0]
 	contract := args[1]
 	pair := args[2]
+	rewardStr := args[3]
+	rewardStrf, err := strconv.ParseFloat(rewardStr, 64)
+	if err != nil {
+		return nil, errors.New("wrong block reward")
+	}
+	reward, _ := types.NewAmount(rewardStrf)
 
-	if len(args) > 4 {
-		nonce, err = strconv.ParseUint(args[4], 10, 64)
+	if len(args) > 5 {
+		nonce, err = strconv.ParseUint(args[5], 10, 64)
 		if err != nil {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	tx, err := transaction.NewAddPledgePool(from, contract, pair, nonce, "")
+	tx, err := transaction.NewAddPledgePool(from, contract, pair, reward, nonce, "")
 	if err != nil {
 		return nil, err
 	}
 	return tx, nil
 }
-
 
 var RemovePledgePoolCmd = &cobra.Command{
 	Use:     "RemovePledgePool {from} {contract} {pair} {password} {nonce};remove pledge pair;",
@@ -1458,25 +1461,24 @@ func parseUPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	return tx, nil
 }
 
-
 var StartPledgeCmd = &cobra.Command{
-	Use:     "StartPledge {from} {contract} {day mint} {day reward} {mature time} {password} {nonce};start pair pledge reward;",
+	Use:     "StartPledge {from} {contract} {block mint} {mature blocks} {password} {nonce};start pair pledge reward;",
 	Aliases: []string{"startpledge", "sp", "SP"},
-	Short:   "StartPledge {from} {contract} {day mint} {day reward} {mature time} {password} {nonce};start pair pledge reward;",
+	Short:   "StartPledge {from} {contract} {block mint} {mature blocks} {password} {nonce};start pair pledge reward;",
 	Example: `
-	StartPledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 100 100 10 123456
+	StartPledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 100 10 123456
 		OR
-	StartPledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 100 100 10 123456 1
+	StartPledge UBCGLmQMfEeF6Fh8CGztrSktnHVpCxLiheYw UWTfBGxDMZX19vjnacXVkP51min9EjhYq48a 100 10 123456 1
 	`,
-	Args: cobra.MinimumNArgs(5),
+	Args: cobra.MinimumNArgs(4),
 	Run:  StartPledge,
 }
 
 func StartPledge(cmd *cobra.Command, args []string) {
 	var passwd []byte
 	var err error
-	if len(args) > 5 {
-		passwd = []byte(args[5])
+	if len(args) > 4 {
+		passwd = []byte(args[4])
 	} else {
 		fmt.Println("please input password：")
 		passwd, err = readPassWd()
@@ -1531,35 +1533,27 @@ func parseSPParams(args []string, nonce uint64) (*types.Transaction, error) {
 	var err error
 	from := args[0]
 	contract := args[1]
-	dayMintStr := args[2]
-	dayRewardStr := args[3]
-	matureTimeStr := args[4]
+	blockMintStr := args[2]
+	matureTimeStr := args[3]
 
-
-	dayMintStrf, err := strconv.ParseFloat(dayMintStr, 64)
+	blockMintStrf, err := strconv.ParseFloat(blockMintStr, 64)
 	if err != nil {
-		return nil, errors.New("wrong day mint")
+		return nil, errors.New("wrong block mint")
 	}
-	dayMint, _ := types.NewAmount(dayMintStrf)
-
-	dayRewardf, err := strconv.ParseFloat(dayRewardStr, 64)
-	if err != nil {
-		return nil, errors.New("wrong day reward ")
-	}
-	dayReward, _ := types.NewAmount(dayRewardf)
+	blockMint, _ := types.NewAmount(blockMintStrf)
 
 	matureTime, err := strconv.ParseUint(matureTimeStr, 10, 64)
 	if err != nil {
-		return nil, errors.New("wrong day mature time ")
+		return nil, errors.New("wrong block mature time ")
 	}
 
-	if len(args) > 6 {
-		nonce, err = strconv.ParseUint(args[7], 10, 64)
+	if len(args) > 5 {
+		nonce, err = strconv.ParseUint(args[5], 10, 64)
 		if err != nil {
 			return nil, errors.New("wrong nonce")
 		}
 	}
-	tx, err := transaction.NewPledgeStart(from, contract, dayMint, dayReward, matureTime, nonce, "")
+	tx, err := transaction.NewPledgeStart(from, contract, blockMint, matureTime, nonce, "")
 	if err != nil {
 		return nil, err
 	}

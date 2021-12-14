@@ -7,11 +7,11 @@ import (
 	hash2 "github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/tokenhub_func"
 	"github.com/UBChainNet/UBChain/crypto/ecc/secp256k1"
 	"github.com/UBChainNet/UBChain/crypto/hash"
 	"github.com/UBChainNet/UBChain/param"
 	"github.com/UBChainNet/UBChain/ut"
-	"strconv"
 )
 
 const (
@@ -54,8 +54,8 @@ func (t *Transaction) Size() uint64 {
 	return uint64(len(bytes))
 }
 
-func (t *Transaction) VerifyTx() error {
-	if err := t.verifyHead(); err != nil {
+func (t *Transaction) VerifyTx(height uint64) error {
+	if err := t.verifyHead(height); err != nil {
 		return err
 	}
 
@@ -65,7 +65,7 @@ func (t *Transaction) VerifyTx() error {
 	return nil
 }
 
-func (t *Transaction) verifyHead() error {
+func (t *Transaction) verifyHead(height uint64) error {
 	if t.TxHead == nil {
 		return ErrTxHead
 	}
@@ -78,7 +78,7 @@ func (t *Transaction) verifyHead() error {
 		return err
 	}
 
-	if err := t.verifyTxFrom(); err != nil {
+	if err := t.verifyTxFrom(height); err != nil {
 		return err
 	}
 
@@ -206,9 +206,15 @@ func (t *Transaction) verifyAmount() error {
 	return nil
 }
 
-func (t *Transaction) verifyTxFrom() error {
+func (t *Transaction) verifyTxFrom(height uint64) error {
 	if !ut.CheckUBCAddress(param.Net, t.From().String()) {
 		return ErrAddress
+	}
+	if height >= param.UIPBlock5 {
+		_, exist := param.Blacklist[t.TxHead.From.String()]
+		if exist {
+			return ErrAddress
+		}
 	}
 	return nil
 }
@@ -290,10 +296,6 @@ func (t *Transaction) copy() *Transaction {
 		TxHead: header,
 		TxBody: t.TxBody,
 	}
-}
-
-func (t *Transaction) NonceKey() string {
-	return t.TxHead.From.String() + "_" + strconv.FormatUint(t.TxHead.Nonce, 10)
 }
 
 func (t *Transaction) Hash() hash2.Hash {
@@ -412,7 +414,26 @@ func (t *Transaction) TranslateToRlpTransaction() *RlpTransaction {
 			function, _ := body.Function.(*exchange_func.PledgeUpdateBody)
 			bytes, _ := rlp.EncodeToBytes(function)
 			rlpC.TxBody.Function = bytes
-
+		case contractv2.TokenHub_init:
+			function, _ := body.Function.(*tokenhub_func.TokenHubInitBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_Ack:
+			function, _ := body.Function.(*tokenhub_func.TokenHubAckBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_TransferOut:
+			function, _ := body.Function.(*tokenhub_func.TokenHubTransferOutBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_TransferIn:
+			function, _ := body.Function.(*tokenhub_func.TokenHubTransferInBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
+		case contractv2.TokenHub_FinishAcross:
+			function, _ := body.Function.(*tokenhub_func.TokenHubFinishAcrossBody)
+			bytes, _ := rlp.EncodeToBytes(function)
+			rlpC.TxBody.Function = bytes
 		}
 		rlpTx.TxBody, _ = rlp.EncodeToBytes(rlpC.TxBody)
 	default:

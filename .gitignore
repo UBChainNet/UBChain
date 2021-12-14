@@ -2,9 +2,11 @@
 .idea/workspace.xml
 cmd/wallet/keystore
 cmd/wallet/wallet
+cmd/wallet/test
 UBChain
 build
 cmd/tools/tools
+cmd/wallet/test
 config1.toml
 config2.toml
 config3.toml

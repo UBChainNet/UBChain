@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
+	"github.com/UBChainNet/UBChain/core/types/contractv2/tokenhub"
 )
 
 type RpcPair struct {
@@ -91,7 +92,7 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 		pledge, _ := contract.Body.(*exchange.Pledge)
 		return &RpcPledge{
 			PreMint:          pledge.PreMint,
-			DayMintAmount:    pledge.DayMintAmount,
+			DayMintAmount:    pledge.BlockMintAmount,
 			Receiver:         pledge.Receiver.String(),
 			TotalSupply:      pledge.TotalSupply,
 			MaxSupply:        pledge.MaxSupply,
@@ -103,6 +104,71 @@ func TranslateContractV2ToRpcContractV2(contract *contractv2.ContractV2) interfa
 			Admin:            pledge.Admin.String(),
 			LastHeight:       pledge.LastHeight,
 		}
+	case contractv2.TokenHub_:
+		th, _ := contract.Body.(*tokenhub.TokenHub)
+		thTrs := make(map[uint64]*TokenHubTransfer, 0)
+		for _, tr := range th.TransferOuts {
+			thTrs[tr.Sequence] = &TokenHubTransfer{
+				Sequence: tr.Sequence,
+				From:     tr.From,
+				To:       tr.To,
+				Amount:   Amount(tr.Amount).ToCoin(),
+				Fees:     Amount(tr.Fees).ToCoin(),
+				Hash:     tr.Hash,
+			}
+		}
+		unTrs := make(map[uint64]*TokenHubTransfer, 0)
+		for _, tr := range th.UnconfirmedOuts {
+			unTrs[tr.Sequence] = &TokenHubTransfer{
+				Sequence: tr.Sequence,
+				From:     tr.From,
+				To:       tr.To,
+				Amount:   Amount(tr.Amount).ToCoin(),
+				Fees:     Amount(tr.Fees).ToCoin(),
+				Hash:     tr.Hash,
+			}
+		}
+
+		return &RpcTokenHub{
+			Address:     th.Address.String(),
+			Setter:      th.Setter.String(),
+			Admin:       th.Admin.String(),
+			FeeTo:       th.FeeTo.String(),
+			FeeRate:     th.FeeRate,
+			Transfers:   thTrs,
+			Unconfirmed: unTrs,
+			AcrossSeqs:  th.AcrossSeqs,
+			FinishSeq:   th.FinishSeq,
+			Sequence:    th.Sequence,
+			ContinueSeq: th.ContinueSeq,
+			InAmount:    Amount(th.InAmount).ToCoin(),
+			OutAmount:   Amount(th.OutAmount).ToCoin(),
+		}
 	}
 	return nil
+}
+
+type TokenHubTransfer struct {
+	Sequence uint64  `json:"sequence"`
+	From     string  `json:"from"`
+	To       string  `json:"to"`
+	Amount   float64 `json:"amount"`
+	Fees     float64 `json:"fees"`
+	Hash     string  `json:"hash"`
+}
+
+type RpcTokenHub struct {
+	Address     string                       `json:"address"`
+	Setter      string                       `json:"setter"`
+	Admin       string                       `json:"admin"`
+	FeeTo       string                       `json:"feeTo"`
+	FeeRate     string                       `json:"feeRate"`
+	Transfers   map[uint64]*TokenHubTransfer `json:"transfers"`
+	Unconfirmed map[uint64]*TokenHubTransfer `json:"unconfirmed"`
+	AcrossSeqs  map[uint64]string            `json:"acrossSeqs"`
+	FinishSeq   map[uint64]bool              `json:"finishSeq"`
+	ContinueSeq uint64                       `json:"continueSeq"`
+	Sequence    uint64                       `json:"sequence"`
+	InAmount    float64                      `json:"inAmount"`
+	OutAmount   float64                      `json:"outAmount"`
 }

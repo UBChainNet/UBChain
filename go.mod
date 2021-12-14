@@ -11,8 +11,9 @@ require (
 	github.com/cloudflare/roughtime v0.0.0-20200829152512-a9bb6267a4f5
 	github.com/davecgh/go-spew v1.1.1
 	github.com/deckarep/golang-set v1.7.1
+	github.com/ethereum/go-ethereum v1.10.13
 	github.com/go-stack/stack v1.8.0
-	github.com/golang/protobuf v1.4.2
+	github.com/golang/protobuf v1.4.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/ipfs/go-ipfs-util v0.0.1
 	github.com/jessevdk/go-flags v1.4.0
@@ -21,18 +22,18 @@ require (
 	github.com/libp2p/go-libp2p-core v0.5.0
 	github.com/libp2p/go-libp2p-discovery v0.2.0
 	github.com/libp2p/go-libp2p-kad-dht v0.5.2
-	github.com/mattn/go-colorable v0.1.6
+	github.com/mattn/go-colorable v0.1.8
 	github.com/meitu/go-ethereum v0.0.0-20190715102930-7cbe5da6eb36 // indirect
 	github.com/multiformats/go-multiaddr v0.2.2
 	github.com/pkg/errors v0.9.1
 	github.com/rcrowley/go-metrics v0.0.0-20200313005456-10cdbea86bc0
 	github.com/sirupsen/logrus v1.2.0
 	github.com/spf13/cobra v0.0.5
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.7.0
 	github.com/ulikunitz/xz v0.5.7 // indirect
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
-	golang.org/x/net v0.0.0-20200822124328-c89045814202
-	golang.org/x/sys v0.0.0-20200523222454-059865788121
+	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/net v0.0.0-20210805182204-aaa1db679c0d
+	golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912
 	google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884 // indirect
 	google.golang.org/grpc v1.33.1
 	gopkg.in/karalabe/cookiejar.v2 v2.0.0-20150724131613-8dcd6a7f4951

@@ -6,6 +6,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/encode/rlp"
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2/exchange"
+	"github.com/UBChainNet/UBChain/core/types/contractv2/tokenhub"
 )
 
 type ContractType uint
@@ -16,6 +17,7 @@ const (
 	Pair_                  = 1
 	Pledge_                = 2
 	Token_                 = 3
+	TokenHub_              = 4
 )
 
 const (
@@ -38,6 +40,13 @@ const (
 	Pledge_Update       = 200007
 
 	Token_Init = 300000
+
+	TokenHub_init         = 400000
+	TokenHub_Ack          = 400001
+	TokenHub_TransferOut  = 400002
+	TokenHub_TransferIn   = 400003
+	TokenHub_FinishAcross = 400004
+
 )
 
 type ContractV2 struct {
@@ -81,6 +90,7 @@ type RlpContractV2 struct {
 
 type IContractV2Body interface {
 	Bytes() []byte
+	GetSymbol() string
 }
 
 func DecodeContractV2(bytes []byte) (*ContractV2, error) {
@@ -115,6 +125,13 @@ func DecodeContractV2(bytes []byte) (*ContractV2, error) {
 			return nil, err
 		}
 		contract.Body = pair
+		return contract, err
+	case TokenHub_:
+		tokenHub, err := tokenhub.DecodeToTokenHub(rlpContract.Body)
+		if err != nil {
+			return nil, err
+		}
+		contract.Body = tokenHub
 		return contract, err
 	}
 	return nil, errors.New("decoding failure")

@@ -385,7 +385,7 @@ func (dpos *DPos) updateConfirmedBlockHeader(chain consensus.IChain) error {
 		count := winnerMap[curHeader.Signer.String()]
 		winnerMap[curHeader.Signer.String()] = count + 1
 
-		if len(winnerMap) >= param.ConsensusSize /*dpos.checkWinnerMapCount(winnerMap, 1)*/ {
+		if len(winnerMap) >= int(param.ConsensusSize) /*dpos.checkWinnerMapCount(winnerMap, 1)*/ {
 			dpos.dposStorage.SetConfirmedBlockHash(curHeader.Hash)
 			dpos.confirmedBlockHeader = curHeader
 			chain.UpdateConfirmedHeight(curHeader.Height)
@@ -403,7 +403,7 @@ func (dpos *DPos) updateConfirmedBlockHeader(chain consensus.IChain) error {
 // If the number of outgoing block nodes is greater than the
 // minimum confirmation number, the block is confirmed as valid
 func (dpos *DPos) checkWinnerMapCount(winnerMap map[string]int, maxCount int) bool {
-	if len(winnerMap) < param.ConsensusSize {
+	if len(winnerMap) < int(param.ConsensusSize) {
 		return false
 	}
 	winnerCount := 0
@@ -411,7 +411,7 @@ func (dpos *DPos) checkWinnerMapCount(winnerMap map[string]int, maxCount int) bo
 		if count >= maxCount {
 			winnerCount++
 		}
-		if winnerCount >= param.ConsensusSize {
+		if winnerCount >= int(param.ConsensusSize) {
 			return true
 		}
 	}
@@ -497,12 +497,12 @@ func (dpos *DPos) checkTime(lastHeader *types.Header, header *types.Header) erro
 }
 
 func (dpos *DPos) isSkipCurrentWinner(now uint64, lastTime uint64) bool {
-	skipTimes := (now - lastTime) / param.SkipCurrentWinnerWaitTimeBase
+	skipTimes := (now - lastTime) / uint64(param.SkipCurrentWinnerWaitTimeBase)
 	if skipTimes < 1 {
 		return false
 	}
-	skipIndex := skipTimes % param.MaxWinnerSize
-	return now%(param.SkipCurrentWinnerWaitTimeBase+skipIndex*param.BlockInterval) == 0
+	skipIndex := skipTimes % uint64(param.MaxWinnerSize)
+	return now%(uint64(param.SkipCurrentWinnerWaitTimeBase) + skipIndex*param.BlockInterval) == 0
 }
 
 func (dpos *DPos) lookupWinners(now uint64) (hasharry.Address, error) {

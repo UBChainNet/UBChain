@@ -8,6 +8,7 @@ import (
 	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/types/contractv2"
 	"github.com/UBChainNet/UBChain/core/types/functionbody/exchange_func"
+	"github.com/UBChainNet/UBChain/core/types/functionbody/tokenhub_func"
 )
 
 type IRpcTransactionBody interface {
@@ -357,11 +358,11 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeInitBody{
-				Exchange:         hasharry.StringToAddress(init.Exchange),
-				Receiver:         hasharry.StringToAddress(init.Receiver),
-				Admin:            hasharry.StringToAddress(init.Admin),
-				PreMint:          init.PreMint,
-				MaxSupply:        init.MaxSupply,
+				Exchange:  hasharry.StringToAddress(init.Exchange),
+				Receiver:  hasharry.StringToAddress(init.Receiver),
+				Admin:     hasharry.StringToAddress(init.Admin),
+				PreMint:   init.PreMint,
+				MaxSupply: init.MaxSupply,
 			},
 		}, nil
 	case contractv2.Pledge_Start:
@@ -380,9 +381,8 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeStartBody{
-				DayMintAmount:    start.DayMintAmount,
+				BlockMintAmount:  start.BlockMintAmount,
 				PledgeMatureTime: start.PledgeMatureTime,
-				DayRewardAmount:  start.DayRewardAmount,
 			},
 		}, nil
 	case contractv2.Pledge_AddPool:
@@ -401,7 +401,8 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function: &exchange_func.PledgeAddPoolBody{
-				Pair: hasharry.StringToAddress(addPool.Pair),
+				Pair:        hasharry.StringToAddress(addPool.Pair),
+				BlockReward: addPool.BlockReward,
 			},
 		}, nil
 	case contractv2.Pledge_RemovePool:
@@ -471,12 +472,109 @@ func translateRpcContractV2BodyToBody(rpcBody IRpcTransactionBody) (*TxContractV
 			Function:     &exchange_func.PledgeRewardRemoveBody{},
 		}, nil
 	case contractv2.Pledge_Update:
-
 		return &TxContractV2Body{
 			Contract:     hasharry.StringToAddress(body.Contract),
 			Type:         body.Type,
 			FunctionType: body.FunctionType,
 			Function:     &exchange_func.PledgeUpdateBody{},
+		}, nil
+	case contractv2.TokenHub_init:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		init := &RpcTokenHubInit{}
+		err = json.Unmarshal(bytes, init)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &tokenhub_func.TokenHubInitBody{
+				Setter:  hasharry.StringToAddress(init.Setter),
+				Admin:   hasharry.StringToAddress(init.Admin),
+				FeeTo:   hasharry.StringToAddress(init.FeeTo),
+				FeeRate: init.FeeRate,
+			},
+		}, nil
+	case contractv2.TokenHub_Ack:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		ack := &RpcTokenHubAck{}
+		err = json.Unmarshal(bytes, ack)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &tokenhub_func.TokenHubAckBody{
+				Sequences: ack.Sequences,
+				AckTypes:  ack.AckTypes,
+				Hashes:    ack.Hashes,
+			},
+		}, nil
+	case contractv2.TokenHub_TransferOut:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		tr := &RpcTokenHubTransferOut{}
+		err = json.Unmarshal(bytes, tr)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &tokenhub_func.TokenHubTransferOutBody{
+				To:     tr.To,
+				Amount: tr.Amount,
+			},
+		}, nil
+	case contractv2.TokenHub_TransferIn:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		tr := &RpcTokenHubTransferIn{}
+		err = json.Unmarshal(bytes, tr)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &tokenhub_func.TokenHubTransferInBody{
+				To:        hasharry.StringToAddress(tr.To),
+				Amount:    tr.Amount,
+				AcrossSeq: tr.AcrossSeq,
+			},
+		}, nil
+	case contractv2.TokenHub_FinishAcross:
+		bytes, err = json.Marshal(body.Function)
+		if err != nil {
+			return nil, err
+		}
+		tr := &RpcTokenHubFinishAcrossBody{}
+		err = json.Unmarshal(bytes, tr)
+		if err != nil {
+			return nil, err
+		}
+		return &TxContractV2Body{
+			Contract:     hasharry.StringToAddress(body.Contract),
+			Type:         body.Type,
+			FunctionType: body.FunctionType,
+			Function: &tokenhub_func.TokenHubFinishAcrossBody{
+				AcrossSeqs: tr.AcrossSeqs,
+			},
 		}, nil
 	}
 	return nil, errors.New("wrong transaction body")
@@ -656,11 +754,11 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeInit{
-			Exchange:         funcBody.Exchange.String(),
-			Receiver:         funcBody.Receiver.String(),
-			Admin:            funcBody.Admin.String(),
-			PreMint:          funcBody.PreMint,
-			MaxSupply:        funcBody.MaxSupply,
+			Exchange:  funcBody.Exchange.String(),
+			Receiver:  funcBody.Receiver.String(),
+			Admin:     funcBody.Admin.String(),
+			PreMint:   funcBody.PreMint,
+			MaxSupply: funcBody.MaxSupply,
 		}
 	case contractv2.Pledge_Start:
 		funcBody, ok := body.Function.(*exchange_func.PledgeStartBody)
@@ -668,9 +766,8 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeStart{
-			DayMintAmount:    funcBody.DayMintAmount,
+			BlockMintAmount:  funcBody.BlockMintAmount,
 			PledgeMatureTime: funcBody.PledgeMatureTime,
-			DayRewardAmount:  funcBody.DayRewardAmount,
 		}
 	case contractv2.Pledge_AddPool:
 		funcBody, ok := body.Function.(*exchange_func.PledgeAddPoolBody)
@@ -678,7 +775,8 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 			return nil, errors.New("wrong function body")
 		}
 		function = &RpcPledgeAddPool{
-			Pair: funcBody.Pair.String(),
+			Pair:        funcBody.Pair.String(),
+			BlockReward: funcBody.BlockReward,
 		}
 	case contractv2.Pledge_RemovePool:
 		funcBody, ok := body.Function.(*exchange_func.PledgeRemovePoolBody)
@@ -710,6 +808,54 @@ func rpcFunction(body *TxContractV2Body) (IRCFunction, error) {
 		function = &RpcPledgeRewardRemove{}
 	case contractv2.Pledge_Update:
 		function = &RpcPledgeUpdate{}
+	case contractv2.TokenHub_init:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubInitBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubInit{
+			Setter:  funcBody.Setter.String(),
+			Admin:   funcBody.Admin.String(),
+			FeeTo:   funcBody.FeeTo.String(),
+			FeeRate: funcBody.FeeRate,
+		}
+	case contractv2.TokenHub_Ack:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubAckBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubAck{
+			Sequences: funcBody.Sequences,
+			AckTypes:  funcBody.AckTypes,
+			Hashes:    funcBody.Hashes,
+		}
+	case contractv2.TokenHub_TransferOut:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubTransferOutBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubTransferOut{
+			To:     funcBody.To,
+			Amount: funcBody.Amount,
+		}
+	case contractv2.TokenHub_TransferIn:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubTransferInBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubTransferIn{
+			To:        funcBody.To.String(),
+			Amount:    funcBody.Amount,
+			AcrossSeq: funcBody.AcrossSeq,
+		}
+	case contractv2.TokenHub_FinishAcross:
+		funcBody, ok := body.Function.(*tokenhub_func.TokenHubFinishAcrossBody)
+		if !ok {
+			return nil, errors.New("wrong function body")
+		}
+		function = &RpcTokenHubFinishAcrossBody{
+			AcrossSeqs: funcBody.AcrossSeqs,
+		}
 	}
 	return function, nil
 }

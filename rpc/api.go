@@ -68,6 +68,13 @@ func (a *Api) GetAccount(address string) (*rpctypes.Account, error) {
 	return rpcAccount, nil
 }
 
+func (a *Api) GetPendingNonce(address string) (string, error) {
+	addr := hasharry.StringToAddress(address)
+	nonce := a.txPool.GetPendingNonce(addr)
+	sNonce := strconv.FormatUint(nonce, 10)
+	return sNonce, nil
+}
+
 func (a *Api) GetTransaction(hashStr string) (*coreTypes.RpcTransactionConfirmed, error) {
 	hash, err := hasharry.StringToHash(hashStr)
 	if err != nil {
@@ -199,7 +206,7 @@ func (a *Api) AccountList() (interface{}, error) {
 }
 
 func (a *Api) ContractMethod(contract, function string, params []string) (interface{}, error) {
-	return a.runner.ReadMethod(contract, function, params)
+	return a.runner.ReadMethod(a.chain.GetLastHeight(), contract, function, params)
 }
 
 func (a *Api) GetConfirmedHeight() (string, error) {

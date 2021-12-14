@@ -231,7 +231,7 @@ func NewSwapExactOut(from, to, exchange string, amountOut, amountInMax uint64, p
 	return tx, nil
 }
 
-func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, preMint,  nonce uint64, note string) (*types.Transaction, error) {
+func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, preMint, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -248,11 +248,11 @@ func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, p
 			Type:         contractv2.Pledge_,
 			FunctionType: contractv2.Pledge_Init,
 			Function: &exchange_func.PledgeInitBody{
-				Exchange:         hasharry.StringToAddress(exchange),
-				Receiver:         hasharry.StringToAddress(receive),
-				Admin:            hasharry.StringToAddress(admin),
-				PreMint:          preMint,
-				MaxSupply:        maxSupply,
+				Exchange:  hasharry.StringToAddress(exchange),
+				Receiver:  hasharry.StringToAddress(receive),
+				Admin:     hasharry.StringToAddress(admin),
+				PreMint:   preMint,
+				MaxSupply: maxSupply,
 			},
 		},
 	}
@@ -260,7 +260,7 @@ func NewPledgeInit(from, admin, contract, exchange, receive string, maxSupply, p
 	return tx, nil
 }
 
-func NewPledgeStart(from, contract string, dayMint, dayReward, matureTime, nonce uint64, note string) (*types.Transaction, error) {
+func NewPledgeStart(from, contract string, blockMint, matureTime, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -277,8 +277,7 @@ func NewPledgeStart(from, contract string, dayMint, dayReward, matureTime, nonce
 			Type:         contractv2.Pledge_,
 			FunctionType: contractv2.Pledge_Start,
 			Function: &exchange_func.PledgeStartBody{
-				DayMintAmount:    dayMint,
-				DayRewardAmount:  dayReward,
+				BlockMintAmount:  blockMint,
 				PledgeMatureTime: matureTime,
 			},
 		},
@@ -287,7 +286,7 @@ func NewPledgeStart(from, contract string, dayMint, dayReward, matureTime, nonce
 	return tx, nil
 }
 
-func NewAddPledgePool(from, contract, pair string, nonce uint64, note string) (*types.Transaction, error) {
+func NewAddPledgePool(from, contract, pair string, blockReward, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{
 		TxHead: &types.TransactionHead{
 			TxType:     types.ContractV2_,
@@ -304,14 +303,14 @@ func NewAddPledgePool(from, contract, pair string, nonce uint64, note string) (*
 			Type:         contractv2.Pledge_,
 			FunctionType: contractv2.Pledge_AddPool,
 			Function: &exchange_func.PledgeAddPoolBody{
-				Pair: hasharry.StringToAddress(pair),
+				Pair:        hasharry.StringToAddress(pair),
+				BlockReward: blockReward,
 			},
 		},
 	}
 	tx.SetHash()
 	return tx, nil
 }
-
 
 func NewRemovePledgePool(from, contract, pair string, nonce uint64, note string) (*types.Transaction, error) {
 	tx := &types.Transaction{

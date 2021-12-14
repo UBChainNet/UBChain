@@ -43,6 +43,10 @@ func NewPair(exchange, token0, token1 hasharry.Address, symbol0, symbol1, exchan
 	}
 }
 
+func (p *Pair) GetSymbol() string {
+	return p.Symbol
+}
+
 func (p *Pair) Bytes() []byte {
 	bytes, _ := rlp.EncodeToBytes(p)
 	return bytes

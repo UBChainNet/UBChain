@@ -2,6 +2,7 @@ package list
 
 import (
 	"fmt"
+	"github.com/UBChainNet/UBChain/common/hasharry"
 	"github.com/UBChainNet/UBChain/core/interface"
 	"github.com/UBChainNet/UBChain/core/types"
 	"sync"
@@ -69,7 +70,22 @@ func (t *TxList) Len() int {
 	return t.futureTxs.Len() + t.preparedTxs.Len()
 }
 
-// Add a new transaction. If there is already a transaction with
+func (t *TxList)GetPendingNonce(address hasharry.Address) uint64 {
+	t.mutex.RLock()
+	defer t.mutex.RUnlock()
+
+	tx :=  t.preparedTxs.GetByAddress(address.String())
+	if tx != nil{
+		nonce := t.futureTxs.GetAddressMaxNonce(address.String())
+		if nonce != 0{
+			return nonce
+		}
+		return tx.GetNonce()
+	}
+	return 0
+}
+
+// Put Add a new transaction. If there is already a transaction with
 // the same nonce value, the transaction fee for the new transaction
 // needs to be greater than the transaction fee for the existing
 // transaction, otherwise add returns an error. If the nonce value
@@ -161,8 +177,8 @@ func (t *TxList) GetTransaction(hash string) (types.ITransaction, error) {
 }
 
 func (t *TxList) UpdateTxsList() {
-	t.mutex.RLock()
-	defer t.mutex.RUnlock()
+	t.mutex.Lock()
+	defer t.mutex.Unlock()
 
 	t.preparedTxs.RemoveExecuted(t.state)
 
