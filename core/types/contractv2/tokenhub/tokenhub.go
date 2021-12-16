@@ -20,7 +20,7 @@ const (
 	Send      AckType = 1
 	Confirmed AckType = 2
 	Failed    AckType = 3
-	Error  	  AckType = 4
+	Error     AckType = 4
 )
 
 type Transfer struct {
@@ -74,7 +74,7 @@ func (t *TokenHub) SetAdmin(from, admin hasharry.Address) error {
 	if !from.IsEqual(t.Setter) {
 		return errors.New("forbidden")
 	}
-	t.Setter = admin
+	t.Admin = admin
 	return nil
 }
 
@@ -98,7 +98,7 @@ func (t *TokenHub) TransferIn(from hasharry.Address, to hasharry.Address, amount
 	if !t.Admin.IsEqual(from) {
 		return nil, errors.New("forbidden")
 	}
-	if _, exist := t.AcrossSeqs[acrossSeq]; exist{
+	if _, exist := t.AcrossSeqs[acrossSeq]; exist {
 		return nil, fmt.Errorf("%d across transfer has send", acrossSeq)
 	}
 	feeRate, _ := strconv.ParseFloat(t.FeeRate, 64)
@@ -136,19 +136,19 @@ func (t *TokenHub) AcrossFinished(from hasharry.Address, acrossSeq []uint64) err
 		delete(t.AcrossSeqs, seq)
 	}
 	tmp := make([]uint64, 0)
-	for seq := range t.FinishSeq{
+	for seq := range t.FinishSeq {
 		tmp = append(tmp, seq)
 	}
 	sort.Slice(tmp, func(i, j int) bool {
 		return tmp[i] < tmp[j]
 	})
-	for _, seq := range tmp{
-		if t.ContinueSeq >= seq{
+	for _, seq := range tmp {
+		if t.ContinueSeq >= seq {
 			delete(t.FinishSeq, seq)
-		}else if t.ContinueSeq +1 == seq{
+		} else if t.ContinueSeq+1 == seq {
 			t.ContinueSeq++
 			delete(t.FinishSeq, seq)
-		}else{
+		} else {
 			break
 		}
 	}
@@ -214,7 +214,7 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 				transfer, exist = t.TransferOuts[sequence]
 				if exist {
 					delete(t.TransferOuts, sequence)
-				}else{
+				} else {
 					return nil, fmt.Errorf("ack unconfirmed sequence %d does not exist", sequence)
 				}
 			}
@@ -226,7 +226,7 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 			})
 		case Failed:
 			transfer, exist := t.UnconfirmedOuts[sequence]
-			if exist{
+			if exist {
 				transfer.Hash = ""
 				t.TransferOuts[sequence] = transfer
 			}
@@ -239,19 +239,19 @@ func (t *TokenHub) AckTransfer(from hasharry.Address, ackData map[uint64]AckType
 
 func (t *TokenHub) ToRlp() *RlpTokenHub {
 	rlpTh := &RlpTokenHub{
-		Address:        t.Address.String(),
-		Setter:         t.Setter.String(),
-		Admin:          t.Admin.String(),
-		FeeTo:          t.FeeTo.String(),
-		FeeRate:        t.FeeRate,
-		Transfers:      make([]*Transfer, 0),
-		Unconfirmed:    make([]*Transfer, 0),
-		AcrossSeqs:     make([]*Across, 0),
-		FinishSeq:      make([]uint64, 0),
-		ContinueSeq:    t.ContinueSeq,
-		Sequence:       t.Sequence,
-		InAmount:       t.InAmount,
-		OutAmount:      t.OutAmount,
+		Address:     t.Address.String(),
+		Setter:      t.Setter.String(),
+		Admin:       t.Admin.String(),
+		FeeTo:       t.FeeTo.String(),
+		FeeRate:     t.FeeRate,
+		Transfers:   make([]*Transfer, 0),
+		Unconfirmed: make([]*Transfer, 0),
+		AcrossSeqs:  make([]*Across, 0),
+		FinishSeq:   make([]uint64, 0),
+		ContinueSeq: t.ContinueSeq,
+		Sequence:    t.Sequence,
+		InAmount:    t.InAmount,
+		OutAmount:   t.OutAmount,
 	}
 	for _, transfer := range t.TransferOuts {
 		rlpTh.Transfers = append(rlpTh.Transfers, transfer)
@@ -309,19 +309,19 @@ type Across struct {
 }
 
 type RlpTokenHub struct {
-	Address        string
-	Setter         string
-	Admin          string
-	FeeTo          string
-	FeeRate        string
-	Transfers      []*Transfer
-	Unconfirmed    []*Transfer
-	AcrossSeqs     []*Across
-	FinishSeq      []uint64
-	ContinueSeq    uint64
-	Sequence       uint64
-	InAmount       uint64
-	OutAmount      uint64
+	Address     string
+	Setter      string
+	Admin       string
+	FeeTo       string
+	FeeRate     string
+	Transfers   []*Transfer
+	Unconfirmed []*Transfer
+	AcrossSeqs  []*Across
+	FinishSeq   []uint64
+	ContinueSeq uint64
+	Sequence    uint64
+	InAmount    uint64
+	OutAmount   uint64
 }
 
 func DecodeToTokenHub(bytes []byte) (*TokenHub, error) {
