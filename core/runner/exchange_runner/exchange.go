@@ -128,6 +128,7 @@ func (es *ExchangeState) ExchangeOptimalRouterAmountIn(tokenA, tokenB string, am
 		}
 		if i == 0 {
 			minIn = amountIn
+			optimal = path
 		}
 		if amountIn < minIn {
 			minIn = amountIn
