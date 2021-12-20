@@ -83,8 +83,8 @@ func (c *ContractState) GetContractV2State(txHash string) *types.ContractV2State
 }
 
 func (c *ContractState) SetContractV2State(txHash string, contract *types.ContractV2State) {
-	c.contractMutex.RLock()
-	defer c.contractMutex.RUnlock()
+	c.contractMutex.Lock()
+	defer c.contractMutex.Unlock()
 
 	c.contractDb.SetContractV2State(txHash, contract)
 }
@@ -105,10 +105,10 @@ func (c *ContractState) VerifyState(tx types.ITransaction) error {
 	contract := c.contractDb.GetContract(contractAddr.String())
 	if contract != nil {
 		return contract.Verify(tx)
-	}else{
+	} else {
 		_, exist := c.contractDb.GetSymbolContract(tx.GetTxBody().GetAbbr())
-		if exist{
-			return fmt.Errorf("%s already exists",  tx.GetTxBody().GetAbbr())
+		if exist {
+			return fmt.Errorf("%s already exists", tx.GetTxBody().GetAbbr())
 		}
 	}
 	return nil
@@ -133,7 +133,7 @@ func (c *ContractState) UpdateContract(tx types.ITransaction, blockHeight uint64
 		contract.AddContract(contractRecord)
 	} else {
 		contract = &types.Contract{
-			Sender: 		tx.From().String(),
+			Sender:         tx.From().String(),
 			Contract:       contractAddr.String(),
 			CoinName:       txBody.GetName(),
 			CoinAbbr:       txBody.GetAbbr(),
@@ -148,15 +148,15 @@ func (c *ContractState) UpdateContract(tx types.ITransaction, blockHeight uint64
 	c.contractDb.SetContract(contract)
 }
 
-func (c *ContractState)SetSymbol(symbol string, contract string){
+func (c *ContractState) SetSymbol(symbol string, contract string) {
 	c.contractMutex.Lock()
 	defer c.contractMutex.Unlock()
 
 	c.contractDb.SetSymbol(symbol, contract)
 }
 
-func (c *ContractState) GetSymbolContract(symbol string) (string, bool){
-	if symbol == param.Token.String(){
+func (c *ContractState) GetSymbolContract(symbol string) (string, bool) {
+	if symbol == param.Token.String() {
 		return param.Token.String(), true
 	}
 	c.contractMutex.RLock()
@@ -165,9 +165,9 @@ func (c *ContractState) GetSymbolContract(symbol string) (string, bool){
 	return c.contractDb.GetSymbolContract(symbol)
 }
 
-func (c *ContractState)TokenList() []*types.Token{
-	c.contractMutex.Lock()
-	defer c.contractMutex.Unlock()
+func (c *ContractState) TokenList() []*types.Token {
+	c.contractMutex.RLock()
+	defer c.contractMutex.RUnlock()
 
 	return c.contractDb.TokenList()
 }

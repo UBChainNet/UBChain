@@ -11,10 +11,12 @@ import (
 	coreTypes "github.com/UBChainNet/UBChain/core/types"
 	"github.com/UBChainNet/UBChain/p2p"
 	"github.com/UBChainNet/UBChain/param"
+	"github.com/UBChainNet/UBChain/rpc/cache"
 	"github.com/UBChainNet/UBChain/rpc/rpctypes"
 	"github.com/UBChainNet/UBChain/services/reqmgr"
 	"github.com/UBChainNet/UBChain/ut"
 	"strconv"
+	"time"
 )
 
 type Api struct {
@@ -26,6 +28,7 @@ type Api struct {
 	chain         _interface.IBlockChain
 	peerManager   p2p.IPeerManager
 	peers         reqmgr.Peers
+	cache         *cache.MemCache
 }
 
 func NewApi(txPool _interface.ITxPool, state _interface.IAccountState, contractState _interface.IContractState,
@@ -40,6 +43,7 @@ func NewApi(txPool _interface.ITxPool, state _interface.IAccountState, contractS
 		peerManager:   peerManager,
 		peers:         peers,
 		runner:        runner,
+		cache:         cache.NewMemCache(),
 	}
 }
 
@@ -198,7 +202,15 @@ func (a *Api) GetContractBySymbol(symbol string) (interface{}, error) {
 }
 
 func (a *Api) TokenList() (interface{}, error) {
-	return a.contractState.TokenList(), nil
+	table := "TokenList"
+	key := "key"
+	value, err := a.cache.Value(table, key)
+	if err != nil {
+		value = a.contractState.TokenList()
+		a.cache.Add(table, key, 60*time.Second, value)
+		return value, nil
+	}
+	return value.([]*coreTypes.Token), nil
 }
 
 func (a *Api) AccountList() (interface{}, error) {
