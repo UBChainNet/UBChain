@@ -195,7 +195,7 @@ func (es *ExchangeState) amountIn(paths []string, amountOut float64) (float64, e
 	if err != nil {
 		return 0, err
 	}
-	return types.Amount(ins[len(ins)-1]).ToCoin(), nil
+	return types.Amount(ins[0]).ToCoin(), nil
 }
 
 func (es *ExchangeState) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
