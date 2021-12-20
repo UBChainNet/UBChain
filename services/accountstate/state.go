@@ -307,7 +307,7 @@ func (as *AccountState) PreTransfer(from, to, token hasharry.Address, amount uin
 
 func (as *AccountState) verifyTxState(tx types.ITransaction) error {
 	now := uint64(time.Now().Unix())
-	if tx.GetTime() > now {
+	if tx.GetTime() > now+3600 {
 		log.Warn("incorrect transaction time", "now", now, "time", tx.GetTime())
 		return errors.New("incorrect transaction time")
 	}
