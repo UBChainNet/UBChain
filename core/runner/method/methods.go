@@ -115,6 +115,30 @@ var ExMethods = map[string]*MethodInfo{
 		},
 	},
 
+	"ExchangeOptimalRouterAmountIn": &MethodInfo{
+		Name: "ExchangeOptimalRouterAmountIn",
+		Params: []Value{
+			{
+				Name: "tokenA",
+				Type: "string",
+			},
+			{
+				Name: "tokenB",
+				Type: "string",
+			},
+			{
+				Name: "amountOut",
+				Type: "float64",
+			},
+		},
+		Returns: []Value{
+			{
+				Name: "optimal path",
+				Type: "json",
+			},
+		},
+	},
+
 	"AmountOut": &MethodInfo{
 		Name: "AmountOut",
 		Params: []Value{

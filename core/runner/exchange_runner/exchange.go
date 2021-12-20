@@ -65,6 +65,12 @@ type Router struct {
 	Error     string   `json:"error"`
 }
 
+type RouterIn struct {
+	Path     []string `json:"path"`
+	AmountIn float64  `json:"amountIn"`
+	Error    string   `json:"error"`
+}
+
 func (es *ExchangeState) ExchangeRouterWithAmount(tokenA, tokenB string, amountIn float64) []Router {
 	var routers []Router
 	paths := es.body.ExchangeRouter(tokenA, tokenB)
@@ -111,6 +117,37 @@ func (es *ExchangeState) ExchangeOptimalRouter(tokenA, tokenB string, amountIn f
 	}
 }
 
+func (es *ExchangeState) ExchangeOptimalRouterAmountIn(tokenA, tokenB string, amountOut float64) *RouterIn {
+	paths := es.body.ExchangeRouter(tokenA, tokenB)
+	var minIn float64
+	var optimal []string
+	for i, path := range paths {
+		amountIn, err := es.amountIn(path, amountOut)
+		if err != nil {
+			continue
+		}
+		if i == 0 {
+			minIn = amountIn
+		}
+		if amountIn < minIn {
+			minIn = amountIn
+			optimal = path
+		}
+	}
+	if minIn == float64(0) {
+		return &RouterIn{
+			Path:     nil,
+			AmountIn: 0,
+			Error:    "unable to change",
+		}
+	}
+	return &RouterIn{
+		Path:     optimal,
+		AmountIn: minIn,
+		Error:    "",
+	}
+}
+
 func (es *ExchangeState) LegalPair(tokenA, tokenB string) (bool, error) {
 	return es.body.LegalPair(tokenA, tokenB)
 }
@@ -145,6 +182,19 @@ func (es *ExchangeState) AmountIn(paths string, amountOut float64) (float64, err
 		return 0, err
 	}
 	return types.Amount(ins[0]).ToCoin(), nil
+}
+
+func (es *ExchangeState) amountIn(paths []string, amountOut float64) (float64, error) {
+	arryPaths := make([]hasharry.Address, len(paths))
+	for i, path := range paths {
+		arryPaths[i] = hasharry.StringToAddress(path)
+	}
+	iAmountOut, _ := types.NewAmount(amountOut)
+	ins, err := es.getAmountsIn(iAmountOut, arryPaths)
+	if err != nil {
+		return 0, err
+	}
+	return types.Amount(ins[len(ins)-1]).ToCoin(), nil
 }
 
 func (es *ExchangeState) getAmountsOut(amountIn uint64, path []hasharry.Address) ([]uint64, error) {
