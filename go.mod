@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Qitmeer/qitmeer-lib v0.0.0-20190929044832-b10740b316a8 // indirect
+	github.com/bluele/gcache v0.0.2 // indirect
 	github.com/boltdb/bolt v1.3.1
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/goleveldb v1.0.0
