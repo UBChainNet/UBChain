@@ -201,6 +201,14 @@ func (a *Api) GetContractBySymbol(symbol string) (interface{}, error) {
 	return a.GetContract(contract)
 }
 
+func (a *Api) GetAddressBySymbol(symbol string) (string, error) {
+	contract, exist := a.contractState.GetSymbolContract(symbol)
+	if !exist {
+		return "", fmt.Errorf("symbol %s does not exist", contract)
+	}
+	return contract, nil
+}
+
 func (a *Api) TokenList() (interface{}, error) {
 	table := "TokenList"
 	key := "key"

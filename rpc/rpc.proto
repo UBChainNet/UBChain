@@ -31,6 +31,7 @@ service Greeter {
   rpc GetLastHeight(Null)returns (Response) {}
   rpc GetContract(Address)returns (Response) {}
   rpc GetContractBySymbol(Symbol)returns (Response) {}
+  rpc GetAddressBySymbol(Symbol)returns (Response) {}
   rpc ContractMethod(Method)returns (Response) {}
   rpc TokenList(Null)returns (Response) {}
   rpc AccountList(Null)returns (Response) {}

@@ -224,6 +224,15 @@ func (rs *Server) GetContractBySymbol(ctx context.Context, req *Symbol) (*Respon
 	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
 }
 
+func (rs *Server) GetAddressBySymbol(ctx context.Context, req *Symbol) (*Response, error) {
+	address, err := rs.api.GetAddressBySymbol(req.Symbol)
+	if err != nil {
+		return NewResponse(rpctypes.RpcErrContract, nil, err.Error()), nil
+	}
+	bytes, _ := json.Marshal(address)
+	return NewResponse(rpctypes.RpcSuccess, bytes, ""), nil
+}
+
 func (rs *Server) TokenList(ctx context.Context, req *Null) (*Response, error) {
 	list, err := rs.api.TokenList()
 	if err != nil {
