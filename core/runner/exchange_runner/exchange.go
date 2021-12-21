@@ -121,16 +121,15 @@ func (es *ExchangeState) ExchangeOptimalRouterAmountIn(tokenA, tokenB string, am
 	paths := es.body.ExchangeRouter(tokenA, tokenB)
 	var minIn float64
 	var optimal []string
-	for i, path := range paths {
+	for _, path := range paths {
 		amountIn, err := es.amountIn(path, amountOut)
 		if err != nil {
 			continue
 		}
-		if i == 0 {
+		if minIn == float64(0) {
 			minIn = amountIn
 			optimal = path
-		}
-		if amountIn < minIn {
+		} else if amountIn < minIn {
 			minIn = amountIn
 			optimal = path
 		}
