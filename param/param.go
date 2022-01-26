@@ -208,4 +208,5 @@ var Blacklist = map[string]bool{
 	"UBCdVNJnWQ4jtUCqp7mvvqTfi6HnwphERjSH": true,
 	"UBCN8SfiJ7NCBGSMA1kHXMPxrXRrpW2CxeiG": true,
 	"UBCShG6sRquo9RrQ2pmKvEh3oAmCeyx7unwb": true,
+	"UBCfrHq24ymxkRCZHoAR1AiZETRmGFwRPGcA": true,
 }
