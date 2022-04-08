@@ -5,7 +5,7 @@ go 1.15
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Qitmeer/qitmeer-lib v0.0.0-20190929044832-b10740b316a8 // indirect
-	github.com/bluele/gcache v0.0.2 // indirect
+	github.com/bluele/gcache v0.0.2
 	github.com/boltdb/bolt v1.3.1
 	github.com/btcsuite/btcd v0.20.1-beta
 	github.com/btcsuite/goleveldb v1.0.0
@@ -14,7 +14,7 @@ require (
 	github.com/deckarep/golang-set v1.7.1
 	github.com/ethereum/go-ethereum v1.10.13
 	github.com/go-stack/stack v1.8.0
-	github.com/golang/protobuf v1.4.3
+	github.com/golang/protobuf v1.5.0
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0 // indirect
 	github.com/ipfs/go-ipfs-util v0.0.1
 	github.com/jessevdk/go-flags v1.4.0
