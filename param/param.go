@@ -85,7 +85,7 @@ var (
 	UIPBlock2 uint64 = 750000
 	UIPBlock3 uint64 = 754760
 	UIPBlock4 uint64 = 800000
-	UIPBlock5 uint64 = 909880
+	UIPBlock5 uint64 = 1177101
 )
 
 var (
