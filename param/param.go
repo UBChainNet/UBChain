@@ -176,7 +176,7 @@ var InitialCandidates = []CandidatesInfo{
 }
 
 var Boots = []string{
-	"/ip4/47.243.130.199/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
+	"/ip4/43.155.22.238/tcp/2211/ipfs/16Uiu2HAm6nwbgynWPe3pXsSgw1nqPeBvn1etbskvjYnDiognvreQ",
 }
 
 var Blacklist = map[string]bool{
